@@ -14,5 +14,4 @@ pickles/
 pyvenv.cfg
 ski_species_pickles/
 Visualization/__pycache__/*
-static/cytoscape.js-cise/
 subset_pickles/
