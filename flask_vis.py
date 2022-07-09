@@ -11,7 +11,7 @@ import os
 from werkzeug.utils import secure_filename
 from os.path import expanduser
 
-pickle_path = "./abstracts/"
+pickle_path = "./newAbstrPickles/"
 
 UPLOAD_FOLDER = "uploads/"
 
@@ -292,13 +292,11 @@ def bfs_query_result(query_string, max_linkers, qtype, query_type, get_direct_li
     else:
         get_direct_linkers = False
     MultiQuery.query(G, edges_df, nodes_df, query, max_linkers, qtype, query_type, get_direct_linkers = get_direct_linkers, db_df = full_df, access_key=access_key, secret_key=secret_key, bucket=bucket)
-    no_path_file=open("no_path.txt","r")
-    no_path=[line.rstrip("\n") for line in no_path_file]
 
     elements = to_json_netx.clean()
     sq_align = to_json_netx.get_square_clusters()
     orig_align_q, orig_align_l = to_json_netx.get_orig_clusters()
-    return render_template("bfs_result.html", no_path=no_path, elements = elements, sq_align = sq_align, orig_align_q = orig_align_q, orig_align_l = orig_align_l)
+    return render_template("bfs_result.html", elements = elements, sq_align = sq_align, orig_align_q = orig_align_q, orig_align_l = orig_align_l)
 
 
 
