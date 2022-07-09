@@ -1,0 +1,743 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type=text/javascript>
+      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js"></script>
+    <script src="https://unpkg.com/layout-base@1.0.2/layout-base.js"></script>
+    <script src="https://unpkg.com/avsdf-base/avsdf-base.js"></script>
+    <script src="https://unpkg.com/cose-base@1.0.3/cose-base.js"></script>
+    <script src="https://unpkg.com/cytoscape-graphml/cytoscape-graphml.js"></script>
+    <script src="https://raw.githack.com/iVis-at-Bilkent/cytoscape.js-layvo/unstable/cytoscape-layvo.js"></script>
+    <script src="{{url_for('static', filename='cytoscape.js-cise/cytoscape-cise.js')}}"></script>
+    <script src="https://unpkg.com/layout-base/layout-base.js"></script>
+    <script src="https://unpkg.com/cose-base/cose-base.js"></script>
+    <script src="https://unpkg.com/cytoscape-fcose/cytoscape-fcose.js"></script>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>Result</title>
+</head>
+
+<style>
+    #cy {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        background: #4a4a4a;
+        z-index: -1;
+    }
+
+    .modal {
+        display: none;
+        /* Hidden by default */
+        position: fixed;
+        /* Stay in place */
+        z-index: 1;
+        /* Sit on top */
+        padding-top: 100px;
+        /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%;
+        /* Full width */
+        height: 100%;
+        /* Full height */
+        overflow: auto;
+        /* Enable scroll if needed */
+        background-color: rgb(0, 0, 0);
+        /* Fallback color */
+        background-color: rgba(0, 0, 0, 0.4);
+        /* Black w/ opacity */
+    }
+
+    /* Modal Content */
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .modal-body {
+        max-height: calc(100vh - 210px);
+        overflow-y: auto;
+    }
+
+    /* The Close Button */
+    .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    #menuDiv {
+        padding: 0px 20px 20px 0px
+    }
+
+    #posEv {
+        float: left;
+        padding-right: 20px;
+        width: 33%;
+        font-size: large;
+    }
+
+    #negEv {
+        float: left;
+        width: 33%;
+        padding-right: 20px;
+        font-size: large;
+    }
+
+    #incEv {
+        float: right;
+        width: 33%;
+        font-size: large;
+    }
+
+    #posThickness {
+        float: left;
+        width: 33%;
+    }
+
+    #negThickness {
+        float: left;
+        width: 33%;
+    }
+
+    #incThickness {
+        float: right;
+        width: 33%;
+    }
+</style>
+
+
+<body>
+    <div id="floatParent">
+    <div id="cy"></div>
+
+    <div class="w3-sidebar w3-bar-block w3-border-right" style="width:15%;float:left;" id="mySidebar">
+
+        <form id="queryForm" method="POST" action="{{ url_for('go_home') }}">
+            <h6><input class="w3-bar-item w3-button" style="color:#4CAF50" type="submit" value="Return to Homepage" />
+            </h6>
+        </form>
+
+
+        <h6 style="padding-left:10px">Filter by thickness:</h6>
+        <div style="padding-left:10px" class="slidecontainer">
+            <input type="range" min="1" max="100" value="1" class="slider" id="myRange">
+            <p>Minimum edge thickness: <span id="demo"></span></p>
+        </div>
+        <h6 style="padding-left:10px">Click on connections between nodes to see the evidence for that connection.</h6><br>
+        <h6 style="padding-left:10px">Mouseover nodes to see only the nodes that the node directly targets.</h6><br>
+        <div style="padding-left:10px">
+            <h6>Toggle between layouts using the button below.</h6>
+            <button id="layout-button" onclick="switch_layout()" class="btn btn-primary"
+                style="background-color:#4CAF50;padding-left:10px">Change Layout</button>
+            <p id="layout-name" style="padding-left:10px">Current Layout: Square force-based</p>
+            <h6>Toggle between showing and hiding all direct connections to query nodes.</h6>
+            <button id="direct-button" onclick="show_direct()" class="btn btn-primary"
+                style="background-color:#4CAF50;padding-left:10px">Show direct</button><br><br>
+
+        </div>
+
+
+        <h6 style="padding-left:10px">Experimental: Color-code the edges by interaction type</h6>
+        <h6 style="padding-left:10px">The NLP algorithm can also detect the type of relationship between two nodes (eg.
+            positive or negative regulation). However, it does not do so perfectly. Use the button below to color-code
+            the edges. Red represents down regulation, blue represents up regulation, and white represents inconclusive
+            interactions. For more information on the color-coding, please see the README.</h6><br>
+        <div style="padding-left:10px">
+            <button id="color-button" onclick="add_colors()" class="btn btn-primary"
+                style="background-color:#4CAF50;padding-left:10px">Show Color</button>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        function w3_open() {
+            document.getElementById("mySidebar").style.display = "block";
+        }
+
+        function w3_close() {
+            document.getElementById("mySidebar").style.display = "none";
+        }
+    </script>
+
+
+
+
+    <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h1 id="thickness" style="font-family: Arial, Helvetica, sans-serif"></h1>
+                <h1 style="font-family: Arial, Helvetica, sans-serif">Evidence for this connection:</h1>
+            </div>
+            <div id="modalBody" class="modal-body">
+                <h2 id="posThickness"></h2>
+                <h2 id="negThickness"></h2>
+                <h2 id="incThickness"></h2>
+                <div id="posEv"></div>
+                <div id="negEv"></div>
+                <div id="incEv"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="synModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h1 style="font-family: Arial, Helvetica, sans-serif">Synonyms:</h1>
+            </div>
+            <div id="modalBody" class="modal-body">
+                <h2 id="synList"></h2>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script>
+        const data = {{ elements | tojson }};
+        var sqAlign = {{ sq_align | tojson }};
+        var origAlignQ = {{ orig_align_q | tojson }};
+        var origAlignL = {{ orig_align_l | tojson }};
+        var cy = cytoscape({
+            wheelSensitivity: 0.1,
+            container: document.getElementById('cy'),
+            elements: data,
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'label': 'data(label)',
+                        "text-valign": "center",
+                        "text-halign": "center",
+                        width: function (ele) { return Math.min((Math.max(80, ele.degree() + 2) * 2), 500); },
+                        height: function (ele) { return Math.min((Math.max(80, ele.degree() + 2) * 2), 500); },
+                        "font-size": function (ele) { return Math.min((Math.log2(ele.degree() + 2) * 25), 350); },
+                        "background-color": "data(color)",
+                        "text-outline-color": "#555",
+                        "text-outline-width": "2px",
+                        "color": "#080707",
+                        'background-fit': 'contain',
+                        'background-clip': 'none',
+                        "display": "data(display)"
+                    },
+                    position: {
+                        x: "data(position)",
+                        y: "data(position)"
+                    }
+                }, {
+                    selector: 'edge',
+                    style: {
+
+                        'text-background-color': 'yellow',
+                        'text-background-opacity': 0.4,
+                        'width': 'data(weight)',
+                        'target-arrow-shape': 'triangle',
+                        'control-point-step-size': '140px',
+                        'curve-style': 'bezier',
+                        'control-point-step-size': 300,
+                        'line-color': "#fcfafa",
+                        'target-arrow-color': '#fcfafa',
+                        "overlay-opacity": "0.1",
+                        "display": "data(display)"
+                    }
+                },
+                {
+                    selector: 'node.semitransp',
+                    style: { 'opacity': '.1' }
+                },
+                {
+                    selector: 'edge.semitransp',
+                    style: { 'opacity': '.1' }
+                },
+                {
+                    selector: 'node.transp',
+                    style: {
+                        'opacity': '0',
+                        'events': 'no'
+                    }
+                },
+                {
+                    selector: 'edge.transp',
+                    style: { 'opacity': '0' }
+                },
+                {
+                    selector: 'node.large',
+                    style: {
+                        'font-size': 200
+                    }
+                },
+                {
+                    selector: 'edge.colors',
+                    style: {
+                        'line-color': "data(color)",
+                        'target-arrow-color': "data(color)"
+                    }
+                }
+
+            ]
+        });
+        
+        function run_circle() { 
+            var layout = cy.layout({
+                     name: 'breadthfirst',
+                     grid:true,
+                     roots:'node[classes @*="level3"]',
+                     maximal:true,
+                     circle:true,
+                    spacingFactor:4
+
+                });
+            layout.run(); 
+            var box = cy.elements().boundingBox();
+            var orphs = cy.elements().filter(function(ele) {return((ele.degree()==0));});
+            orphs.nodes().filter('[classes = "level3"]').positions(function( node, i ){
+              return {
+                x: box.x2+100+500*(i%4),
+                y: box.y1+500*(Math.floor(i/10))
+              };
+            });
+            var is_query = cy.nodes().filter('[type="Query"]');
+            var is_connected = is_query.filter(function(ele) {return((ele.degree()!=0));}); 
+            var direct = cy.nodes().filter('[type="Direct"]').not(':transparent');
+            for (var i=0; i<is_connected.length; i++) {
+                    ele = is_connected[i];
+                    var box = ele.position();
+                    var direct_conn = ele.outgoers().union(ele.incomers()).filter('[type="Direct"]').not(':transparent');
+                    direct_conn.positions(function( node, i ){
+                        if (box.x>0) {
+                          return {
+                            x: box.x+3000+500*(i%4),
+                            y: box.y+500*(Math.floor(i/10))
+                          };
+                        } else {
+                           return {
+                            x: box.x-3000-500*(i%4),
+                            y: box.y-500*(Math.floor(i/10))
+                          }; 
+                        }
+
+                    }); 
+                }
+            cy.zoom(0.08);
+            cy.center();
+        }
+        
+       function run_fcose() {
+            var layout = cy.layout({
+                name: 'fcose',
+                fixedNodeConstraint: origAlignQ,
+                packComponents: false,
+                nodeRepulsion: 50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+                nodeSeparation: 5000,
+                relativePlacementConstraint: origAlignL
+            });
+
+            layout.run();
+            var orphs = cy.elements().filter(function(ele) {return((ele.degree()==0));});
+            orphs.nodes().filter('[classes = "level3"]').positions(function( node, i ){
+              return {
+                x: box.x2+100+500*(i%4),
+                y: box.y1+500*(Math.floor(i/10))
+              };
+            });
+            cy.zoom(0.03);
+        }
+
+        function run_grid() {      
+            var is_query = cy.nodes().filter('[type="Query"]');
+            var is_connected = is_query.filter(function(ele) {return((ele.degree()!=0));});  //Connected query nodes
+            var query_orphans = is_query.filter(function(ele) {return((ele.degree()==0));}); // Non-connected query nodes
+            var linkers = cy.nodes().filter('[type="Linker"]').not(':transparent');
+            var direct = cy.nodes().filter('[type="Direct"]').not(':transparent');
+            var edgeLen = Math.floor(Math.sqrt(linkers.length));
+            var orphLen = Math.floor(Math.sqrt(query_orphans.length));
+            
+            if (linkers.length == 0) {
+                is_connected.positions(function( node, i ){
+                  return {
+                    x: 1000*(i%2),
+                    y: 1000*Math.floor(i/2)
+                  };
+                });
+                for (var i=0; i<is_connected.length; i++) {
+                    ele = is_connected[i];
+                    var box = ele.position();
+                    var direct_conn = ele.outgoers().union(ele.incomers()).filter('[type="Direct"]').not(':transparent');
+                    direct_conn.positions(function( node, i ){
+                        if (box.x==1000) {
+                          return {
+                            x: box.x+3000+500*(i%4),
+                            y: box.y+500*(Math.floor(i/10))
+                          };
+                        } else {
+                           return {
+                            x: box.x-3000-500*(i%4),
+                            y: box.y-500*(Math.floor(i/10))
+                          }; 
+                        }
+
+                    }); 
+                }
+                
+            } else {
+                is_connected.positions(function( node, i ){
+                  return {
+                    x: (edgeLen*500+5000)*(i%2),
+                    y: 1000*Math.floor(i/2)
+                  };
+                });                
+                linkers.positions(function( node, i ){
+                  return {
+                    x: 2500+(i%edgeLen)*500,
+                    y: 500*Math.floor(i/edgeLen)
+                  };
+                });
+                for (var i=0; i<is_connected.length; i++) {
+                    ele = is_connected[i];
+                    var box = ele.position();
+                    var direct_conn = ele.outgoers().union(ele.incomers()).filter('[type="Direct"]').not(':transparent');
+                    direct_conn.positions(function( node, i ){
+                        if (box.x==edgeLen*500+5000) {
+                          return {
+                            x: box.x+edgeLen*100+1000+500*(i%4),
+                            y: box.y+500*(Math.floor(i/10))
+                          };
+                        } else {
+                           return {
+                            x: box.x-edgeLen*100-1000-500*(i%4),
+                            y: box.y-500*(Math.floor(i/10))
+                          }; 
+                        }
+
+                    }); 
+                }
+
+            }
+            
+            query_orphans.positions(function( node, i ){
+                return {
+                    x: -500-500*(i%orphLen),
+                    y: -500-500*(Math.floor(i/orphLen))
+                  };
+                });
+            
+            cy.zoom(0.08);
+            cy.center();
+
+        }
+        
+        run_grid();
+
+
+        cy.on('mouseover', 'node', function (evt) {
+            var sel = evt.target;
+            console.log(sel.degree());
+            sel.addClass('large');
+            var neighbors = sel.outgoers().union(sel.incomers());
+            cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
+            cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp");
+        });
+
+        cy.on('mouseout', 'node', function (evt) {
+            var sel = evt.target;
+            sel.removeClass('large');
+            var neighbors = sel.outgoers().union(sel.incomers());
+            cy.nodes().difference(neighbors).not(sel).removeClass('semitransp');
+            cy.edges().difference(sel.edgesWith(neighbors)).removeClass("semitransp");
+        });
+        
+        
+        cy.on('click', 'edge', function (evt) {
+            var sel = evt.target;
+            console.log(sel.data().files);
+            
+            function getEvidence() {
+                var retval;
+                $.ajaxSetup({
+                    async: false
+                });
+                $(function() {
+                  $.getJSON($SCRIPT_ROOT + '/_get_evidence', {
+                    files:sel.data().files
+                  }, function(data) {
+                      console.log(data.result);
+                      retval = data.result;
+                      return false;
+                  }); 
+                });
+                console.log(retval);
+                return retval;
+            }
+            
+            var ev = getEvidence();
+            console.log(ev);
+            
+            var modal = document.getElementById("myModal");
+            var span = document.getElementsByClassName("close")[0];
+            var thickness = document.getElementById("thickness");
+            var ev_split = ev.split("%%");
+            var ev_length = ev_split.length;
+            thickness.innerHTML = "Total mentions: " + ev_length;
+            var ul_pos = document.createElement("ul");
+            var ul_neg = document.createElement("ul");
+            var ul_inc = document.createElement("ul");
+            var negCount = 0;
+            var posCount = 0;
+            var incCount = 0;
+            for (var i = 0; i < ev_split.length; i++) {
+                // Create the list item:
+                var item = document.createElement('li');
+                var cont = document.createElement("div");
+
+                var parts = ev_split[i].split("|");
+                var text = parts[0];
+                var act = parts[1];
+
+
+                // Set its contents:
+                item.appendChild(document.createTextNode(text));
+                cont.appendChild(item)
+                if (act === "Activation (Negative)") {
+                    cont.style.color = "red";
+                    negCount = negCount += 1;
+                } else if (act === "Activation (Positive)") {
+                    cont.style.color = "blue";
+                    posCount = posCount += 1;
+                }
+                else {
+                    cont.style.color = "black";
+                    incCount = incCount += 1;
+                }
+
+                cont.style.padding = "0px 0px 20px 0px";
+
+
+                // Add it to the list:
+                if (act === "Activation (Positive)") {
+                    ul_pos.appendChild(cont);
+                } else if (act === "Activation (Negative)") {
+                    ul_neg.appendChild(cont);
+                } else {
+                    ul_inc.appendChild(cont);
+                }
+
+            }
+
+            function createFiller() {
+                var fillerText = document.createElement("li");
+                var fillerCont = document.createElement("div");
+
+                fillerText.appendChild(document.createTextNode("This is filler text"));
+                fillerCont.appendChild(fillerText);
+                fillerCont.style.padding = "0px 0px 20px 0px";
+                fillerCont.style.color = "blue";
+
+                var fillerText = document.createElement("li");
+                var fillerCont = document.createElement("div");
+
+                fillerText.appendChild(document.createTextNode("This is filler text"));
+                fillerCont.appendChild(fillerText);
+                fillerCont.style.padding = "0px 0px 20px 0px";
+                fillerCont.style.color = "white";
+                return fillerCont;
+            }
+
+            var fillerPos = createFiller();
+            var fillerNeg = createFiller();
+            var fillerInc = createFiller();
+            ul_pos.appendChild(fillerPos);
+            ul_neg.appendChild(fillerNeg);
+            ul_inc.appendChild(fillerInc);
+
+            document.getElementById("posThickness").innerHTML = "Positive: " + posCount;
+            document.getElementById("negThickness").innerHTML = "Negative: " + negCount;
+            document.getElementById("incThickness").innerHTML = "Inconclusive: " + incCount;
+            document.getElementById("posEv").innerHTML = ul_pos.innerHTML;
+            document.getElementById("negEv").innerHTML = ul_neg.innerHTML;
+            document.getElementById("incEv").innerHTML = ul_inc.innerHTML;
+            modal.style.display = "block";
+
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    var modalBody = document.getElementById("modalBody");
+                    modalBody.scrollTop = 0;
+                    modal.style.display = "none";
+                }
+            }
+
+            span.onclick = function () {
+                var modalBody = document.getElementById("modalBody");
+                modalBody.scrollTop = 0;
+                modal.style.display = "none";
+            } 
+        });
+
+        cy.on('click', 'node', function (evt) {
+            var sel = evt.target;
+            var modal = document.getElementById("synModal");
+            var span = document.getElementsByClassName("close")[1];
+            var syn = sel.data().syn;
+            var syn_split = syn.split("%%");
+            syn_split = [...new Set(syn_split)];
+            var syn_list = document.createElement("ul")
+            for (var i = 0; i < syn_split.length; i++) {
+                // Create the list item:
+                var item = document.createElement('li');
+                var cont = document.createElement("div");
+
+                var text = syn_split[i];
+
+                // Set its contents:
+                item.appendChild(document.createTextNode(text));
+                cont.appendChild(item)
+                cont.style.padding = "0px 0px 20px 0px";
+
+                // Add it to the list:
+                syn_list.appendChild(cont);
+            }
+
+            document.getElementById("synList").innerHTML = syn_list.innerHTML;
+            modal.style.display = "block";
+
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    var modalBody = document.getElementById("modalBody");
+                    modalBody.scrollTop = 0;
+                    modal.style.display = "none";
+                }
+            }
+
+            span.onclick = function () {
+                var modalBody = document.getElementById("modalBody");
+                modalBody.scrollTop = 0;
+                modal.style.display = "none";
+            }
+        });
+
+
+
+
+        var slider = document.getElementById("myRange");
+        var output = document.getElementById("demo");
+        output.innerHTML = slider.value;
+        var filteredEdges = cy.edges().filter('[thickness < 0]');
+        var filteredNodes = cy.nodes().filter(function (ele) {
+            return ele.degree() == -2;
+        });
+        filteredEdges = cy.remove(filteredEdges);
+        filteredNodes = cy.remove(filteredNodes);
+        slider.oninput = function () {
+            filteredNodes.removeClass("transp");
+            filteredEdges.restore();
+
+            output.innerHTML = this.value;
+            threshold = this.value;
+            // filtering edges
+            filteredEdges = cy.edges().filter('[thickness < ' + threshold + ']');
+            filteredEdges = cy.remove(filteredEdges);
+            filteredNodes = cy.nodes().filter(function (ele) {
+                return ((ele.degree() == 0) && (ele.style()["background-color"] != "rgb(252,8,0)"));
+            });
+            filteredNodes.addClass("transp");
+            var nodes = cy.filter('node');
+            var currentLayout = document.getElementById("layout-name");
+            if (currentLayout.innerHTML=="Current Layout: Circle") {
+                run_circle();
+            } else if (currentLayout.innerHTML=="Current Layout: Square force-based") {
+                run_grid();
+            }
+
+        }
+
+        function switch_layout() {
+            var layout = document.getElementById("layout-name");
+            if (layout.innerHTML === "Current Layout: Square force-based") {
+                run_circle();
+                layout.innerHTML = "Current Layout: Circle";
+            } else {
+                run_grid();
+                layout.innerHTML = "Current Layout: Square force-based";
+            }
+        }
+
+        function show_direct() {
+            var slider = document.getElementById("myRange")
+            var threshold = slider.value
+            var layout = document.getElementById("direct-button");
+            if (layout.innerHTML === "Show direct") {
+                cy.edges().filter("[orig_display='none']").style("display", "element")
+                cy.nodes().filter("[orig_display = 'none']").style("display", "element")
+                layout.innerHTML = "Hide direct";
+            } else {
+                cy.edges().filter("[orig_display = 'none']").style("display", "none")
+                cy.nodes().filter("[orig_display = 'none']").style("display", "none")
+                layout.innerHTML = "Show direct";
+            }
+        }
+
+        function add_colors() {
+            var x = document.getElementById("color-button");
+            if (x.innerHTML === "Show Color") {
+                x.innerHTML = "Hide Color";
+                cy.edges().addClass("colors");
+            } else {
+                x.innerHTML = "Show Color";
+                cy.edges().removeClass("colors");
+            }
+        }
+
+        function switch_color() {
+            var x = document.getElementById("current-color");
+            if (x.innerHTML === "Current: Positive interactions") {
+                x.innerHTML = "Current: Negative interactions";
+                cy.edges().removeClass("pos_colors");
+                cy.edges().addClass("neg_colors");
+            } else if (x.innerHTML == "Current: Negative interactions") {
+                x.innerHTML = "Current: Inconclusive interactions";
+                cy.edges().removeClass("neg_colors");
+                cy.edges().addClass("inc_colors");
+            } else if (x.innerHTML == "Current: Inconclusive interactions") {
+                x.innerHTML = "Current: None";
+                cy.edges().removeClass("inc_colors");
+            } else {
+                x.innerHTML = "Current: Positive interactions";
+                cy.edges().addClass("pos_colors");
+            }
+        }
+
+
+
+
+    </script>
+
+
+</body>
+
+</html>

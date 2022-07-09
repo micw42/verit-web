@@ -1,0 +1,222 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>VERIT</title>
+</head>
+
+<style>
+    #progressbar {
+
+        margin-bottom: 30px;
+        overflow: hidden;
+        color: lightgrey
+    }
+
+    #progressbar .active {
+        color: #2F8D46
+    }
+
+    #progressbar li {
+        list-style-type: none;
+        font-size: 15px;
+        width: 25%;
+        float: left;
+        position: relative;
+        font-weight: 400;
+    }
+
+    #progressbar #step1:before {
+        content: "1";
+        padding-left: 20px;
+        cursor: pointer;
+
+    }
+
+    #progressbar #step2:before {
+        content: "2";
+        padding-left: 20px;
+        cursor: pointer;
+    }
+
+    #progressbar #step3:before {
+        content: "3";
+        padding-left: 20px;
+    }
+
+    #progressbar #step4:before {
+        content: "4";
+        padding-left: 20px;
+    }
+
+    #progressbar li:before {
+        width: 50px;
+        height: 50px;
+        line-height: 45px;
+        display: block;
+        font-size: 20px;
+        color: #ffffff;
+        background: lightgray;
+        border-radius: 50%;
+        margin: 0 auto 10px auto;
+        padding: 2px
+    }
+
+    #progressbar li:after {
+        content: '';
+        width: 100%;
+        height: 2px;
+        background: lightgray;
+        position: absolute;
+        left: 0;
+        top: 25px;
+        z-index: -1
+    }
+
+    #progressbar li.active:before,
+    #progressbar li.active:after {
+        background: #4CAF50
+    }
+
+    .progress {
+        height: 20px
+    }
+
+    .progress-bar {
+        background-color: #2F8D46;
+
+    }
+
+    a {
+        text-decoration: none;
+        display: inline-block;
+        padding: 8px 16px;
+    }
+
+    a:hover {
+        background-color: #ddd;
+        color: black;
+    }
+
+    .previous {
+        background-color: #f1f1f1;
+        color: black;
+    }
+
+    .next {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .round {
+        border-radius: 50%;
+    }
+</style>
+
+<body>
+    <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{{ url_for('home')}}">VERIT</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('home')}}">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('select_query')}}">Query</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('readme')}}">README</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div style="padding-top:65px;" class="container">
+        <ul id="progressbar">
+            <li class="active" id="step1">
+                <strong>Select query algorithm</strong>
+            </li>
+            <li class="active" id="step2"><strong>Input query</strong></li>
+            <li class="active" id="step3"><strong>Validate query</strong></li>
+            <li id="step4"><strong>Input additional parameters</strong></li>
+        </ul>
+
+        <script>
+            step1 = document.getElementById("step1");
+            step2 = document.getElementById("step2");
+            step1.onclick = function () {
+                window.history.go(-2);
+            };
+            step2.onclick = function () {
+                window.history.back();
+            };
+        </script>
+
+        {% if query_type == "single" %}
+        {% if not_in == [] %}
+        <h3>Your query was found in our database.</h3>
+        {% set continue = True %}
+        {% else %}
+        <h3>Your query was not found in our database.</h3>
+        {% set continue = False %}
+        {% endif %}
+        {% endif %}
+
+        {% if query_type == "dijkstra" %}
+        {% if not_in | length == 0 %}
+        <h3>All queries were found.</h3>
+        {% set continue = True %}
+        {% else %}
+        {% if present == [] %}
+        <h5>None of the IDs were found in our database.</h5>
+        {% set continue = False %}
+        {% else %}
+
+        <h5>These queries were found:</h5>
+        {% for p in present %}
+        <p>{{ p }}</p>
+        {% endfor %}
+        <h5>These queries were not found:</h5>
+        {% for n in not_in %}
+        <p>{{ n }}</p>
+        {% endfor %}
+        {% set continue = True %}
+        {% endif %}
+        {% endif %}
+
+
+        {% endif %}
+
+        {% if continue %}
+        <form method="POST" action="#">
+            <p><input type="submit" class="btn btn-primary" name="choice" value="Continue"
+                    style="background-color:#4CAF50" /></p>
+        </form>
+        {% endif %}
+        <form method="POST" action="#">
+            <p><input type="submit" name="choice" class="btn btn-primary" value="Try another query"
+                    style="background-color:#4CAF50" /></p>
+        </form>
+
+
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>

@@ -1,0 +1,259 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <title>VERIT</title>
+</head>
+    
+<style>
+  #contents {
+      padding: 15px;
+      height: 700px;
+      overflow: scroll;
+      border: 1px solid #ccc;
+      margin-bottom:20px;
+}
+  th, td {
+      padding: 20px;
+}
+  table, th, td {
+      border: 1px solid black;
+      border-collapse: collapse;
+}
+  #progressbar {    
+    margin-bottom: 30px;
+    overflow: hidden;
+    color: lightgrey
+}
+  
+    #progressbar .active {
+        color: #2F8D46
+    }
+
+    #progressbar li {
+        list-style-type: none;
+        font-size: 15px;
+        width: 25%;
+        float: left;
+        position: relative;
+        font-weight: 400;
+    }
+
+    #progressbar #step1:before {
+        content: "1";
+        cursor: pointer;
+        padding-left: 20px;
+
+    }
+
+    #progressbar #step2:before {
+        content: "2";
+        cursor: pointer;
+        padding-left: 20px;
+    }
+
+    #progressbar #step3:before {
+        content: "3";
+        padding-left: 20px;
+    }
+
+    #progressbar #step4:before {
+        content: "4";
+        padding-left: 20px;
+    }
+
+    #progressbar li:before {
+        width: 50px;
+        height: 50px;
+        line-height: 45px;
+        display: block;
+        font-size: 20px;
+        color: #ffffff;
+        background: lightgray;
+        border-radius: 50%;
+        margin: 0 auto 10px auto;
+        padding: 2px
+    }
+
+    #progressbar li:after {
+        content: '';
+        width: 100%;
+        height: 2px;
+        background: lightgray;
+        position: absolute;
+        left: 0;
+        top: 25px;
+        z-index: -1
+    }
+
+    #progressbar li.active:before,
+    #progressbar li.active:after {
+        background: #4CAF50
+    }
+
+    .progress {
+        height: 20px
+    }
+
+    .progress-bar {
+        background-color: #2F8D46;
+
+    }
+                         a {
+      text-decoration: none;
+      display: inline-block;
+      padding: 8px 16px;
+    }
+
+    a:hover {
+      background-color: #ddd;
+      color: black;
+    }
+
+    .previous {
+      background-color: #f1f1f1;
+      color: black;
+    }
+
+    .next {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .round {
+      border-radius: 50%;
+    }
+</style>
+    
+<body>
+    <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="{{ url_for('home')}}">VERIT</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('home')}}">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="{{ url_for('select_query')}}">Query</a>
+          </li>
+         <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('readme')}}">README</a>
+          </li>
+        </ul>
+      </div>
+        
+               <script>
+           // Function to run on click:
+function toggle(elem) {
+    var el = document.getElementById(elem);
+    if (elem.innerHTML == "Show More") {
+        elem.innerHTML = "Show Less";
+    } else {
+        elem.innerHTML = "Show More";
+    }
+}
+  
+        </script>
+
+    </nav>
+    <div style="padding-top:65px;" class="container">
+        <ul id="progressbar">
+            <li class="active" id="step1">
+                <strong>Select query algorithm</strong>
+            </li>
+            <li class="active" id="step2"><strong>Input query</strong></li>
+            <li class="active" id="step3"><strong>Validate query</strong></li>
+            <li id="step4"><strong>Input additional parameters</strong></li>
+         </ul>
+        <script>
+            step1=document.getElementById("step1");
+            step2=document.getElementById("step2");
+            step1.onclick=function() {
+                window.history.go(-2);
+            };
+            step2.onclick=function() {
+                window.history.back();
+            };
+        </script>
+        {% if not result_dict %}
+            <h2>Your query was not found in the database.</h2>
+            <form method="POST" action="#" style="height:100%;width:100%">
+                <input type="submit" class="btn btn-primary" name="query" value="Try another query" style="background-color:#4CAF50"/>
+        </form>
+        {% else %}
+            <h3>ID matches: select best</h3>
+                <div id="contents">       
+                <table style="width:100%">
+                   <tr style="background-color:#4CAF50;line-height:10px;">
+                        <th style="text-align:left;font-size:large;color:white">ID</th>
+                       <th style="text-align:left;font-size:large;color:white">PageRank Score</th>
+                        <th style="text-align:left;font-size:large;color:white">Name(s)</th>
+                  </tr>
+
+
+
+                {% for id, id_dict in result_dict.items() %}   
+                  <tr>
+                       <form method="POST" action="#" style="height:100%;width:100%">
+                            <td>
+                                <input class="btn btn-primary" type="checkbox" name="query" value={{ id }} style="background-color:#4CAF50"/>{{ id }}
+    
+                           </td>
+                       <td>
+                           {% if id_dict is mapping %}
+                         <p>{{ '%0.4f'| format(id_dict["PR"]|float) }}                        
+                                  {% if id_dict["PR"] < 0.05 %}
+                                <span>&#9888;</span>
+                            {% endif %}
+                           </p> 
+                      
+
+                           </td>
+                       
+                    
+                    <td>
+                        <ul>
+                            {% set len = id_dict["names"]|length %}
+                            {% if len <= 3 %}
+                                  {% for n in id_dict["names"][0:len] %}
+                                   <li style="margin-left:40px">{{ n }}</li>
+                                {% endfor %}
+            {% else %}
+                    {% for n in id_dict["names"][1:4] %}
+                                   <li style="margin-left:40px">{{ n }}</li>
+                                {% endfor %}
+                    <div style = "padding-left:40px" class="container">
+ {% set btn_id = "toggle"+loop.index|string %}
+  <button type="button" onclick = toggle({{btn_id}}); id={{btn_id}} class="btn btn-info" data-toggle="collapse" data-target="#Arr{{loop.index|string}}" style="background-color:#4CAF50">Show More</button>
+  <div id="Arr{{loop.index|string}}" class="collapse">
+    {% for n in id_dict["names"][4:len] %}
+                                   <li >{{ n }}</li>
+                                {% endfor %}
+  </div>
+                        {% endif %}
+</div>
+                        </ul>
+                      </td>
+                  </tr>
+                {% endfor %}
+                </table>
+
+
+                </div>
+<input type="submit" id = "submit-btn" class="btn btn-primary" name="submit" value="submit" style="background-color:#4CAF50;margin-bottom:20px"/>
+         {% endif %}
+    </div>
+{% endif %}
+
+</form>
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>

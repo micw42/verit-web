@@ -1,0 +1,337 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <title>VERIT</title>
+</head>
+
+<style>
+  th,
+  td {
+    padding: 15px;
+    font-size: 14px;
+  }
+
+  table,
+  td {
+    border: thin solid rgb(180, 180, 180);
+    border-collapse: collapse;
+  }
+
+  table {
+    margin-bottom: 50px;
+  }
+
+  table tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+
+  table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+  }
+
+  table thead tr th {
+    background-color: #4CAF50;
+    line-height: 20px;
+    text-align: left;
+    color: white;
+  }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20px;
+  }
+
+  #progressbar {
+    margin-bottom: 30px;
+    overflow: hidden;
+    color: lightgrey
+  }
+
+  #progressbar .active {
+    color: #2F8D46
+  }
+
+  #progressbar li {
+    list-style-type: none;
+    font-size: 15px;
+    width: 25%;
+    float: left;
+    position: relative;
+    font-weight: 400;
+  }
+
+  #progressbar #step1:before {
+    content: "1";
+    padding-left: 20px;
+    cursor: pointer;
+
+  }
+
+  #progressbar #step2:before {
+    content: "2";
+    padding-left: 20px;
+  }
+
+  #progressbar #step3:before {
+    content: "3";
+    padding-left: 20px;
+  }
+
+  #progressbar #step4:before {
+    content: "4";
+    padding-left: 20px;
+  }
+
+  #progressbar li:before {
+    width: 50px;
+    height: 50px;
+    line-height: 45px;
+    display: block;
+    font-size: 20px;
+    color: #ffffff;
+    background: lightgray;
+    border-radius: 50%;
+    margin: 0 auto 10px auto;
+    padding: 2px
+  }
+
+  #progressbar li:after {
+    content: '';
+    width: 100%;
+    height: 2px;
+    background: lightgray;
+    position: absolute;
+    left: 0;
+    top: 25px;
+    z-index: -1
+  }
+
+  #progressbar li.active:before,
+  #progressbar li.active:after {
+    background: #4CAF50
+  }
+
+  .progress {
+    height: 20px
+  }
+
+  .progress-bar {
+    background-color: #2F8D46;
+
+  }
+
+  a {
+    text-decoration: none;
+    display: inline-block;
+    padding: 8px 16px;
+  }
+
+  a:hover {
+    background-color: #ddd;
+    color: black;
+  }
+
+  .previous {
+    background-color: #f1f1f1;
+    color: black;
+  }
+
+  .next {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  .round {
+    border-radius: 50%;
+  }
+
+  hr {
+    border-top: 1px solid rgb(160, 160, 160);
+  }
+
+  table tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+
+  table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+  }
+
+  table thead tr th {
+    background-color: #4CAF50;
+    line-height: 20px;
+    text-align: left;
+    color: white;
+  }
+</style>
+
+<body>
+  <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="{{ url_for('home')}}">VERIT</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('home')}}">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="{{ url_for('select_query')}}">Query</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('readme')}}">README</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div style="padding-top:65px;" class="container">
+    <ul id="progressbar">
+      <li class="active" id="step1">
+        <strong>Select query algorithm</strong>
+      </li>
+      <li class="active" id="step2"><strong>Input query</strong></li>
+      <li id="step3"><strong>Validate query</strong></li>
+      <li id="step4"><strong>Input additional parameters</strong></li>
+    </ul>
+
+    <script>
+      step1 = document.getElementById("step1");
+      step1.onclick = function () {
+        window.history.back();
+      };
+    </script>
+
+    <h1>{% block type %}{% endblock %}</h1>
+    <hr>
+    <h5>{% block instructions %}{% endblock %}</h5>
+
+    <form method="POST" action="#" method="post" enctype="multipart/form-data">
+      <ul class="nav">
+        <select name="queryType" id="cars" style="width:180px;height:30px;font-size:20px">
+          <option value="starts_with">Name starts with</option>
+          <option value="ends_with">Name ends with</option>
+          <option value="contains">Name contains</option>
+          <option value="gene">Gene name</option>
+          <option value="id">ID</option>
+        </select>
+        <li style="display:inline-block">
+          <div style="word-wrap:break-word">{% block field %}{% endblock %}</div>
+        </li>
+      </ul>
+      <br>
+      <p><input type="submit" class="btn btn-primary" value="Submit" style="background-color:#4CAF50" /></p> <br>
+    </form>
+
+    <h6>If querying using ID, refer to the table below for formatting:</h6>
+
+    <table style="width:100%">
+      <thead>
+        <tr>
+          <th>Database</th>
+          <th>Symbol</th>
+          <th>Description</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr>
+          <td><a href="https://www.ebi.ac.uk/chebi/init.do" target="_blank">ChEBI</a></td>
+          <td>CHEBI</td>
+          <td>Inorganic and organic chemicals</td>
+          <td>urea (CHEBI:16199), caffeine (CHEBI:27732), glucose (CHEBI:17234)</td>
+        </tr>
+
+        <tr>
+          <td><a href="https://www.uniprot.org/" target="_blank">UniProt</a></td>
+          <td>uniprot</td>
+          <td>Proteins and protein complexes. Important: Most proteins and protein complexes in the database are under
+            UniProt IDs. When querying for proteins, please try UniProt IDs before any other protein database.</td>
+          <td>TLR4 (uniprot:O00206), insulin (uniprot:P01308), fetal bovine serum (uniprot:Q9HAH7)</td>
+        </tr>
+
+        <tr>
+          <td><a href="http://geneontology.org/" target="_blank">Gene Ontology</a></td>
+          <td>GO</td>
+          <td>Cellular events</td>
+          <td>apoptosis (GO:0006915), cellular quiescence (GO:0044838), insulin secretion (GO:0030073)</td>
+        </tr>
+
+        <tr>
+          <td><a href="https://proconsortium.org/" target="_blank">Protein Ontology</a></td>
+          <td>PR</td>
+          <td>Proteins. Important: Most proteins in the database are under Uniprot IDs. When querying for proteins,
+            please try the Uniprot ID before Protein Ontology.</td>
+          <td>angiotensin I (PR:000036008), angiotensin II (PR:000036009), E Protein (PR:000036822)</td>
+        </tr>
+
+        <tr>
+          <td><a
+              href="https://github.com/clulab/reach/blob/master/bioresources/src/main/resources/org/clulab/reach/kb/famplex.tsv"
+              target="_blank">FamPlex</a></td>
+          <td>fplx</td>
+          <td>Protein complexes. Important: for the ID, please use the abbreviations found in the 9_1_1 column of the
+            csv file in the link (in the leftmost column) when querying for species from FamPlex.</td>
+          <td>mTORC1 (fplx:mTORC1), AMPK (fplx:AMPK), Map kinase (fplx:MAPK)</td>
+        </tr>
+
+        <tr>
+          <td><a href="https://www.ebi.ac.uk/interpro/" target="_blank">Interpro</a></td>
+          <td>interpro</td>
+          <td>Proteins and protein constituents. Important: Most proteins in the database are under Uniprot IDs. When
+            querying for proteins, please try the Uniprot ID before Interpro.</td>
+          <td>heme (interpro:IPR006361), thrombin (interpro:IPR003966), retinoblastoma protein (interpro:IPR028309)</td>
+        </tr>
+
+        <tr>
+          <td><a href="https://www.ncbi.nlm.nih.gov/mesh/" target="_blank">Medical Subject Headings</a></td>
+          <td>mesh</td>
+          <td>Diseases and conditions</td>
+          <td>arthritis (mesh:D001168), COVID-19 (mesh:C000657245), insulin resistance (mesh:D007333)</td>
+        </tr>
+
+        <tr>
+          <td><a href="http://pfam.xfam.org/" target="_blank">Protein Family (Pfam)</a></td>
+          <td>pfam</td>
+          <td>Proteins. Important: Most proteins in the database are under Uniprot IDs. When querying for proteins,
+            please try the Uniprot ID before Pfam.</td>
+          <td>collagen (pfam:PF01391), peroxidase (pfam:PF00141), interleukin 4 (pfam:PF00727)</td>
+        </tr>
+
+        <tr>
+          <td><a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank">PubChem</a></td>
+          <td>pubchem</td>
+          <td>Inorganic and organic chemicals. Important: more chemicals appear under ChEBI IDs than PubChem ones. When
+            querying for chemicals, please try ChEBI IDs before PubChem.</td>
+          <td>calcium (pubchem:271), ATP (pubchem:5957), nitric oxide (pubchem:24822)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Optional JavaScript -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>

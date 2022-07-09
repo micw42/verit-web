@@ -1,0 +1,434 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js"></script>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <title>Result</title>
+</head>
+
+<style>
+        #cy {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            background: #4a4a4a;
+            z-index:-1;
+        }
+      .modal {
+          display: none; /* Hidden by default */
+          position: fixed; /* Stay in place */
+          z-index: 1; /* Sit on top */
+          padding-top: 100px; /* Location of the box */
+          left: 0;
+          top: 0;
+          width: 100%; /* Full width */
+          height: 100%; /* Full height */
+          overflow: auto; /* Enable scroll if needed */
+          background-color: rgb(0,0,0); /* Fallback color */
+          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    /* Modal Content */
+      .modal-content {
+          background-color: #fefefe;
+          margin: auto;
+          padding: 20px;
+          border: 1px solid #888;
+          width: 80%;
+          font-family: Arial, Helvetica, sans-serif;
+    }
+
+      .modal-body {
+          max-height: calc(100vh - 210px);
+          overflow-y: auto;
+    }
+
+    /* The Close Button */
+     .close {
+          color: #aaaaaa;
+          float: right;
+          font-size: 28px;
+          font-weight: bold;
+    }
+
+     .close:hover,
+     .close:focus {
+          color: #000;
+          text-decoration: none;
+          cursor: pointer;
+    }
+
+     #menuDiv {
+          padding:0px 20px 20px 0px
+        }
+
+     #posEv {
+         float:left; 
+         padding-right:20px;
+         width:33%;
+         font-size: large;
+        }
+
+     #negEv {
+        float:left; 
+        width:33%;
+        padding-right:20px;
+        font-size: large;
+        } 
+
+     #incEv {
+        float:right; 
+        width:33%;
+        font-size: large;
+        } 
+
+     #posThickness {
+        float:left; 
+        width:33%;
+        }
+
+     #negThickness {
+        float:left; 
+        width:33%;
+        }
+
+     #incThickness {
+        float:right; 
+        width:33%;
+        }   
+</style>
+    
+
+<body> 
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h1 id="thickness" style="font-family: Arial, Helvetica, sans-serif"></h1>
+                <h1 style="font-family: Arial, Helvetica, sans-serif">Evidence for this connection:</h1>
+            </div>
+            <div id="modalBody" class="modal-body">
+                <h2 id="posThickness"></h2>
+                <h2 id="negThickness"></h2>
+                <h2 id="incThickness"></h2>
+                <div id="posEv"></div>
+                <div id="negEv"></div>
+                <div id="incEv"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="cy"></div>
+    
+    <script>
+        const data =   [{'data': {'id': 'uniprot:P06400', 'label': 'RB_HUMAN'}},
+ {'data': {'id': 'uniprot:P01106', 'label': 'MYC_HUMAN'}},
+ {'data': {'id': 'uniprot:Q01094', 'label': 'E2F1_HUMAN'}},
+ {'data': {'id': 'fplx:Cyclin_E', 'label': 'cyclin E'}},
+ {'data': {'id': 'fplx:Cyclin_D', 'label': 'Cyclin D'}},
+ {'data': {'id': 'fplx:Cyclin_Duniprot:P06400',
+   'source': 'fplx:Cyclin_D',
+   'target': 'uniprot:P06400',
+   'weight': 185.40496217739158,
+   'color': '#ffffff',
+   'ev': 'These factors induce cell cycle promoters such as Cyclin D , which inhibit Rb . (PMC5700561)|Activation (Negative)|%%Phosphorylated form of pRB which is produced by cyclin E – CDK2 and cyclin D – CDK4/6 complexes , could lead to the release of E2F transcription factors that are necessary for the S-phase entry [ 51-53 ] . (PMC6425079)|Activation (Positive)|%%All three Cyclin D genes function by activating CDK4 and CDK6 that in turn phosphorylate and inactivate RB allowing for E2F activation and cell cycle progression ( 63 ) . (PMC6558388)|Activation (Negative)|%%This is thought to reduce Rb mediated transcriptional repression and to allow the expression of cell cycle genes that include cyclin E , cyclin A , and CDK2 . (PMC6404260)|Activation (Negative)|%%In the model , Cyclin D : Cdk4/6 mono-phosphorylates Rb but this does not relieve the inhibitory effect of Rb on E2F . (PMC5983510)|Activation (Negative)|%%This reduces pRb mediated inhibition of activating E2F transcription factors , and permits expression of E2F dependent cell cycle genes . (PMC5291519)|Activation (Positive)|%%Cyclin D and Cyclin E both inhibit RB , which inhibits E2F . (PMC5983441)|Activation (Negative)|%%It is widely accepted that the negative regulation of cell cycle progression is the main tumor suppressor function of RB . (PMC5578165)|Activation (Negative)|%%RB controls whether a cell will transit through this checkpoint or not and during the G phase , RB is hypophosphorylated by the Cdk4 / cyclin D complex . (PMC5964240)|Inconclusive|%%Activated cyclin D - CDK4/6 complex in turn phosphorylates the retinoblastoma protein , RB1 , causing release of the E2F family of transcriptional factors normally sequestered by hypophosphorylated RB1 [ 5 , 6 ] . (PMC6786609)|Inconclusive|%%In addition to a mutation , deletion or epigenetic silencing of the RB gene , the RB tumor suppressive pathway can be circumvented by overexpression of cyclin D , Cyclin D which along with its binding partners CDK4/6 hyperphosphorylates RB , thus disabling its tumor suppressive activity . ++++ In addition to a mutation , deletion or epigenetic silencing of the RB gene , the RB tumor suppressive pathway can be circumvented by overexpression of cyclin D , Cyclin D which along with its binding partners CDK4/6 hyperphosphorylates RB , thus disabling its tumor suppressive activity . (PMC6195388)|Inconclusive|%%In response to mitogens , cyclin D is activated and phosphorylate retinoblastoma protein ( RB ) which leads to activation of E2F proteins and the expression of E2F responsive genes inducing cells to reenter the cell cycle from quiescence called G0 , to G1 . (PMC4066722)|Inconclusive|%%Co-expression of Cyclin D , therefore , induces constitutive activation of the mutant CDK4 Cyclin D complex , and this mutant CDK4 Cyclin D complex induces the phosphorylation of the tumor suppressor protein , retinoblastoma protein ( RB ) , resulting in increased cell proliferation ( Fukuda et al ., 2018 ) . ++++ Co-expression of Cyclin D , therefore , induces constitutive activation of the mutant CDK4 Cyclin D complex , and this mutant CDK4 Cyclin D complex induces the phosphorylation of the tumor suppressor protein , retinoblastoma protein ( RB ) , resulting in increased cell proliferation ( Fukuda et al ., 2018 ) . (PMC6646426)|Inconclusive|%%Rb is phosphorylated by cyclinD - cdk4/6 complex during ‘ G1/S ’ phase of the cell cycles . (PMC6065441)|Inconclusive|%%Following the addition of serum , Cyclin D levels increase , causing the phosphorylation of retinoblastoma ( RB ) family proteins and their dissociation from E2F family proteins ( Sherr , 2004 ) . ++++ Following the addition of serum , Cyclin D levels increase , causing the phosphorylation of retinoblastoma ( RB ) family proteins and their dissociation from E2F family proteins ( Sherr , 2004 ) . (PMC5550918)|Inconclusive|%%The cyclin D - Cdk4/6 complex phosphorylates Rb and is essential for the transition of G / S phase [ 42,84,85 ] . ++++ Cyclin D releases the E2F1 transcription factor by phosphorylating the retinoblastoma ( Rb ) protein to regulate cell cycle progression [ 59,60,61 ] . ++++ Moreover , cyclin D phosphorylates Rb , releasing E2F1 transcriptional factors [ 87,88 ] . (PMC6982043)|Inconclusive|%%In response to growth stimuli , the cyclin D – CDK4/6 complex phosphorylates RB , relieving aE2Fs to facilitate the transcription of genes required for G / S transition . (PMC6135688)|Inconclusive|%%During G1/S transition , cyclin D - cdk4/6 complex phosphorylates Rb and allows its disassembly from E2F , which further activates the transcription of S-phase genes [ 14 ] . (PMC6539643)|Inconclusive|%%Since the P16 protein mainly functionally regulates downstream targets via binding of CDK4 and CDK6 , preventing them from interaction with cyclin D , which then results in reduced phosphorylation of RB1 , phosphorylation data of RB1 would offer a more precise information about the pathway activity downstream of P16 . (PMC6158275)|Inconclusive|%%In contrast , when pRb is phosphorylated by G1 cyclin D kinases ( CDKs ) , it cannot bind to E2F and its inhibitory impact is thereby removed , enabling the cell to move to the S-phase . (PMC6279876)|Inconclusive|%%3 In non infected hosts , phosphorylation of pRB induced by cyclin D : cyclin dependent kinases 4 and 6 ( cyclin D : CdK4/6 ) releases E2F , driving the expression of proteins involved in the progression of G1 to S-phase . (PMC6319029)|Inconclusive|%%Phosphorylated pRb / p105 is present at relatively constant levels throughout the cell cycle ; however , at the G / S transition point it is sequentially phosphorylated by Cyclin D : Cycle dependant kinase ( Cdk ) 4/6 and Cyclin E : Cdk 2 complexes , respectively , leading to a release of E2F and allowing cell cycle progression ( [ 11 , 17 , 18 ] ; Fig. ( 1 ) ) . (PMC2817888)|Inconclusive|%%Cyclin D phosphorylates pRb and facilitates the expression of Cyclin E , a positive regulator of the G checkpoint.29 , 30 , 31 In addition , Cyclin D1 binds the promoters of many genes and interacts with other transcriptional regulators of histone acetylation and methylation . (PMC6838521)|Inconclusive|%%The cyclin D - Cdk4 complex then enters the nucleus and phosphorylates Rb and weakens the interaction with its binding partner E2F . (PMC6350781)|Inconclusive|%%Active Cyclin D ( bound to Cdk4 or Cdk6 ) , phosphorylates Rb to de-repress E2F transcription . (PMC5886578)|Inconclusive|%%Growth factor dependent expression of Cyclin D leads to CDK4 ( and CDK6 ) dependent phosphorylation of RB and at least partial relief of binding to the activator E2Fs and early cell cycle gene expression . (PMC6586519)|Inconclusive|%%When Rb is phosphorylated by cyclin D – CDK4 complexes E2F is released from the Rb – E2F complex and promotes cell-cycle progression . (PMC2883694)|Inconclusive|%%More specifically , CDK4/6- CYCLIN D phosphorylates RB at Ser807 and Ser811 , causing the release of E2F , and free E2F helps transcribe key genes for the transition of G1/S , including CYCLIN E and CYCLIN A [ 446,447 ] . (PMC5447962)|Inconclusive|%%Phosphorylation of the Rb by cyclin D – Cdk4/6 initiates the release of E2F and transcription of early E2F responsive genes , such as cyclin E and cyclin A. Cyclin E can activate Cdk2 in late G1 , which completes the phosphorylation of Rb and leads to further transcription of E2F responsive genes and eventually G1/S transition . ++++ Phosphorylation and inactivation of the Rb protein by cyclin D – Cdk4/6 is the key to cell cycle progression ( Figure 3 ) . (PMC5685770)|Inconclusive|%%The activation of MAPK / ERK kinase activity causes the phosphorylation of its many downstream targets , including the cyclin D - CDK4 complex ( 4 ) , which contributes to the hyperphosphorylation of Rb and the subsequent activation of E2F ( 40 ) , promoting the expression of its targets cyclin E and CDK2 , finally allowing cells to progress from G1 to S-phase ( 4,31,40 ) . ++++ The activation of MAPK / ERK kinase activity causes the phosphorylation of its many downstream targets , including the cyclin D - CDK4 complex ( 4 ) , which contributes to the hyperphosphorylation of Rb and the subsequent activation of E2F ( 40 ) , promoting the expression of its targets cyclin E and CDK2 , finally allowing cells to progress from G1 to S-phase ( 4,31,40 ) . ++++ The cyclin D - CDK4 complex in turn phosphorylates the retinoblastoma susceptibility protein ( Rb ) , and the hyperphosphorylated Rb separates from the E2F / DP1/Rb complex to activate E2F ( 38 ) . (PMC6196630)|Inconclusive|%%The RB ‐ E2F complex plays an important role in the regulation of cell cycle progression from G1 to S phase.8 , 21 Phosphorylation of RB by cyclin D ‐ CDK4/6 releases E2F , leading to the transcription of proteins , including cyclin E , required for cell cycle progression . (PMC6767051)|Inconclusive|%%Cdk4 / cyclin D hyperphosphorylates pRb , which consequently releases E2F transcription factors that activate transcription of several regulatory genes necessary for G1/S transition and S phase progression , such as cyclin E and cyclin A. (PMC3639377)|Inconclusive|%%The EBV-EBNA2 and EBV-LP , HTLV-1-Tax , and HBV-HBx proteins upregulate cyclin D , which leads to Rb hyperphosphorylation and TFIIF mediated transcriptional activation . (PMC7158166)|Inconclusive|%%Cyclin D and cyclin E phosphorylate retinoblastoma ( Rb ) protein and release transcription factor E2F , which activates the gene necessary for entry into the S phase [ 49,50,51 ] . (PMC6520889)|Inconclusive|%%In normal cells , Cdk2 and cyclin D complexes regulate the entry through the constraint point , thereby phosphorylating and inactivating pRb . (PMC5696686)|Inconclusive|%%The p16INK4a gene is responsible for inhibiting the association between Cdk 4/6 and cyclin D thereby blocking the Cdk4/6 mediated phosphorylation of Rb protein and consequently preventing the G1-to-S transition in cells [ 51 ] . (PMC5243136)|Inconclusive|%%G1 progression is dependent on cyclin D1 in two ways : First , the initial phosphorylation of Rb is induced by cyclin D – cdk4/6 ( Narasimha et al ., 2014 ) that leads to a de-repressed cyclin E gene ( Kolupaeva and Basilico , 2012 ) . (PMC5908975)|Inconclusive|%%The activated cyclin D / CDK4 complex can phosphorylate Rb and prevent its inhibitory binding to E2F , facilitating the entry of cells from G1 into S phase [ 55 ] . (PMC6409969)|Inconclusive|%%CDK4 forms a complex with cyclin D , which then phosphorylates pRB . (PMC6760642)|Inconclusive|%%The p16 can inhibit the CDK4-6 / cyclin D complex thereby reducing Rb phosphorylation and subsequent downstream signal transduction pathways . (PMC3587995)|Inconclusive|%%Phosphorylation of RB1 by cyclin D ( CCND1 )/cyclin dependent kinases ( CDK4 , CDK6 ) and cyclin E ( CCNE1 )/CDK2 complexes is necessary to restore the progression of cell cycle [ 130 ] . (PMC5641212)|Inconclusive|%%By forming a complex with D-type CDKs CDK4 and CDK6 , INK4a prevents the interaction with the cell cycle checkpoint regulator Cyclin D ( CycD ) , thereby inhibiting the subsequent phosphorylation of the RB1 , a key regulator of the E2F family of transcription factors ( E2F1 , E2F2 , and E2F3a ) [ 47 – 51 ] . (PMC5720494)|Inconclusive|%%Based on work in cells emerging from serum starvation , serum restimulation results in the buildup of cyclin D ( 6 ) , which in complex with CDK4/6 , initiates the process of Rb phosphorylation ( 7 ) . (PMC6126733)|Inconclusive|%%Cyclin D activation of CDK4/6 results in phosphorylation of retinoblastoma ( RB ) protein , which in turn releases the transcription factor E2F and enables the cell to pass through the so called restriction point in G , after which the cell is independent of extracellular growth signals . (PMC7171462)|Inconclusive|%%The Start network in mammals offers important differences , particularly in the structure and number of transcription factors , but the core of the module is strikingly similar , where Cdk4 ,6 – cyclin D complexes phosphorylate RB and activate E2F-DP transcription factors in a positive feedback loop involving Cdk2 – cyclin E ( Bertoli et al , 2013 ) . (PMC6467244)|Inconclusive|%%This sustained ERK level caused reduction in phosphorylation of retinoblastoma ( Rb ) by cyclin D ( Cdk4/5 ) and cyclin E ( Cdk2 ) , which in turn led to increased p21 and p15 levels and cell cycle arrest in the G1 phase . (PMC5842331)|Inconclusive|%%The CDK4 / cyclin D complex impacts cell cycle progression by phosphorylating and inactivating retinoblastoma ( Rb ) , a negative regulator of G1 exit [ 19 ] . (PMC5995257)|Inconclusive|%%p16 has an inhibitory role in cyclin D - CDK4 - CDK6 complex , preventing phosphorylation of pRb , and the final result is the inhibition of the cell cycle [ 74 ] . (PMC5846459)|Inconclusive|%%Upon CDK4/6 activation by the G -cyclin CCND ( cyclin D ) and then by CCNE ( cyclin E ) , Rb is increasingly phosphorylated . ++++ Upon CDK4/6 activation by the G -cyclin CCND ( cyclin D ) and then by CCNE ( cyclin E ) , Rb is increasingly phosphorylated . (PMC5652225)|Inconclusive|%%The phosphorylation of retinoblastoma protein ( Rb ) by Cyclin D – CDK4/6 complex can dissociate it from E2F and trans-activates the target genes including cyclins ( cyclin A and E ) that facilitate G1/S phase transition and S-phase ( 4 , 20 , 63 ) . (PMC5946094)|Inconclusive|%%This result is consistent with increased expression of p16 in Δ 3C virus infected lymphomas ( Fig 2C ) , given that p16 inhibits E2F1 expression by preventing phosphorylation / inactivation of pRb by the cyclin D / CDK4/6 complex [ 29,33 ] . (PMC6117096)|Inconclusive|%%In response to growth stimuli , the cyclin D – CDK4/6 complex phosphorylates RB , releasing E2F transcription factors and facilitating the G / S transition . (PMC5581511)|Inconclusive|%%The key substrate for these two different complexes is the retinoblastoma ( Rb ) protein , which is sequentially phosphorylated in early and late G by cyclin D / CDK4/6 , followed by cyclin E/CDK2 complexes . (PMC5559961)|Inconclusive|%%The cyclin D - Cdk4/6 complex phosphorylates the retinoblastoma ( pRb ) protein that results in the release of the transcription factor E2F which then promotes the progression of the cell from G1 to S phase [ 151 ] . (PMC5359827)|Inconclusive|%%In proliferating cells , the cyclin D CDK4/6 complex partially phosphorylates retinoblastoma tumor suppressor protein ( Rb ) , which becomes inactive and unable to bind the transcription factor E2F1 [ 143 ] . (PMC6627878)|Inconclusive|'}},
+ {'data': {'id': 'fplx:Cyclin_Euniprot:P06400',
+   'source': 'fplx:Cyclin_E',
+   'target': 'uniprot:P06400',
+   'weight': 147.9019945774904,
+   'color': '#dbe8ff',
+   'ev': 'Phosphorylated form of pRB which is produced by cyclin E – CDK2 and cyclin D – CDK4/6 complexes , could lead to the release of E2F transcription factors that are necessary for the S-phase entry [ 51-53 ] . (PMC6425079)|Activation (Positive)|%%It has been shown rat kidney injury is associated with G1 phase arrest in cecal ligation and puncture- ( CLP-) induced sepsis , while upregulation of CCND1 / CDK4 and CCNE / CDK2 activates Rb leading to revival of cell cycle progress and recovery of kidney function 48 hours after CLP [ 33 , 34 ] . (PMC7422069)|Activation (Positive)|%%Cyclin D and Cyclin E both inhibit RB , which inhibits E2F . (PMC5983441)|Activation (Negative)|%%Transcriptional activation of the cyclin E gene during progression through the G phase depends on the activity of cyclin D/Cdk4 and cyclin D/Cdk6 complexes , which phosphorylate and inactivate retinoblastoma protein ( pRb ) leading to the release of the repressor proteins of the E2F transcription factor family [ 56 ] . (PMC6773236)|Activation (Negative)|%%Both cyclin E and CDK2 , which are responsible for phosphorylating Rb and allowing cells to pass through the restriction point in G ( Weinberg , 1995 ; Lundberg and Weinberg , 1998 ) , were downregulated ( Table 2 , Figure 4 ) . (PMC6315117)|Inconclusive|%%Mitogen induced D-type cyclin dependent kinases , CDK4 and CDK6 , and cyclin E dependent CDK2 sequentially phosphorylate the retinoblastoma protein ( RB ) during G1 phase to advance entry into the DNA synthetic phase ( S ) of the cell division cycle . (PMC6132350)|Inconclusive|%%p21 contributes to the G1 arrest primarily by inhibiting cyclin E and cyclin A/CDK2 activity ( 2 ) , which results in the hypo phosphorylation of the retinoblastoma protein ( pRb ) and inhibits the release and activation of the transcription factor E2F — a protein required for S-phase entry ( 3 ) . (PMC5939064)|Inconclusive|%%Moreover , cyclin E protein or its encoding CCNE1gene in combination with CDK2 leads to hyperphosphorylation of Rb releasing more E2F transcription factor and favoring the expression of a wide diversity of genes that encourage more cellular progression . (PMC6683209)|Inconclusive|%%cyclin D1 and cyclin E are cell cycle regulators which phosphorylated Rb to enable G1-S cell cycle transition [ 22 – 25 ] . (PMC5655255)|Inconclusive|%%In detail , CCNE ( cyclin E , including CCNE1 and CCNE2 ) binds to CDK2 , and subsequently phosphorylates Rb to promote G1 – S progression . (PMC6048799)|Inconclusive|%%It is well known that the cyclin D1 - CDK4 complex and the cyclin E - CDK2 complex hyperphosphorylate pRb during the G1-S transition [ 28 ] . (PMC5593559)|Inconclusive|%%In many cancers , one of the prominent mechanisms of acquired resistance to CDK4/6 inhibition is hyperactivation of the CDK2 – cyclin E complex , which substitutes for CDK4/6 in phosphorylating RB1 and maintaining cell cycle progression . (PMC6731642)|Inconclusive|%%8 The G1 – S cyclin dependent kinase 4 ( CDK4 ) and cyclin dependent kinase 6 ( CDK6 ) in complexes with cyclin D first and the CDK2 / cyclin E later promote phosphorylation of Rb , thus overriding Rb inhibition of proliferation and initiating cellular division ( Figure 1 ) .9 Alterations in the cyclin D/CDK/Rb pathway arise in 90 % of cancers . (PMC5818877)|Inconclusive|%%These observations suggest that cyclin E , in combination with Cdk2 , plays a crucial role for the hyper-phosphorylation of Rb and the entry of S phase . (PMC6653663)|Inconclusive|%%These two conditions facilitate the binding of Cdk2 to cyclin E , which then phosphorylates pRB . (PMC7731034)|Inconclusive|%%Also in late G , cyclin E participates in the phosphorylation of Rb and release of E2F ; subsequently in S phase , cyclin E-CDK2 phosphorylates components of the prereplication complex , enabling DNA replication initiation [ 3 ] . (PMC5931252)|Inconclusive|%%Following Cyclin D : Cdk 4/6 activation and the initial phosphorylation of Rb , Cyclin E ( E1 and E2 ) is expressed by internal E2F signaling pathways , marks the entry into late G phase and the R-point transition [ 12 ] . (PMC2817888)|Inconclusive|%%This in turn enables activation of CDK2 / cyclin E , which further phosphorylates Rb , thereby promoting complete release of E2F factors , inducing their maximal action as transcriptional activators and facilitating progression through G1 [ 21,22 ] . (PMC4381256)|Inconclusive|%%In this signaling pathway , Rb is initially phosphorylated by Cyclin D-CDK4/6 , which activates Cyclin E and CDK2 expression for G1/S progression . (PMC4456282)|Inconclusive|%%CYCLIN E binds CDK2 and further phosphorylates RB to complete its inactivation which drives cells to pass the R point and trigger S-phase entry [ 448 ] . (PMC5447962)|Inconclusive|%%Cyclin D and cyclin E phosphorylate retinoblastoma ( Rb ) protein and release transcription factor E2F , which activates the gene necessary for entry into the S phase [ 49,50,51 ] . (PMC6520889)|Inconclusive|%%The Cyclin E / CDK2 complex also phosphorylates pRB , although some phosphorylation sites are distinct from those targeted by kinases associating with D group cyclins . (PMC5260016)|Inconclusive|%%In turn , the cyclin E – cdk2 holoenzyme phosphorylates Rb to de-repress the cyclin A gene ( Harbour and Dean , 2000 ; Aggarwal et al ., 2007 ) . (PMC5908975)|Inconclusive|%%This phosphorylation of Rb by CDK4/CDK6/Cyclin D , and subsequently by CDK2 / Cyclin E , leads to the dissociation of the transcription factor E2F , and release of transcriptional repression of genes important for DNA synthesis and S phase progression [ 3 , 5 ] . (PMC5642494)|Inconclusive|%%This sustained ERK level caused reduction in phosphorylation of retinoblastoma ( Rb ) by cyclin D ( Cdk4/5 ) and cyclin E ( Cdk2 ) , which in turn led to increased p21 and p15 levels and cell cycle arrest in the G1 phase . ++++ This sustained ERK level caused reduction in phosphorylation of retinoblastoma ( Rb ) by cyclin D ( Cdk4/5 ) and cyclin E ( Cdk2 ) , which in turn led to increased p21 and p15 levels and cell cycle arrest in the G1 phase . (PMC5842331)|Inconclusive|%%Mitogenic stimulation during G1 phase leads to sequential activation of cdk4/6-cyclin D and cdk2 – cyclin E complexes , which hyperphosphorylate Rb and thereby cause the release of active E2F1 [ 44 ] , which controls expression of downstream genes essential for transition from G1 to S [ 45 ] . (PMC6236911)|Inconclusive|%%It was reported that cyclin E , consisting of cyclin E1 ( CCNE1 ) and cyclin E2 ( CCNE2 ) , binding to CDK2 phosphorylates retinoblastoma ( Rb ) and promotes G1-S stage progression , leading to sustained cancer cell proliferation [ 6,7 ] . (PMC6716296)|Inconclusive|%%pRb is also phosphorylated at S780 by the cyclin D1 / cdk4 complex but not by the cyclin E / cdk2 complex ( Futatsugi et al ., 2012 ; Kitagawa et al ., 1996 ) . (PMC5432422)|Inconclusive|%%Rb phosphorylation is maintained by a positive-feedback loop linking Rb to E2F dependent transcription of cyclin E , that in turn activates CDK2 and leads to further phosphorylation of Rb . (PMC5537611)|Inconclusive|%%Upon CDK4/6 activation by the G -cyclin CCND ( cyclin D ) and then by CCNE ( cyclin E ) , Rb is increasingly phosphorylated . ++++ Upon CDK4/6 activation by the G -cyclin CCND ( cyclin D ) and then by CCNE ( cyclin E ) , Rb is increasingly phosphorylated . (PMC5652225)|Inconclusive|%%pRb phosphorylation in committed cells is maintained by a positive feedback loop linking pRb to E2F ‐ dependent transcription of cyclin E , which activates CDK2 and leads to further phosphorylation of pRb ( Lundberg & Weinberg , 1998 ) . (PMC5538335)|Inconclusive|%%CDK4/6 – cyclin D complexes monophosphorylate pRB at multiple sites and further hyperphosphorylation is mediated by CDK2 – cyclin E [ 123 ] . (PMC6170502)|Inconclusive|%%Activation of CDK2 by cyclin E initiates phosphorylation of pRB leading to activation of E2F mediated transcription , allowing cells to move into S phase . (PMC5859078)|Inconclusive|%%On the other hand , cyclin E and CDK2 form a complex and can phosphorylate and inactivate Rb , resulting in E2F activation and a shortened G1 phase , thereby expelling cells into the S phase , which promotes cell proliferation . (PMC6682553)|Inconclusive|%%As presented in Fig. 1B , ETR treatment markedly reduced the expression levels of Cdk2 and cyclin E , which induced inhibition of pRb phosphorylation in response to mitogenic stimulation . (PMC5649608)|Inconclusive|'}},
+ {'data': {'id': 'uniprot:P06400uniprot:Q01094',
+   'source': 'uniprot:P06400',
+   'target': 'uniprot:Q01094',
+   'weight': 175.0,
+   'color': '#ffb0b0',
+   'ev': 'As shown in Figure 6C , we found that pRb was significantly more potent than RIP140 to inhibit E2F1 activity on both reporters , except on the cyclin E promoter in the presence of E2F1 alone . ++++ As shown in Figure 6C , we found that pRb was significantly more potent than RIP140 to inhibit E2F1 activity on both reporters , except on the cyclin E promoter in the presence of E2F1 alone . (PMC3356364)|Activation (Negative)|%%E2F1 activity is deregulated in most cancers by disruptions in the RB pathway but the role of E2F1 in cancer is complex as it can either promote or inhibit tumor development depending on the context . (PMC6821830)|Activation (Positive)|%%Activation of p53 is known to result in the induction of p21 which further results in Rb mediated E2F1 inhibition to prevent cell cycling . (PMC6659796)|Activation (Negative)|%%The Rb family is known to negatively regulate gene expression through direct interaction with E2F family members , and Rb functions to suppress the activity of E2F-1 , 2 , and -3 to transcriptionally activate downstream target genes ( 24 ) . (PMC3918885)|Activation (Negative)|%%In its hypo phosphorylated form , pRb binds to and inhibits the activity of E2F1 , a transcription factor whose target genes are necessary for cell cycle progression . (PMC5984324)|Activation (Negative)|%%The TF E2F1 negatively regulates cell cycle related gene RB1 and the TF MYC negatively regulates cell cycle related gene E2F1 and circadian rhythm related gene PER1 . (PMC6557199)|Activation (Negative)|%%Since pRB inhibits E2F1 activation , the concentration of E2F1 decreases as the concentration of pRB increases as shown in Fig. 3a . (PMC6249737)|Activation (Negative)|%%Numerous studies have focused on the regulation of E2F1 , and a long standing paradigm is that E2F1 activity is tightly regulated by the retinoblastoma tumor suppressor ( RB ) which can inhibit the transcriptional activity of E2F1 by binding with E2F1 . (PMC5493668)|Activation (Positive)|%%While either RB loss of function or E2F1 gain of function may sensitize cells to apoptosis , the mechanisms underlying these effects are not well understood . (PMC5722641)|Activation (Negative)|%%E2F1 transcriptional activity is repressed by binding to the hypo phosphorylated form of the pocket protein pRb ( retinoblastoma protein ) . ++++ The first one involves Rb that associates with and represses E2F1 before S phase entry . (PMC5520736)|Activation (Negative)|%%According to previous reports , the retinoblastoma gene ( RB ) and adenovirus E1A oncogene modulate the action of E2F-1 / DP-1 and SERTAD1 / KRIP-1 [ 1 ] . (PMC6469047)|Activation (Positive)|%%T-Ag sequestration of the hypophosphorylated form of pRb enables the activation of the transcription factors E2F1 , − 2 , − 3a and 3b , that in turn activate the transcription of some genes , needed to enter the S-phase of the cellular cycle , such as c-fos , c-Myc , cyclins A , D1 and E , DNA polymerase alpha , thymidine kinas , and others [ 29 , 34 – 37 ] . (PMC5292005)|Activation (Positive)|%%Phosphorylated Rb enhances E2F-1 to translocate into the nucleus and transcribe genes needed to switch the cell from G1 to S phase [ 9,10 ] . (PMC6891740)|Activation (Positive)|%%Noteworthy , complex formation of AtPur α and E2Fa has been documented in Arabidopsis [ 69 ] and the mammalian homolog , Pur α , has been shown to directly interact with pRb [ 70 ] suppressing the transcriptional activity of E2F-1 [ 71 ] . (PMC6268010)|Activation (Negative)|%%Studies of the retinoblastoma protein RB1 further support a major role of E2F1 in metabolism [ 10 ] . (PMC6001358)|Activation (Positive)|%%This exaggerated lipogenesis is associated with high levels of proliferation as indicated by Ki67 immunofluorescence , and increased cdk activity , leading to Rb inactivation and induction of E2F1 ( Fig. 1a , b ) . (PMC3306783)|Activation (Negative)|%%When cells are in the quiescent phase , E2F-1 is inhibited by Rb ; during the G1/S transition , phosphorylated Rb dissociates from E2F-1 to activate E2F-1 , and E2F-1 can then initiate the expression of a series of cell proliferation related proteins , including survivin [ 31 ] . (PMC5419568)|Activation (Negative)|%%RB1 inhibits G – S transition related gene expression by directly obstructing the transactivation domain of E2F and the promoter activity of these genes [ 105 ] . (PMC5366817)|Activation (Negative)|%%9 Additionally , supraphysiological levels of RRM2 or dNTPs can lead to DNA damage and genomic instability ,9,23 which is a hallmark of cancer cells.24 ,25 RRM2 is transcriptionally regulated by E2F1 ( Fig. 1 ) .9,26,27 E2F1 is negatively regulated by pRb ( Fig. 1 ) ,28,29 which is an important effector of the senescence phenotype . ++++ 9 Additionally , supraphysiological levels of RRM2 or dNTPs can lead to DNA damage and genomic instability ,9,23 which is a hallmark of cancer cells.24 ,25 RRM2 is transcriptionally regulated by E2F1 ( Fig. 1 ) .9,26,27 E2F1 is negatively regulated by pRb ( Fig. 1 ) ,28,29 which is an important effector of the senescence phenotype . (PMC4904889)|Activation (Negative)|%%In such a case , RB1 inhibits E2F1 functions and thus the cell cycle . (PMC6952906)|Activation (Negative)|%%In G0 , E2F1 is repressed by binding to a hypophosphorylated form of Rb . (PMC5666869)|Activation (Negative)|%%It is important to mention that although E2F1 was not identified in the LC ‐ MS/MS , E2F1 deregulation by Rb loss was previously shown to promote synthetic lethality in combination with Chk1 inhibition ( Witkiewicz et al , 2018 ) . (PMC6792013)|Activation (Positive)|%%In a similar way , retinoblastoma protein ( Rb ) interacts more strongly with mutant AR than with wild-type AR , inappropriately inducing E2F1 transcriptional activation in a Drosophila model of SBMA [ 131 ] . (PMC6985201)|Activation (Positive)|%%Indeed , Inman et al. showed that expression of EBNA-5 could neither relieve Rb mediated repression of E2F1 transactivation , nor prevent p53 induced transactivation ( Inman and Farrell , 1995 ) . (PMC6252338)|Activation (Negative)|%%It is undoubtedly that SMAD4 loss causes the insensitivity of cancer cells to the anti-mitogenic activity of TGF β , and then abrogating RB mediated E2F1 suppression . (PMC6827004)|Activation (Negative)|%%E2F1 transcription factor is known to be directly regulated by retinoblastoma ( RB )-pathway [ 28 ] , one of the most frequently inactivated pathways in HCC [ 29 ] . (PMC7289904)|Activation (Positive)|%%Additionally , since E2f1 is also sequestered by Rb , it is possible that a significant proportion of endogenous E2f1 is available in its activated form under these conditions , potentially contributing to observed cell death . (PMC6906479)|Activation (Negative)|%%Moreover , H1.2 expression augmented the E2F1 transcriptional repression mediated by pRb in reporter based assays ( Figure S2C ) . (PMC5478878)|Activation (Negative)|%%The conformational changes of Rb , due to hyperphosphorylation , prevents the binding of E2f1 – 3 transcription factors , and thus promote cell cycle progression [ 14 ] . (PMC6699077)|Activation (Negative)|%%During the G1 phase , RB1 inactivates E2F1 to block G1/S transition . (PMC6985657)|Activation (Negative)|%%Activated Cdk46cD phosphorylates the retinoblastoma 1 protein ( pRB ) and promotes the release of E2F1 ( transcription factor 1 ) that is required in the S phase [ 20 , 21 ] . (PMC5624635)|Inconclusive|%%In addition , p16 phosphorylates RB , having been phosphorylated disassociates of the transcription factor E2F1 , enters the nucleus and promotes the genes essential for transition from the G1 phase to the S phase . (PMC5923365)|Inconclusive|%%We previously showed that MDM2 provides an estrogen mediated proliferative advantage to breast cancer cells and disrupts acini formation by increasing phosphorylation of Rb and elevating E2F1 protein levels [ 7 ] . (PMC6332579)|Activation (Positive)|%%Particularly , ERG suppressed the expression of cell cycle regulated genes , with consequent RB hypophosphorylation and repression of E2F1 mediated expression of mesenchymal regulators , thus maintaining antiandrogen sensitivity and restricting adenocarcinoma plasticity [ 114 ] . (PMC6789661)|Inconclusive|%%This leads to the hypothesis that the observed increased pRb levels might result in the release of E2F1 from Rb-E2F1 inhibitory complex to transactivate E2F1 target genes . (PMC6065441)|Inconclusive|%%For example , it represses E2F1 gene target transcription through the recruitment of chromatin remodelling complexes including HDAC , DNMT1 , HP1A , and SUV39H1 to promoters . (PMC6868026)|Activation (Negative)|%%Intriguingly , acute deletion of RB1 in both embryonic and adult postmitotic neurons triggers apoptosis without inducing expression of classical E2F1 target genes , such as Apaf1 or Puma , suggesting RB1 likely maintains survival of postmitotic neurons through other mechanisms [ 48 ] . (PMC6913832)|Activation (Negative)|%%In contrast , loss of RB alone ( sgRB1 ) led to a significant increase in levels of E2F1 , MYBL2 , and BUB1 in quiescent conditions . ++++ In contrast , loss of RB alone ( sgRB1 ) led to a significant increase in levels of E2F1 , MYBL2 , and BUB1 in quiescent conditions . (PMC6586519)|Activation (Positive)|%%We also found that exposure of TAMR-MCF-7 cells to ketoconazole or 14,15-EEZE inhibited Rb phosphorylation and reduced the protein expression of E2F1 ( Figure 5E ) . (PMC5642617)|Activation (Negative)|%%Our results demonstrated that in HCT 116 cells , Act D induced nucleolar stress did not affect Rb amount but caused a significant reduction of E2F1 levels which was associated to a decrease of Mcm6 and Mcm7 levels , thus indicating a reduction of DNA synthesis ( Fig. 3c ) . (PMC6817900)|Activation (Positive)|%%E2F1 is a family member of eight ( E2F1-8 ) transcription factors that regulate the cell cycle , migration , apoptosis and chemoresistance.30 – 32 The E2F1 expression was inhibited by pRb and released from phosphorylated pRB complexes leads to recruits coactivators to E2F responsive genes in G1 phase transcription , DNA synthesis and DNA repair . (PMC5221653)|Activation (Negative)|%%Depletion of cyclin D1 decreased expression of cyclin A1 , cyclin B1 , and RB1 , while increasing the expression of E2F1 and cyclin E1 ( Figure 4A ) . (PMC6801441)|Activation (Positive)|%%The phosphorylation of Rb leads to the subsequent release of E2F1 and then pushes the transition of cell cycle to the S phase . (PMC6560197)|Inconclusive|%%Cell cycle progression through the G1-S phase checkpoint is driven by phosphorylation of the retinoblastoma protein ( Rb ) by CDK4/6 , allowing release of the key transcription factor E2F1 . (PMC5789367)|Inconclusive|%%Coimmunoprecipitation and immunoblotting analysis further verified that p ‐ JNK1/2 ( T183 / Y185 ) interacted with importin ‐ 7 ( Figure 5D ) .34 Because the nuclear translocation of p ‐ JNK1/2 ( T183 / Y185 ) was inhibited , p53 ‐ p21 signalling pathways were blocked , and the phosphorylation of p ‐ Rb ( S780 ) was inactivated , which led to a reduction in the expression of the transcription factor E2F1 ( Figure 5E ) .35 , 36 3.4 Reduction in E2F1 inhibits transactivation of MMP2 . (PMC6433683)|Activation (Positive)|%%As pRb phosphorylation is necessary for the release of E2F1 and allows its transcriptional activity , pRb methylation at K810 , SETD7 promotes a stable pRb / E2F1 association and consequent cell cycle arrest . (PMC6043541)|Inconclusive|%%Mitogenic stimulation during G1 phase leads to sequential activation of cdk4/6-cyclin D and cdk2 – cyclin E complexes , which hyperphosphorylate Rb and thereby cause the release of active E2F1 [ 44 ] , which controls expression of downstream genes essential for transition from G1 to S [ 45 ] . (PMC6236911)|Inconclusive|%%For instance , Cyclin D1 , Cyclin D2 , and Cyclin D3 bind and activate CDK4 and CDK6 to phosphorylate the Rb protein , which leads to the subsequent release of E2F1 and the transition from G1 to S phase in the cell cycle . ++++ For instance , Cyclin D1 , Cyclin D2 , and Cyclin D3 bind and activate CDK4 and CDK6 to phosphorylate the Rb protein , which leads to the subsequent release of E2F1 and the transition from G1 to S phase in the cell cycle . ++++ For instance , Cyclin D1 , Cyclin D2 , and Cyclin D3 bind and activate CDK4 and CDK6 to phosphorylate the Rb protein , which leads to the subsequent release of E2F1 and the transition from G1 to S phase in the cell cycle . (PMC6006307)|Inconclusive|%%This is an expected downstream signature of enhanced p16 expression , since p16 inhibits the ability of cyclin D-CDK4/6 complexes to phosphorylate and inactivate pRb , and pRb inhibits E2F1 transcription . (PMC6117096)|Activation (Negative)|'}},
+ {'data': {'id': 'uniprot:P01106uniprot:Q01094',
+   'source': 'uniprot:P01106',
+   'target': 'uniprot:Q01094',
+   'weight': 106.06601717798212,
+   'color': '#2b79ff',
+   'ev': 'Since MYC is known to enhance the effect of E2F1 , we were interested whether the elevated Myc activity in ResB cells ( Fig. 4b ) may also play an essential role in the growth of this cell line . (PMC6760229)|Activation (Positive)|%%In contrast , knockdown of MYC repressed UHRF , E2F1 , and Exo1 in both U2OS and HeLa cells , whereas Tip60 knockdown repressed these genes in U2OS cells but not in HeLa cells ( see Discussion ) . (PMC6086004)|Activation (Positive)|%%It is notable that Myc can induce E2F1 as a direct target , and in this regard Myc and E2F1 could participate in a putative feed-forward loop with nucleotide metabolic genes as direct targets of both transcription factors . (PMC2444028)|Activation (Positive)|%%Repression of MYC and the early growth response gene EGR1 in this group may further negatively regulate E2F1 and its target gene expression . (PMC1440780)|Activation (Positive)|%%CDK8 and E2F1 both present at the MYC promoter , CDK8 suppresses the E2F1 dependent inhibition of β-catenin-mediated transcription [ 80 ] . (PMC5464927)|Activation (Positive)|%%For example , c-Myc induces the expression of the miRNAs miR-17-5p and miR-20a together with their target E2F1 ( 41 ) . (PMC6026371)|Activation (Positive)|%%The authors found that c-MYC directly controls the transcription of E2F1 and indirectly limits E2F1 translation through the activation of the expression of a cluster of miRNAs ; see Figure 2k . (PMC6952906)|Activation (Negative)|%%c-MYC downregulation in miR665 treated cells may reduce E2F1 activation , leading to an accumulation of cells in G1 phase . (PMC6145696)|Activation (Negative)|%%Cancer related transcriptional control of miRNAs has also been demonstrated by the observation of transcriptional activation of the miR-17/92 cluster induced by the MYC oncogene , the upregulation of which modulates the anti-apoptotic and proliferative actions of E2F1 , mediating the MYC proliferative effect [ 13 ] . (PMC5248531)|Activation (Positive)|%%It has been shown that TBX2 can inhibit Cdkn2a ( p19ARF ) promoter and suppress E2F1 , Myc or HRAS mediated induction of Cdkn2a ( p19ARF ) [ 17 ] . ++++ It has been shown that TBX2 can inhibit Cdkn2a ( p19ARF ) promoter and suppress E2F1 , Myc or HRAS mediated induction of Cdkn2a ( p19ARF ) [ 17 ] . (PMC5581062)|Activation (Negative)|%%MYC upregulated miR-17 ‒ 92 and E2F1 , whereas miR-17 and miR-20a suppressed apoptosis by regulating E2F1 [ 76 ] . (PMC5535985)|Activation (Positive)|%%For example , the protooncogene c-myc directly activates transcription of E2F1 , but at the same time limits its translation by upregulating expression of miR-17-5p and miR-20a , both of which negatively regulate E2F1 [ 73 ] . (PMC3492042)|Activation (Positive)|%%In another case , GCN5 acetylates c ‐ Myc , which promotes E2F1 transcription . ++++ 3.5 Acetylation of c-Myc by GCN5 contributed to its stability and ability to regulate E2F1 expression in E7 expressing cells . (PMC6201343)|Activation (Positive)|%%c-MYC also upregulates E2F-1 transcription ( 93 ) , which is shown to positively regulate VEGF-A expression ( 94,95 ) . (PMC6212778)|Activation (Positive)|%%Intriguingly , either overexpression of E2F1 or Myc could efficiently rescue the inhibition of cervical cancer cells ’ proliferation or migration which induced by FTO ’ s deficiency , suggesting these two genes might regulate each other in cervical cancer cells , for instance , Myc was proved to induce transcription of E2F1 while inhibiting its translation via a microRNA polycistron [ 35 ] . (PMC6888952)|Activation (Positive)|%%Importantly MYC can induce expression and activation of E2F1 by releasing it from Rb and enhancing its activity through CDK dependent mechanisms . (PMC5638898)|Activation (Positive)|%%As MYC is known to directly regulate E2F1 expression , MYC mediated ARF upregulation through E2F1 regulation has been suggested [ 86 ] . ++++ As MYC is known to directly regulate E2F1 expression , MYC mediated ARF upregulation through E2F1 regulation has been suggested [ 86 ] . (PMC6470592)|Activation (Positive)|%%It is known that expression of the E2F1 gene is induced by MYC . (PMC5877740)|Activation (Positive)|'}},
+ {'data': {'id': 'uniprot:Q01094uniprot:P06400',
+   'source': 'uniprot:Q01094',
+   'target': 'uniprot:P06400',
+   'weight': 117.26039399558574,
+   'color': '#ffb0b0',
+   'ev': 'The effect on cell growth of Rb TKO cells mediated by E2F-1 siRNA could be due to its extensive involvement in regulating cell cycle mediators . (PMC3918885)|Activation (Negative)|%%This pointed to an E2F1 dependent mechanism of GAr mediated cell proliferation and was supported by the observation that other E2F1 target genes such as cyclins , were also induced and that the effect of the GAr could be reversed by overexpressing the retinoblastoma protein ( pRb ) . (PMC6321632)|Activation (Negative)|%%Our results showed that though RB1 is upregulated by the regulation of degraded E2F1 , RB1 is inhibited by miR-130b in normal stage . (PMC6557199)|Activation (Negative)|%%Similar observations have been made in other mouse models , where deletion of E2f1 enhances tumorigenesis in a Myc-transgenic mouse model , and in mice with skin specific deletion of Rb . (PMC5311251)|Activation (Positive)|%%The promoter of Rb contains a putative E2F1 binding site , suggesting that E2F1 may directly regulate the Rb promoter . (PMC6297758)|Activation (Positive)|%%Particularly , proliferative targets of MDM2 include the stimulation of E2F1 transcriptional activity [ 19 ] , increased E2F1 protein stability [ 20 ] , disruption of the Rb - E2F1 complex and inhibition of tumor suppressive functions of Rb [ 21 – 23 ] . (PMC5564615)|Activation (Negative)|%%In our mouse retinoblastoma model , an E2F1 / FOXO pro apoptotic transcriptional complex , which is active following disruption of RB and p107 , induces widespread apoptosis that results in loss of most of the retinal . (PMC5503517)|Activation (Negative)|%%Similarly , E7 increases DDR proteins levels through several main mechanisms : i ) by competing with E2F1-pRb interaction , thus leading to the inactivation of pRb , and to the promotion , E2F1 mediated , of DDR genes translation , ii ) by binding to the pRb like proteins CBP / p300 and p107 , that also harbour LXXLL sequence , and iii ) via the interaction and activation of several DDR proteins , most of them yet unknown . (PMC6240266)|Activation (Positive)|%%The underlying mechanisms include that HBx ( Hepatits B virusxprotein ) functions as an oncogenic transactivator regulating cancer stem related genes , such as MDM2 , CXCR4 , and OV690 , increasing the activity of E2F1 via inhibiting pRb , and further inducing DNA methyltransferase 1 ( DNMT1 ) activation.58 – 60 In addition , the downregulation of miR-34a in HBV associated HCC might result from HBx induced p53 inhibition . (PMC6489561)|Activation (Negative)|%%E2F1 has also been documented to repress genes independent of RB1 , and E2F1 activity is likely to be controlled by multiple factors . (PMC5975074)|Activation (Negative)|%%However , there is also evidence for RB independent transcriptional repression mediated by E2F1 – 5 factors ( 11 – 13 ) , although the mechanisms for this type of repression are largely unknown . (PMC3905855)|Activation (Negative)|%%Initially , we confirmed that the ChIP enrichment was specific to pRb by generating MCF7 CRISPR cells that lack pRb ; there was no detectable pRb signal apparent upon the E2F1 promoter in pRb cells compared to their WT counterparts ( Figure S2D ) . (PMC5478878)|Activation (Positive)|%%MiR-429 was demonstrated as oncogene in HCC , its upregulation promoted the self-renewal , tumorigenicity and chemoresistance of EpCAM LCSCs , it led to the activated transcription of Oct4 by E2F transcription factor 1 ( E2F1 ) via reducing Rb binding protein 4 ( RBBP4 ) expression , which otherwise could inhibit E2F1 transcriptional activity . (PMC6348509)|Activation (Negative)|%%Interestingly , E2F1 overexpression increases levels of cyclin A/E , CDK1/2 , and hyper-phosphorylated RB1 , without upregulation of CDK4/6 protein expression and kinase activity , suggesting that CDK4/6 are likely not involved in E2F1 mediated cell death [ 79 ] . (PMC6913832)|Activation (Negative)|%%36 , 37 Importantly , PI ‐ 103 treatment attenuated RB phosphorylation at four distinct sites in Huh7 and PDX # 11 cells ( Fig. 5I ) , supporting a role for PI3K signaling as an upstream driver in hyperphosphorylating RB and subsequent E2F1 ‐ mediated activation of genes in the purine synthesis pathway . (PMC7471427)|Inconclusive|%%CDK4 , when associated with the regulatory D-type cyclins , promotes E2F1 transcriptional activity by phosphorylating RB1 and therefore releasing E2F1 from its repression [ 6 ] . (PMC6001358)|Inconclusive|%%Consistent with this notion , we found that the E2F1 activity was linearly correlated ( R = 0.79 ) with the amount of phosphorylated Rb , measured by immunostaining ( Fig 1E – 1G ) . (PMC5757913)|Inconclusive|%%However , E2F-1 is inactive in the beginning due to binding with hypophosphorylated retinoblastoma ( RB ) 47 . (PMC5335655)|Inconclusive|%%Our data demonstrated that glucose stimulated insulin secretion triggers CDK4 dependent pRb phosphorylation in the β-cell , and subsequent transcriptional activation of the Kir6.2 gene by E2F1 / DP-1 heterodimers . (PMC2829545)|Inconclusive|%%Similar to the effects observed in the white adipose tissue , HFD increased E2F1 levels and increased RB phosphorylation in mouse heart . (PMC5686046)|Inconclusive|%%Interestingly , an E2F1 independent tumor suppression effect of phosphorylated RB has been unveiled by Jin et al. ( 336 ) , and it is said that CDK4/6 mediated phosphorylation of RB at S249 / T252 enhances its interaction with NF-κ B p65 within nucleus and reduces the expression of NF-κ B target genes , including PD-L1 . ++++ Interestingly , an E2F1 independent tumor suppression effect of phosphorylated RB has been unveiled by Jin et al. ( 336 ) , and it is said that CDK4/6 mediated phosphorylation of RB at S249 / T252 enhances its interaction with NF-κ B p65 within nucleus and reduces the expression of NF-κ B target genes , including PD-L1 . (PMC6587331)|Inconclusive|%%Phosphorylated pRb releases the E2F1-DP complex which , in turn , activates the transcription of the Kir6.2 gene . (PMC6107797)|Inconclusive|'}},
+ {'data': {'id': 'uniprot:P06400uniprot:P01106',
+   'source': 'uniprot:P06400',
+   'target': 'uniprot:P01106',
+   'weight': 96.82458365518542,
+   'color': '#ffb0b0',
+   'ev': 'Rb can inhibit gene transcription through binding to the transcription factor E2F1-3 , and phosphorylated Rb releases E2Fs and transcriptionally initiates c-myc gene to accelerate cell cycle progression and promote DNA synthesis [ 22 ] . (PMC6710066)|Activation (Positive)|%%Estrogen stimulation induces cell-cycle progression from G1 to S phase42 and increases cellular proliferation via upregulation of downstream cyclin D1 and CDK4/6 , as well as C-MYC and cyclin E/CDK2.43 On the other hand , estrogen inhibition therapy , with aromatase inhibitors , tamoxifen and fulvestrant , induces cell-cycle arrest and consequently decreases cell viability.44 ,45 Moreover , Rb gene negative breast tumors are resistant to tamoxifen in xenograft models and in the clinical setting ,46,47 proving that disruption of the Rb signaling pathway is indeed implicated in the cancer inducing effects of estrogens . (PMC5818877)|Activation (Negative)|%%In H2052 cells , both palbociclib and PI3K / mTOR inhibitors alone reduced Rb phosphorylation , although no further down-regulation was promoted by the combinations ; however , being c-myc expression modulated also by mTORC1 , the concomitant inhibition of Rb and mTORC1 by the combinations produced a stronger down-regulation of c-myc also in these cells . (PMC7403976)|Activation (Negative)|%%Forty genes are engaged in this pathway , including tumor suppressors ( such as BRCA2 , CDKN2A , CHEK2 and RB1 ) , oncogene MYC , cyclins ( CCNA2 , CCNB1 , CCNB2 , CCND1 and CCNE1 ) , cyclin dependent kinases ( CDK1 , CDK2 and CDK4 ) , ESR1 , FOXM1 as well as NEK2 . (PMC6521146)|Activation (Negative)|%%On the other hand , pRb down-regulated c-myc by sequestering E2F1 [ 30 , 31 ] . (PMC6097452)|Activation (Negative)|%%These include p53 and the RB family , which inhibit TFIIIB , as well as c-Myc and Erk , which activate TFIIIB . (PMC2842266)|Activation (Negative)|%%Instead , their findings suggest that E47 induces cell-cycle arrest and senescence like alterations in pancreatic cancer cells by the combined actions of up-regulated p27 , down-regulated MYC , and activated pRB . (PMC6085492)|Activation (Negative)|%%In ENO1 stably overexpressing A549 cells , activation of p-Rb ( ser 780 ) was increased as well as the elevated expression of cyclin D1 , cyclin E1 , and c-Myc . (PMC4359783)|Activation (Positive)|%%The genes inhibited by ploidy are also presented by c-MYC suppressors RB1 [ 59 ] and PAK2 [ 60 , 61 ] . (PMC5342737)|Activation (Negative)|%%Furthermore , miR-616 overexpression significantly increased the protein level of c-Myc , cyclin-D1 and p-Rb ( Fig. 7B ; P < 0.05 ) while miR-616 inhibition significantly decreased the protein level of c-Myc , cyclin-D1 and p-Rb ( Fig. 7B ; P < 0.05 ) . (PMC5652963)|Activation (Positive)|%%Within the G1/G0 arrest , several studies have demonstrated the upregulation of CDKIs , p21 , and p27 , while few studies have also shown decreased C-MYC expression and increased pRB expression . (PMC7731034)|Activation (Negative)|%%Because MYC is an E2F target gene , we asked whether RB knockdown affected MYC expression in BxPC-3 / E47 cells and found that induction of E47 diminished MYC protein levels independent of RB expression ( Figure 6C ) . (PMC6039985)|Activation (Positive)|%%Similarly , E2F activation after Rb hyper-phosphorylation can depend on its initial levels at the time of Rb hyper-phosphorylation or/and on Myc dependent synthesis of E2F [ 29 ] . (PMC5983510)|Inconclusive|%%Dinda et al. [ 38 ] found thyroid hormone not only enhances the phosphorylation of pRb , but also induces the c-Myc expression and mutant P53 expression , this can also explain the cell proliferation efficacy of thyroid hormone . (PMC3717040)|Activation (Positive)|%%In TNBC models , c-Myc overexpression combined with loss of Rb and p53 drove rapid cell growth , and human TNBC tumors that express high levels of Myc and are devoid of Rb have a particularly poor outcome . (PMC5629103)|Activation (Negative)|'}},
+ {'data': {'id': 'uniprot:Q01094uniprot:P01106',
+   'source': 'uniprot:Q01094',
+   'target': 'uniprot:P01106',
+   'weight': 82.91561975888499,
+   'color': '#2b79ff',
+   'ev': 'Furthermore , it has been shown that BCR / ABL1 can induce c-MYC activity through distinct mechanisms , including regulation of c-MYC expression mediated by PI3K and JAK2 pathways ( Xie et al ., 2002 ) , E2F1 induced inhibition of c-MYC proteasome dependent degradation through activated JAK2 ( Stewart et al ., 1995 ) , and modulation of MYC mRNA translation ( Notari et al ., 2006 ) . (PMC6334626)|Activation (Positive)|%%It was reported that GCN5 increases the stability and enhances transcription activation of c ‐ Myc by acetylating its K323 residue.34 , 52 To test the possibility that K323 residue of c ‐ Myc is important for acetylation and stability , we constructed c ‐ Myc mutants with mutations at K323 ( K323R , imitating the deacetylation status ; K323Q , imitating the acetylation status ) . (PMC6201343)|Activation (Positive)|%%Because E2F1 is well known to actively promote DSB repair via physically interacting with Nijmegen Breakage Syndrome Protein 1 ( NBS1 ) , a key component of the MRN ( MRE11/RAD50/NBS1 ) DNA - end - binding complex [ 122,123,124 ] , and transcriptionally stimulates the human c-myc gene promoter [ 125,126 ] , there may be a possible collaboration between these two master cell-cycle-promoting transcription factors not only in the G / S phase transition [ 121 ] , but also in the synchronized activation of DSB-repair machinery . (PMC5485522)|Activation (Positive)|%%It has been reported that E2F1 up-regulated c-myc on the transcriptional level . ++++ It has been reported that E2F1 up-regulated c-myc on the transcriptional level . (PMC6097452)|Activation (Positive)|%%In turn , some E2F factors ( E2F1 , 2 , 3 ) can repress MYC whereas E2F7 transactivate MYC [ 188 ] . (PMC6470592)|Activation (Negative)|%%This increase in E2F1 activity causes the induction of c-Myc . (PMC5923364)|Activation (Positive)|%%In hepatocellular carcinoma cells , E2F1 promotes cell proliferation and suppresses apoptosis by inducing c-Myc expression and upregulating SKP2 expression [ 39 ] . (PMC6682527)|Activation (Negative)|%%This finding closely mirrors the outcome of our study in which Myc overexpression , driven by p53 / E2f1 activation , downregulates Pgc-1a and , consequently , decreases expression of the nuclear receptors Ppara and Esrrb/g . (PMC5739440)|Activation (Positive)|%%Based on the above results , we then propose that in chronic myeloid leukemia , E2F1 enters the nucleus via KPNB1 mediated nuclear entry , and promotes the expression of c-Myc , KPNA2 and KPNB1 through its transcription ability . (PMC6896920)|Activation (Positive)|%%58 This observation was of particular interest because hsa-miR-9 * does not directly target MYC , but may indirectly regulate its expression through E2F1 , whose expression is induced by Myc ,59,60 and that in turn activates MYC expression through a feedback autoregulatory loop that also involves the miR-17-92 cluster.61 – 63 Hsa-miR-9 * downregulation observed in BL cases lacking MYC translocation could determine the upregulation of E2F1 , which then increases and sustains MYC expression . (PMC6467348)|Activation (Positive)|%%Expression of MYC is also induced by E2F1 , formatting a putative positive feedback loop [ 35 ] . (PMC5877740)|Activation (Positive)|'}},
+ {'data': {'id': 'uniprot:P01106fplx:Cyclin_E',
+   'source': 'uniprot:P01106',
+   'target': 'fplx:Cyclin_E',
+   'weight': 75.0,
+   'color': '#2b79ff',
+   'ev': 'Furthermore , because c-myc induces the synthesis of cyclin E , H. pylori infection results in higher levels of cyclin E , as is confirmed by the results shown in Figure 1C . (PMC6786805)|Activation (Positive)|%%c-Myc is an established mediator of cisplatin resistance , and is also known to upregulate cyclin E . (PMC6856201)|Activation (Positive)|%%However , increasing the rate of Myc dependent synthesis of Cyclin E and E2F make Cyclin D dispensable for the G0 to G1 transition as observed in some cellular contexts [ 51 , 52 ] . ++++ We consider mitogen as an input to the model which promotes Myc dependent synthesis of Cyclin D , Cyclin E and E2F through the late phase of mitogen signalling . ++++ However , the Rb hyper-phosphorylation can depend on the activation of existing Cyclin E : Cdk2 by the inactivation of CKI or/and on Myc- dependent synthesis of Cyclin E [ 48 ] . (PMC5983510)|Activation (Positive)|%%Myc activates E2F and Cyclin D. E2F activates Cyclin E and itself through a self activating positive feedback loop . ++++ Myc activates E2F and Cyclin D. E2F activates Cyclin E and itself through a self activating positive feedback loop . (PMC5983441)|Activation (Positive)|%%It upregulates the expression of cyclin D and cyclin E , which both promote cell cycle progression . (PMC5919979)|Activation (Positive)|%%The levels of nuclear and total c-Myc protein , which could increase the expression of both cyclin D1 and cyclin E , were profoundly inhibited by KUD983 . (PMC5722513)|Activation (Positive)|%%BMAL1 hinders the G2/M transition activating WEE1 kinase expression , with successive inhibition of CDK1 , and inhibits c-MYC reducing cyclin E expression and cyclin E/Cdk2 activity , hampering the G1/S transition [ 28,29 ] . (PMC6678177)|Activation (Negative)|%%Thus , MYC activation of cyclin E-CDK2 complexes would rely mainly in MYC ’ s ability to induce cyclin E expression and form new and active cyclin E-CDK2 complexes . (PMC6470592)|Activation (Positive)|%%Interestingly , Pyrogallol induced S-phase arrest and attenuated the protein expression of Cyclin D1 , Cyclin E , Cyclin A , c-Myc , S-phase kinase associated protein 2 ( Skp2 ) , p-AKT , PI3K , increased the protein expression of p27 , and also reduced the fluorescent expression of Cyclin E in Hep3B and Huh7 cells . ++++ In summary , Pyrogallol showed significant cytotoxic and antiproliferative effects , induced S-phase arrest , attenuated the protein expression of CyclinD1 , Cyclin E , Cyclin A , c-Myc , Skp2 , p-AKT , PI3K , increased p27 , reduced the fluorescent expression of Cyclin E , and disturbed the interaction between Skp2 , p27 , and c-Myc in Huh7 cells . (PMC6720540)|Activation (Negative)|'}},
+ {'data': {'id': 'uniprot:P06400fplx:Cyclin_E',
+   'source': 'uniprot:P06400',
+   'target': 'fplx:Cyclin_E',
+   'weight': 70.71067811865476,
+   'color': '#99beff',
+   'ev': 'Upon phosphorylation by the CDK4/6-Cyclin D complex , Rb1 is inactivated , releases E2F , and allows for induction of genes controlling cell cycle progression ( Cyclin E and Cyclin A ) , DNA replication ( MCM7 and PCNA ) , and mitotic progression ( Cyclin B1 and CDK1 ) . (PMC7100881)|Activation (Positive)|%%In the absence of functional Rb , BTG2 prevents G1 to the S phase progression by reducing the level of cyclin E and cyclin ‐ dependent kinase ( cdk ) 4 ( I. K. Lim et al ., 1998 ) . (PMC6587536)|Activation (Positive)|%%Cyclin D-cdk4/6 ′ s main substrate is RB , which , when phosphorylated , allows the transcription of cyclin E [ 2 ] . (PMC6049303)|Activation (Positive)|%%The activation of MAPK / ERK kinase activity causes the phosphorylation of its many downstream targets , including the cyclin D - CDK4 complex ( 4 ) , which contributes to the hyperphosphorylation of Rb and the subsequent activation of E2F ( 40 ) , promoting the expression of its targets cyclin E and CDK2 , finally allowing cells to progress from G1 to S-phase ( 4,31,40 ) . ++++ The activation of MAPK / ERK kinase activity causes the phosphorylation of its many downstream targets , including the cyclin D - CDK4 complex ( 4 ) , which contributes to the hyperphosphorylation of Rb and the subsequent activation of E2F ( 40 ) , promoting the expression of its targets cyclin E and CDK2 , finally allowing cells to progress from G1 to S-phase ( 4,31,40 ) . (PMC6196630)|Activation (Positive)|%%Meanwhile , the silencing of pRb efficiently abolished the effect of miR-3129 on the expression of proliferation related factors , as pRb inhibition significantly up-regulated the expression of cyclin E and CDK2 , but down-regulated the expression of p16 and p21 in miR-3129-transfected cells ( Figure 7C-F , P < 0.05 or P < 0.01 ) . (PMC6002138)|Activation (Negative)|%%Both E ( n = 12 ) and E+ MPA ( n = 13 ) HRT in the postmenopausal breast were associated with increased PRA and PRB expression , increased nuclear cyclin E expression , and decreased nuclear p27 expression compared to no HRT ( n = 16 ) . (PMC5884216)|Activation (Positive)|%%P27Kip1 and p15INK4b ensure that hypophosphorylated pRB can inhibit the G1/S phase transition and suppress cyclin E expression [ 63 ] . (PMC6628140)|Activation (Negative)|%%This phosphorylation of the Rb protein partially relieves the Rb mediated suppression of the family of E2F transcription factors , enabling the expression of cyclin E , which is another S-phase cyclin . (PMC6523967)|Activation (Negative)|'}},
+ {'data': {'id': 'uniprot:Q01094fplx:Cyclin_E',
+   'source': 'uniprot:Q01094',
+   'target': 'fplx:Cyclin_E',
+   'weight': 70.71067811865476,
+   'color': '#99beff',
+   'ev': 'The cyclin E promoter has binding sites for E2F1 , which , in turn , upregulates cyclin E mRNA ( 74 , 85 ) . (PMC6096271)|Activation (Positive)|%%In HCC and clear cell renal cell carcinomas , E2F1 activates transcription of the CCNE gene , the product of which , cyclin E , forms a complex with CDK2 to promote DNA replication and tumor differentiation ( 35,36 ) . (PMC6111541)|Activation (Positive)|%%At the molecular level , DNA endoreduplication is controlled by periodical E2F1 activated expression of cyclin E ( cycE ) gene followed by transient degradation of E2F1 protein , which is mediated by the CRL4 ( CDT2 ) ubiquitin ligase [ 75 ] . (PMC4519132)|Activation (Positive)|%%Subsequently , E2F1 activation leads to increased levels of Cyclin E leading to CDK2 dependent hyper-phosphorylation of RB . (PMC6586519)|Activation (Negative)|%%As a result , SPPH treatment could activate the expression of E2F1 and could inhibit the expression of CDK2 , Cyclin E and Cyclin A2 ( Figure 5B ) . (PMC5979490)|Activation (Negative)|%%However , SETD7 also enhances transcription of the E2F1 target gene CYCLIN E and repression of TP53 , probably due to the formation of a regulatory loop , in which SETD7 dependent methylation and subsequent ubiquitination of E2F1 are necessary for E2F1 full transcriptional activity , but eventually lead to E2F1 degradation . (PMC6043541)|Activation (Negative)|%%Upon phosphorylation by CDK4 and 6 , RB1 undergoes a conformational change , leading to the release of E2F1 , which subsequently drives the expression of cyclin E , which further enhances CDK activity and ultimately drives an irreversible S-phase entry . (PMC5686113)|Activation (Positive)|%%Therefore , the increased expression of E2F1 will promote the transcription of cyclin E and cyclin D1 , which is correlated to tumorigenesis of lung cancers . (PMC6431770)|Activation (Positive)|'}},
+ {'data': {'id': 'uniprot:P01106fplx:Cyclin_D',
+   'source': 'uniprot:P01106',
+   'target': 'fplx:Cyclin_D',
+   'weight': 50.0,
+   'color': '#669eff',
+   'ev': 'The Hif2 α - Myc complex and Myc contribute to E2F availability directly through transcription , and indirectly , through enhancing the production of cyclin D protein for Rb inactivation . ++++ The Hif2 α - Myc complex and Myc contribute to E2F availability directly through transcription , and indirectly , through enhancing the production of cyclin D protein for Rb inactivation . (PMC5879778)|Activation (Positive)|%%We consider mitogen as an input to the model which promotes Myc dependent synthesis of Cyclin D , Cyclin E and E2F through the late phase of mitogen signalling . (PMC5983510)|Activation (Positive)|%%It upregulates the expression of cyclin D and cyclin E , which both promote cell cycle progression . (PMC5919979)|Activation (Positive)|%%Activation of MYC in mouse cells containing the MYC-ER chimera , promoted the interaction of p27 with D-type cyclins in an extent that proportionally correlated with the levels of cyclin D induced by MYC and with the activation of cyclin E-CDK2 complexes [ 103 ] . (PMC6470592)|Activation (Negative)|'}},
+ {'data': {'id': 'fplx:Cyclin_Dfplx:Cyclin_E',
+   'source': 'fplx:Cyclin_D',
+   'target': 'fplx:Cyclin_E',
+   'weight': 55.90169943749474,
+   'color': '#ffb0b0',
+   'ev': 'R547 is a diaminopyrimidine which inhibits CDK1 / Cyclin B , CDK2 / cyclin E and CDK4 / Cyclin D which is being evaluated in advanced solid and haematological tumors [ 328,329 ] . (PMC4381256)|Activation (Negative)|%%Association of cyclin D with its catalytic partners , CDK4 and CDK6 , induces the synthesis of cyclin E , followed by cyclin A synthesis in late G phase and S phase . (PMC4899554)|Activation (Positive)|%%Phosphorylated pRb / p105 is present at relatively constant levels throughout the cell cycle ; however , at the G / S transition point it is sequentially phosphorylated by Cyclin D : Cycle dependant kinase ( Cdk ) 4/6 and Cyclin E : Cdk 2 complexes , respectively , leading to a release of E2F and allowing cell cycle progression ( [ 11 , 17 , 18 ] ; Fig. ( 1 ) ) . (PMC2817888)|Inconclusive|%%We found that the protein expression of Cyclin A , Cyclin E , CDK2 , and CDK4 was reduced by TPX2 silencing , but not the Cyclin D ( Figure 5D ) . (PMC5479243)|Activation (Negative)|%%Phosphorylation of RB1 by cyclin D ( CCND1 )/cyclin dependent kinases ( CDK4 , CDK6 ) and cyclin E ( CCNE1 )/CDK2 complexes is necessary to restore the progression of cell cycle [ 130 ] . (PMC5641212)|Inconclusive|'}},
+ {'data': {'id': 'uniprot:P01106uniprot:P06400',
+   'source': 'uniprot:P01106',
+   'target': 'uniprot:P06400',
+   'weight': 50.0,
+   'color': '#ffb0b0',
+   'ev': 'As shown in Figure 1F-I , western blotting revealed that these inhibitors suppressed cell cycle progression by reducing MYC ( panel a ) , decreased p-RB ( panel b ) and E2F3 ( panel d ) . (PMC6226043)|Activation (Negative)|%%Furthermore , miR-616 overexpression significantly increased the protein level of c-Myc , cyclin-D1 and p-Rb ( Fig. 7B ; P < 0.05 ) while miR-616 inhibition significantly decreased the protein level of c-Myc , cyclin-D1 and p-Rb ( Fig. 7B ; P < 0.05 ) . (PMC5652963)|Activation (Positive)|%%The inhibition of c-Myc allows for the re-expression of p21 , driving the dephosphorylation of Rb . ++++ The inhibition of c-Myc allows for the re-expression of p21 , driving the dephosphorylation of Rb . (PMC6856201)|Inconclusive|%%Western blot results further confirmed that Fraxini notably inhibited the c-Myc expression in a concentration dependent manner in Hep3B cells , while it also decreased expression of pRb , and p4EBP in a dose dependent manner , which further confirmed the RPPA results ( Fig. 3C ) . (PMC6478697)|Activation (Negative)|'}},
+ {'data': {'id': 'uniprot:P06400fplx:Cyclin_D',
+   'source': 'uniprot:P06400',
+   'target': 'fplx:Cyclin_D',
+   'weight': 25.0,
+   'color': '#005eff',
+   'ev': 'The p16-cyclin D-CDK4/6-retinoblastoma ( RB ) protein pathway ( CDK4 pathway ) promotes G / S-phase transition and is one of the key signalling pathways deregulated in PDA.1 2 11 Cyclin D complexes with cyclin dependent kinases ( CDKs ) 4 and 6 , driving RB protein phosphorylation and G phase progression . (PMC6241608)|Activation (Positive)|'}},
+ {'data': {'id': 'fplx:Cyclin_Euniprot:P01106',
+   'source': 'fplx:Cyclin_E',
+   'target': 'uniprot:P01106',
+   'weight': 25.0,
+   'color': '#005eff',
+   'ev': 'The co-activation of c-Myc and cyclin E can regulate cell cycle , potentiate hyperplasia of atypically proliferated endometrium , and elevate estrogen receptor level in endometrium as well as the c-Myc transcription , eventually leading to gene amplification and over-proliferation of endometrial cell proliferation and EC occurrence [ 21 ] . (PMC6069412)|Activation (Positive)|'}}];
+        var cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: data,
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'label': 'data(label)',
+                           "text-valign" : "center",
+                           "text-halign" : "center",
+                            'width': '2000px',
+                            'height': '2000px',
+                            "font-size": "200px",
+                            "background-color":"#fc0800",
+                            "text-outline-color": "#555",
+                            "text-outline-width": "2px",
+                            "color": "#080707",
+                            'background-fit': 'contain',
+                            'background-clip': 'none'
+                        }
+                    }, {
+                        selector: 'edge',
+                        style: {
+
+                           'text-background-color': 'yellow',
+                            'text-background-opacity': 0.4,
+                            'width': 'data(weight)',
+                            'target-arrow-shape': 'triangle',
+                            'control-point-step-size': '140px',
+                            'curve-style': 'bezier',
+                            'line-color':"data(color)",
+                            'target-arrow-color': 'data(color)',
+                        }
+                    },
+                    {
+                    selector: 'node.semitransp',
+                    style:{ 'opacity': '.1' }
+                },
+                    {
+                    selector: 'edge.semitransp',
+                    style:{ 'opacity': '.1' }
+                }
+                ],
+            layout: {
+                    name:"breadthfirst",
+                        spacingFactor: 1.75,
+                    circle:true
+
+                }
+                
+            });
+        
+                
+        
+      cy.on('mouseover', 'node', function(evt){
+          var sel = evt.target;
+          cy.nodes().difference(sel.outgoers()).not(sel).addClass('semitransp');
+          cy.edges().difference(sel.edgesTo(sel.outgoers())).addClass("semitransp");
+    });
+        
+      cy.on('mouseout', 'node', function(evt){
+          var sel = evt.target;
+          cy.nodes().difference(sel.outgoers()).not(sel).removeClass('semitransp');
+          cy.edges().difference(sel.edgesTo(sel.outgoers())).removeClass("semitransp");
+    });
+        
+      cy.on('click', 'edge', function(evt){
+          var sel = evt.target;
+          var modal = document.getElementById("myModal");
+          var span = document.getElementsByClassName("close")[0];
+          var thickness=document.getElementById("thickness");
+          var ev=sel.data().ev;
+          var ev_split=ev.split("%%");
+          var ev_length=ev_split.length;
+          thickness.innerHTML="Total mentions: "+ev_length;
+          var ul_pos=document.createElement("ul");
+          var ul_neg=document.createElement("ul");
+          var ul_inc=document.createElement("ul");
+          var negCount=0;
+          var posCount=0;
+          var incCount=0;
+          for (var i = 0; i < ev_split.length; i++) {
+                // Create the list item:
+                var item = document.createElement('li');
+                var cont=document.createElement("div");
+
+                var parts=ev_split[i].split("|");
+                var text=parts[0];
+                var act=parts[1];
+
+
+                // Set its contents:
+                item.appendChild(document.createTextNode(text));
+                cont.appendChild(item)
+                if (act==="Activation (Negative)") {
+                    cont.style.color="red";
+                    negCount=negCount+=1;
+                } else if (act==="Activation (Positive)") {
+                    cont.style.color="blue";
+                    posCount=posCount+=1;
+                }
+                else {
+                    cont.style.color="black";
+                    incCount=incCount+=1;
+                }
+
+                cont.style.padding="0px 0px 20px 0px";
+
+
+                // Add it to the list:
+                if (act==="Activation (Positive)") {
+                    ul_pos.appendChild(cont);
+                } else if (act==="Activation (Negative)") {
+                    ul_neg.appendChild(cont);
+                } else {
+                    ul_inc.appendChild(cont);
+                }
+
+            }
+
+             function createFiller() {
+              var fillerText=document.createElement("li");
+              var fillerCont=document.createElement("div");
+
+              fillerText.appendChild(document.createTextNode("This is filler text"));
+              fillerCont.appendChild(fillerText);
+              fillerCont.style.padding="0px 0px 20px 0px";
+              fillerCont.style.color="blue";
+
+              var fillerText=document.createElement("li");
+              var fillerCont=document.createElement("div");
+
+              fillerText.appendChild(document.createTextNode("This is filler text"));
+              fillerCont.appendChild(fillerText);
+              fillerCont.style.padding="0px 0px 20px 0px";
+              fillerCont.style.color="white";
+              return fillerCont;
+          }
+
+          var fillerPos=createFiller();
+          var fillerNeg=createFiller();
+          var fillerInc=createFiller();
+          ul_pos.appendChild(fillerPos);
+          ul_neg.appendChild(fillerNeg);
+          ul_inc.appendChild(fillerInc);
+
+          document.getElementById("posThickness").innerHTML="Positive: "+posCount;
+          document.getElementById("negThickness").innerHTML="Negative: "+negCount;
+          document.getElementById("incThickness").innerHTML="Inconclusive: "+incCount;  
+          document.getElementById("posEv").innerHTML=ul_pos.innerHTML;
+          document.getElementById("negEv").innerHTML=ul_neg.innerHTML;
+          document.getElementById("incEv").innerHTML=ul_inc.innerHTML;
+          modal.style.display = "block";
+
+          window.onclick = function(event) {
+              if (event.target == modal) {
+                  var modalBody=document.getElementById("modalBody");
+                  modalBody.scrollTop = 0;
+                  modal.style.display="none";
+          }
+        }
+          
+          span.onclick = function() {
+              var modalBody=document.getElementById("modalBody");
+              modalBody.scrollTop = 0;
+              modal.style.display="none";
+        }
+    });
+    </script>
+    
+    <div class="w3-sidebar w3-bar-block w3-border-right" style="display:none;width:25%" id="mySidebar">
+        
+        <button onclick="w3_close()" class="w3-bar-item w3-large">Close &times;</button>
+
+        <form id="queryForm" method="POST" action="{{ url_for('go_home') }}">
+            <p><input class="w3-bar-item w3-button" style="color:#4CAF50" type="submit" value="Return to Homepage" /></p>
+        </form>
+
+        <h2 style="padding-left:10px">Interpreting the Visualization</h2>
+        <ul>
+            <div id="menuDiv">
+                 <li>The thickness of the arrows represent the amount of evidence that supports the connection. The thicker the arrow, the more evidence that supports the connection.</li>
+            </div>
+            <div id="menuDiv">
+                <li>The arrow colors represent the nature of the relationship between two species. If a high percentage of the total evidence for a relationship between node 1 and node 2 indicates that node 1 upregulates node 2, the arrow pointing from node 1 to node 2 is blue. If a low percentage of the total evidence for a relationship between node 1 and node 2 indicates that node 1 upregulates node 2, the arrow pointing from node 1 to node 2 is red. If there is some controversy (i.e. around half of the evidence for the relationship indicates upregulation), the arrow is either light blue (there is controversy, but more evidence supports upregulation), light red (there is controversy, but more evidence supports downregulation), or white (half of the evidence supports upregulation and half supports downregulation).</li>
+            </div>
+             <div id="menuDiv">
+                 <li>Click on connections between nodes to see the evidence for that connection. Blue text for the evidence indicates that the evidence was classified by REACH as supporting upregulation. Red text for the evidence indicates that the evidence was classified by REACH as supporting downregulation. Black text for the evidence indicates that the evidence was classified by REACH as inconclusive. </li>
+             </div>
+             <div id="menuDiv">
+                 <li>Mouseover nodes to see only the nodes that the node directly targets.</li>
+             </div>
+         </ul>
+     </div>
+    
+    <script>
+        function w3_open() {
+          document.getElementById("mySidebar").style.display = "block";
+        }
+
+        function w3_close() {
+          document.getElementById("mySidebar").style.display = "none";
+        }
+    </script>
+    
+    <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
+</body>
+</html>
+
+

@@ -1,0 +1,10 @@
+{% extends "validate.html" %}
+{% block type %}Single Query{% endblock %}
+{% block instructions %}
+Enter query:
+<br>
+<h6 style="color: grey">Ex: urea or CHEBI:16199</h6>
+{% endblock %}
+
+{% block field %}<input type="text" name="query" style="width:670px;height:30px;font-size:20px"/>
+<input type="checkbox" name="default_PR"/>Default highest PageRank{% endblock %}

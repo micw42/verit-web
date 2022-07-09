@@ -1,0 +1,283 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+    <title>VERIT</title>
+</head>
+
+<style>
+    .contents {
+        padding: 15px;
+        width: 100%;
+        height: 500px;
+        overflow: scroll;
+        border: 1px solid #ccc;
+    }
+
+    #progressbar {
+        margin-bottom: 30px;
+        overflow: hidden;
+        color: lightgrey
+    }
+
+    #progressbar .active {
+        color: #2F8D46
+    }
+
+    #progressbar li {
+        list-style-type: none;
+        font-size: 15px;
+        width: 25%;
+        float: left;
+        position: relative;
+        font-weight: 400;
+    }
+
+    #progressbar #step1:before {
+        content: "1";
+        padding-left: 20px;
+        cursor: pointer;
+
+    }
+
+    #progressbar #step2:before {
+        content: "2";
+        padding-left: 20px;
+        cursor: pointer;
+    }
+
+    #progressbar #step3:before {
+        content: "3";
+        padding-left: 20px;
+    }
+
+    #progressbar #step4:before {
+        content: "4";
+        padding-left: 20px;
+    }
+
+    #progressbar li:before {
+        width: 50px;
+        height: 50px;
+        line-height: 45px;
+        display: block;
+        font-size: 20px;
+        color: #ffffff;
+        background: lightgray;
+        border-radius: 50%;
+        margin: 0 auto 10px auto;
+        padding: 2px
+    }
+
+    #progressbar li:after {
+        content: '';
+        width: 100%;
+        height: 2px;
+        background: lightgray;
+        position: absolute;
+        left: 0;
+        top: 25px;
+        z-index: -1
+    }
+
+    #progressbar li.active:before,
+    #progressbar li.active:after {
+        background: #4CAF50
+    }
+
+    #more {
+        display: none;
+    }
+
+
+    .progress {
+        height: 20px
+    }
+
+    .progress-bar {
+        background-color: #2F8D46;
+
+    }
+
+    a {
+        text-decoration: none;
+        display: inline-block;
+        padding: 8px 16px;
+    }
+
+    a:hover {
+        background-color: #ddd;
+        color: black;
+    }
+
+    .previous {
+        background-color: #f1f1f1;
+        color: black;
+    }
+
+    .next {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .round {
+        border-radius: 50%;
+    }
+</style>
+
+<body>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#submit-btn').click(function () {
+                checked = $("input[type=checkbox]:checked").length;
+
+                if (!checked) {
+                    alert("You must check at least one checkbox.");
+                    return false;
+                }
+
+            });
+        });
+
+    </script>
+
+    <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{{ url_for('home')}}">VERIT</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('home')}}">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('select_query')}}">Query</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('readme')}}">README</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div style="padding-top:65px;" class="container">
+        <ul id="progressbar">
+            <li class="active" id="step1">
+                <strong>Select query algorithm</strong>
+            </li>
+            <li class="active" id="step2"><strong>Input query</strong></li>
+            <li class="active" id="step3"><strong>Validate query</strong></li>
+            <li id="step4"><strong>Input additional parameters</strong></li>
+        </ul>
+
+        <script>
+            // Function to run on click:
+            function toggle(elem) {
+                var el = document.getElementById(elem);
+                if (elem.innerHTML == "Show More") {
+                    elem.innerHTML = "Show Less";
+                } else {
+                    elem.innerHTML = "Show More";
+                }
+            }
+
+        </script>
+
+        {% if not_in|length != 0 %}
+        {% if not result_dict %}
+        <h5>None of the names were found in the database.</h5>
+        <ul>
+            <li>If querying with ID, refer to formatting table.</li>
+            <li>Query had no matchable alias. Use another alias.</li>
+            <li>NLP algorithm did not pick up any interactions with the query.</li>
+        </ul> <br>
+        <form method="POST" action="#">
+            <input type="submit" class="btn btn-primary" name="submit" value="Try another query"
+                style="background-color:#4CAF50" />
+        </form>
+        {% else %}
+        <h3>These entities were not found in the database:</h3>
+        <ul>
+            {% for name in not_in %}
+            <li>{{ name }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% else %}
+        <h3>All queries matched.</h3>
+        {% endif %}
+
+        {% if result_dict %}
+        <h3>The following IDs matched. Select best:</h3>
+        <form method="POST" action="#">
+            {% for query, id_dict in result_dict.items() %}
+            <h2 style="color:#4CAF50">{{ id_dict.Display }}</h2>
+            <div class="contents">
+                {% for id, name_list in id_dict.items() %}
+                {% if id != "Display" and id != "max_PR" %}
+                {% set pr = '%0.4f' | format(id_dict[id][0][1]|float) %}
+                {% set label = id + " (" + pr|string + ")" %}
+                <input type="checkbox" name={{ query }} value={{ id }} /> {{label}}
+                {% if name_list[0][1] < 0 %} <span>&#9888;</span>
+                    {% endif %}
+                    {% set len = name_list|length %}
+
+                    {% if len <= 3 %} {% for n in name_list[0:len] %} <li style="margin-left:40px">{{ n[0] }}</li>
+                        {% endfor %}
+                        {% else %}
+                        {% for n in name_list[0:4] %}
+
+                        <li style="margin-left:40px">{{ n[0] }}</li>
+                        {% endfor %}
+                        <div style="padding-left:40px" class="container">
+                            {% set btn_id = "toggle"+loop.index|string+query %}
+
+                            <button type="button" onclick=toggle({{btn_id}}); id={{btn_id}} class="btn btn-info"
+                                data-toggle="collapse" data-target="#Arr{{query}}{{loop.index|string}}"
+                                style="background-color:#4CAF50">Show More</button>
+                            <div id="Arr{{query}}{{loop.index|string}}" class="collapse">
+                                {% for n in name_list[4:len] %}
+                                <li>{{ n[0] }}</li>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% endif %}
+                        <br>
+
+                        {% endfor %}
+
+            </div><br>
+            {% endfor %}
+    </div>
+    <br>
+
+    <input type="submit" id="submit-btn" class="btn btn-primary" name="submit" value="submit"
+        style="background-color:#4CAF50;margin-bottom:20px;margin-left:1220px" />
+    </form>
+
+    {% endif %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+</body>
+
+</html>

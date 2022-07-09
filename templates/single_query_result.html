@@ -1,0 +1,498 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
+  <script type=text/javascript>
+    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  </script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js"></script>
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <title>Result</title>
+</head>
+
+<style>
+  #cy {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background: #4a4a4a;
+    z-index: -1;
+  }
+
+  .modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Stay in place */
+    z-index: 1;
+    /* Sit on top */
+    padding-top: 100px;
+    /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%;
+    /* Full width */
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+    background-color: rgb(0, 0, 0);
+    /* Fallback color */
+    background-color: rgba(0, 0, 0, 0.4);
+    /* Black w/ opacity */
+  }
+
+  /* Modal Content */
+  .modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  .modal-body {
+    max-height: calc(100vh - 210px);
+    overflow-y: auto;
+  }
+
+  /* The Close Button */
+  .close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+
+
+  }
+
+  #menuDiv {
+    padding: 0px 20px 20px 0px
+  }
+
+  #posEv {
+    float: left;
+    padding-right: 20px;
+    width: 33%;
+    font-size: large;
+  }
+
+  #negEv {
+    float: left;
+    width: 33%;
+    padding-right: 20px;
+    font-size: large;
+  }
+
+  #incEv {
+    float: right;
+    width: 33%;
+    font-size: large;
+  }
+
+
+  #posThicknessVal {
+    float: left;
+    width: 33%;
+  }
+
+  #negThicknessVal {
+    float: left;
+    width: 33%;
+  }
+
+  #incThicknessVal {
+    float: right;
+    width: 33%;
+  }
+</style>
+
+
+<body>
+  <div class="w3-sidebar w3-bar-block w3-border-right" style="display:none;width:30%" id="mySidebar">
+    <button onclick="w3_close()" class="w3-bar-item w3-large">Close &times;</button>
+    <form id="queryForm" method="POST" action="{{ url_for('go_home') }}">
+      <p><input class="w3-bar-item w3-button" style="color:#4CAF50" type="submit" value="Return to Homepage" /></p>
+    </form>
+    <h6 style="padding-left:10px">Filter by thickness:</h6>
+    <div style="padding-left:10px" class="slidecontainer">
+      <input type="range" min="1" max="100" value="1" class="slider" id="myRange">
+      <p>Minimum edge thickness: <span id="demo"></span></p>
+    </div>
+    <h6 style="padding-left:10px">Click on connections between nodes to see the evidence for that connection.</h6> <br>
+    <h6 style="padding-left:10px">Mouseover nodes to see only the nodes that the node directly targets.</h6> <br>
+
+    <h6 style="padding-left:10px">The NLP algorithm can also detect the type of relationship between two nodes (eg.
+      positive or negative regulation). However, it does not do so perfectly. Use the button below to view different
+      interaction types. Darker edges mean higher confidence. For more information on the color-coding, please see the
+      README.</h6> <br>
+    <div style="padding-left:10px">
+      <button id="color-button" onclick="add_colors()" class="btn btn-primary"
+        style="background-color:#4CAF50;padding-left:10px">Show Color</button>
+    </div>
+  </div>
+  <script>
+    function w3_open() {
+      document.getElementById("mySidebar").style.display = "block";
+    }
+
+    function w3_close() {
+      document.getElementById("mySidebar").style.display = "none";
+    }
+  </script>
+
+
+  <div id="myModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeEv">&times;</span>
+      <div class="modal-header">
+        <h1 id="thickness" style="font-family: Arial, Helvetica, sans-serif"></h1>
+        <h1 style="font-family: Arial, Helvetica, sans-serif">Evidence for this connection:</h1>
+      </div>
+      <div id="modalBody" class="modal-body">
+
+        <h2 id="posThicknessVal"></h2>
+        <h2 id="negThicknessVal"></h2>
+        <h2 id="incThicknessVal"></h2>
+        <div id="posEv"></div>
+        <div id="negEv"></div>
+        <div id="incEv"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="querier" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeQuery">&times;</span>
+      <div class="modal-header">
+        <h1 style="font-family: Arial, Helvetica, sans-serif" id="nodeID"></h1>
+      </div>
+      <div class="modal-body">
+
+        <form id="queryForm" method="POST" action="{{ url_for('process_data') }}">
+          <p><input id="next_query" type="text" name="next_query" /></p>
+          <p><input type="submit" value="Single Query on this ID" /></p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="cy"></div>
+
+
+  <script>
+    const data = {{ elements | tojson }};
+    var cy = cytoscape({
+      wheelSensitivity: 0.1,
+      container: document.getElementById('cy'),
+      elements: data,
+      style: [
+        {
+          selector: 'node',
+          style: {
+            "width": "2000px",
+            "height": "2000px",
+            "content": "data(label)",
+            "font-size": "250px",
+            "text-valign": "center",
+            "text-halign": "center",
+            "background-color": "data(color)",
+            "text-outline-color": "#555",
+            "text-outline-width": "2px",
+            "color": "#121111",
+            "overlay-padding": "6px",
+            "z-index": "10",
+            'background-fit': 'contain'
+
+          }
+        }, {
+          selector: 'edge',
+          style: {
+
+            'text-background-color': 'yellow',
+            'text-background-opacity': 0.4,
+            'width': 'data(weight)',
+            'target-arrow-shape': 'triangle',
+            'control-point-step-size': '140px',
+            'curve-style': 'bezier',
+            'line-color': "#fcfafa",
+            'target-arrow-color': '#fcfafa',
+            'arrow-scale': 3
+          }
+        },
+        {
+          selector: 'node.semitransp',
+          style: { 'opacity': '.1' }
+        },
+        {
+          selector: 'edge.semitransp',
+          style: { 'opacity': '.1' }
+        },
+        {
+          selector: 'edge.colors',
+          style: {
+            'line-color': "data(color)",
+            'target-arrow-color': "data(color)"
+          }
+        }
+      ],
+      layout: {
+        name: 'concentric',
+        concentric: function (node) {
+          return node.data("rank");
+        }
+
+
+
+
+
+      }
+    });
+    cy.on('mouseover', 'node', function (evt) {
+      var sel = evt.target;
+      cy.nodes().difference(sel.outgoers()).not(sel).addClass('semitransp');
+      cy.edges().difference(sel.edgesTo(sel.outgoers())).addClass("semitransp");
+    });
+    cy.on('mouseout', 'node', function (evt) {
+      var sel = evt.target;
+      cy.nodes().difference(sel.outgoers()).not(sel).removeClass('semitransp');
+      cy.edges().difference(sel.edgesTo(sel.outgoers())).removeClass("semitransp");
+    });
+    cy.on('click', 'node', function (evt) {
+      var sel = evt.target;
+      if (sel.data().rank != 1000000000) {
+        var modal = document.getElementById("querier");
+        var span = document.getElementById("closeQuery");
+        var info = sel.data().label + " (" + sel.data().id + ")";
+        var id = document.getElementById("next_query");
+        id.value = sel.data().id;
+        id.style.display = "block";
+        document.getElementById("nodeID").innerHTML = info;
+        modal.style.display = "block";
+        window.onclick = function (event) {
+          if (event.target == modal) {
+            modal.style.display = "none";
+          }
+
+        }
+        span.onclick = function () {
+          modal.style.display = "none";
+        }
+      }
+
+    });
+
+    cy.on('click', 'edge', function (evt) {
+      var sel = evt.target;
+            console.log(sel.data().files);
+            
+            function getEvidence() {
+                var retval;
+                $.ajaxSetup({
+                    async: false
+                });
+                $(function() {
+                  $.getJSON($SCRIPT_ROOT + '/_get_evidence', {
+                    files:sel.data().files
+                  }, function(data) {
+                      console.log(data.result);
+                      retval = data.result;
+                      return false;
+                  }); 
+                });
+                console.log(retval);
+                return retval;
+            }
+            
+            var ev = getEvidence();
+            console.log(ev);
+            
+            var modal = document.getElementById("myModal");
+            var span = document.getElementsByClassName("close")[0];
+            var thickness = document.getElementById("thickness");
+            var ev_split = ev.split("%%");
+            var ev_length = ev_split.length;
+            thickness.innerHTML = "Total mentions: " + ev_length;
+            var ul_pos = document.createElement("ul");
+            var ul_neg = document.createElement("ul");
+            var ul_inc = document.createElement("ul");
+            var negCount = 0;
+            var posCount = 0;
+            var incCount = 0;
+            for (var i = 0; i < ev_split.length; i++) {
+                // Create the list item:
+                var item = document.createElement('li');
+                var cont = document.createElement("div");
+
+                var parts = ev_split[i].split("|");
+                var text = parts[0];
+                var act = parts[1];
+
+
+                // Set its contents:
+                item.appendChild(document.createTextNode(text));
+                cont.appendChild(item)
+                if (act === "Activation (Negative)") {
+                    cont.style.color = "red";
+                    negCount = negCount += 1;
+                } else if (act === "Activation (Positive)") {
+                    cont.style.color = "blue";
+                    posCount = posCount += 1;
+                }
+                else {
+                    cont.style.color = "black";
+                    incCount = incCount += 1;
+                }
+
+                cont.style.padding = "0px 0px 20px 0px";
+
+
+                // Add it to the list:
+                if (act === "Activation (Positive)") {
+                    ul_pos.appendChild(cont);
+                } else if (act === "Activation (Negative)") {
+                    ul_neg.appendChild(cont);
+                } else {
+                    ul_inc.appendChild(cont);
+                }
+
+            }
+
+            function createFiller() {
+                var fillerText = document.createElement("li");
+                var fillerCont = document.createElement("div");
+
+                fillerText.appendChild(document.createTextNode("This is filler text"));
+                fillerCont.appendChild(fillerText);
+                fillerCont.style.padding = "0px 0px 20px 0px";
+                fillerCont.style.color = "blue";
+
+                var fillerText = document.createElement("li");
+                var fillerCont = document.createElement("div");
+
+                fillerText.appendChild(document.createTextNode("This is filler text"));
+                fillerCont.appendChild(fillerText);
+                fillerCont.style.padding = "0px 0px 20px 0px";
+                fillerCont.style.color = "white";
+                return fillerCont;
+            }
+
+            var fillerPos = createFiller();
+            var fillerNeg = createFiller();
+            var fillerInc = createFiller();
+            ul_pos.appendChild(fillerPos);
+            ul_neg.appendChild(fillerNeg);
+            ul_inc.appendChild(fillerInc);
+
+            document.getElementById("posThicknessVal").innerHTML = "Positive: " + posCount;
+            document.getElementById("negThicknessVal").innerHTML = "Negative: " + negCount;
+            document.getElementById("incThicknessVal").innerHTML = "Inconclusive: " + incCount;
+            document.getElementById("posEv").innerHTML = ul_pos.innerHTML;
+            document.getElementById("negEv").innerHTML = ul_neg.innerHTML;
+            document.getElementById("incEv").innerHTML = ul_inc.innerHTML;
+            modal.style.display = "block";
+
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    var modalBody = document.getElementById("modalBody");
+                    modalBody.scrollTop = 0;
+                    modal.style.display = "none";
+                }
+            }
+
+            span.onclick = function () {
+                var modalBody = document.getElementById("modalBody");
+                modalBody.scrollTop = 0;
+                modal.style.display = "none";
+            } 
+    });
+
+    var slider = document.getElementById("myRange");
+    var output = document.getElementById("demo");
+    output.innerHTML = slider.value;
+    var filteredEdges = cy.edges().filter('[weight < 0]');
+    var filteredNodes = cy.nodes().filter(function (ele) {
+
+      return ele.degree() == -2;
+    });
+    filteredEdges = cy.remove(filteredEdges);
+    filteredNodes = cy.remove(filteredNodes);
+    slider.oninput = function () {
+      filteredNodes.restore();
+      filteredEdges.restore();
+
+      output.innerHTML = this.value;
+      threshold = this.value;
+      // filtering edges
+      filteredEdges = cy.edges().filter('[thickness < ' + threshold + ']');
+      filteredEdges = cy.remove(filteredEdges);
+      filteredNodes = cy.nodes().filter(function (ele) {
+        var message = "ID: " + ele.id() + "has degree " + ele.degree().toString();
+        console.log(message);
+        return ele.degree() == 0;
+      });
+
+      filteredNodes = cy.remove(filteredNodes);
+      var layout = cy.layout({
+        name: 'concentric',
+        concentric: function (node) {
+          return node.data("rank");
+        }
+      });
+
+      layout.run();
+    }
+
+
+    function add_colors() {
+      var x = document.getElementById("color-button");
+      if (x.innerHTML === "Show Color") {
+        x.innerHTML = "Hide Color";
+        cy.edges().addClass("colors");
+      } else {
+        x.innerHTML = "Show Color";
+        cy.edges().removeClass("colors");
+      }
+    }
+
+    function switch_color() {
+      var x = document.getElementById("current-color");
+      if (x.innerHTML === "Current: Positive interactions") {
+        x.innerHTML = "Current: Negative interactions";
+        cy.edges().removeClass("pos_colors");
+        cy.edges().addClass("neg_colors");
+      } else if (x.innerHTML == "Current: Negative interactions") {
+        x.innerHTML = "Current: Inconclusive interactions";
+        cy.edges().removeClass("neg_colors");
+        cy.edges().addClass("inc_colors");
+      } else if (x.innerHTML == "Current: Inconclusive interactions") {
+        x.innerHTML = "Current: None";
+        cy.edges().removeClass("inc_colors");
+      } else {
+        x.innerHTML = "Current: Positive interactions";
+        cy.edges().addClass("pos_colors");
+      }
+    }
+  </script>
+  <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
+
+
+</body>
+
+</html>

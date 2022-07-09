@@ -1,0 +1,2 @@
+function(ele){ return Math.max(20, ele.degree()) * 100;}
+function(ele){ return Math.max(20, ele.degree()) * 50; }
