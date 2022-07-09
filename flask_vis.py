@@ -11,7 +11,7 @@ import os
 from werkzeug.utils import secure_filename
 from os.path import expanduser
 
-pickle_path = "./newAbstrPickles/"
+pickle_path = "/home/veritvisualization/verit-web/newAbstrPickles/"
 
 UPLOAD_FOLDER = "uploads/"
 
@@ -20,7 +20,7 @@ bucket = "all-abstract-ev"
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-with open("aws.txt", "r") as f:
+with open("/home/veritvisualization/verit-web/aws.txt", "r") as f:
     creds = f.read().split(",")
 access_key = creds[0]
 secret_key = creds[1]
@@ -45,7 +45,7 @@ print(f"{clr.Fore.GREEN}Loaded pickles in {round(time.time() - start, 3)}s.{clr.
 G = nx.from_pandas_edgelist(edges_df, edge_attr=True, source="source", target="target", create_using=nx.DiGraph())
 
 @app.route('/_get_evidence')
-def get_evidence(): 
+def get_evidence():
     global access_key
     global secret_key
     files = request.args.get('files', 0, type=str)
@@ -74,16 +74,16 @@ def select_query():
             return redirect(url_for("validate", query_type=query_type))
     else:
         return render_template("select_query.html")
-    
+
 @app.route('/validate/<query_type>', methods=["POST","GET"])
 def validate(query_type):
     global edges_df
     if request.method=="POST":
-        
+
         #Only multi query accepts file input
         if query_type == "dijkstra":
             file = request.files['file']
-            
+
             #Handles file input
             if file:
                 #filename = secure_filename(file.filename)
@@ -91,7 +91,7 @@ def validate(query_type):
                 #file.save(file_path)
                 #with open(file_path) as file:
                 #    file_contents = file.read()
-                file_contents = file.read().decode("utf-8") 
+                file_contents = file.read().decode("utf-8")
                 query = file_contents.splitlines()
                 string_type=request.form["queryType"]
                 if string_type == "id":
@@ -117,7 +117,7 @@ def validate(query_type):
             query_dict = json.dumps(query_dict)
             #Id query with text box goes directly to page that shows which ones were found
             return redirect(url_for("display_options", result_dict=result_dict, query_type=query_type, query=query_dict))
-        
+
         #If the query is a text box format with name contains/begins/ends
         else:
             query=request.form["query"]
@@ -136,7 +136,7 @@ def validate(query_type):
                         query_dict[query] = [result_dict[query]["max_PR"]]
                     query_dict = json.dumps(query_dict)
                     return redirect(url_for("make_bfs_query", query=query_dict, query_type = "name"))
-                    
+
             if query_type=="single":
                 if default_PR:
                     print("Default PR")
@@ -153,10 +153,10 @@ def validate(query_type):
                     query = json.dumps(query)
                     return redirect(url_for("make_single_query", query=query, query_type=query_type))
                 #Remove spaces from query entries
-                
+
             query=query.replace(" ","SPACE")
             return redirect(url_for("pick_query", query_type=query_type, query=query, string_type=string_type))
-            
+
     else:
         if query_type=="single":
             return render_template("validate_single.html")
@@ -167,18 +167,18 @@ def validate(query_type):
 def pick_query(query_type, query, string_type):
     global nodes_df
     global full_df
-    
+
     user_query=query.replace("SPACE"," ")
     user_query = user_query.split(",")
-    
+
     if query_type=="single":
         SingleSearcher.query(user_query[0], nodes_df, full_df, string_type)
         result_dict=ConvertSearch.single_convert()
         print("Pick query result dict:", result_dict)
-       
-        
+
+
     else:
-            #Handles gene ids    
+            #Handles gene ids
             if string_type == "gene":
                 id_dict = GeneConvert.convert_genes(user_query)
                 conv_genes = list(id_dict.keys())    #the genes that were able to be converted to uniprot id
@@ -194,28 +194,28 @@ def pick_query(query_type, query, string_type):
                 query_dict = {"QUERY_ID":query}
                 query_dict = json.dumps(query_dict)
                 return redirect(url_for("display_options", result_dict = result_dict, query_type=query_type, query=query_dict))
-            
+
             #Handles name queries
-            else:  
+            else:
                 MultiSearcher.query(user_query, nodes_df, full_df, string_type)
                 result = pd.read_csv("multiSearchOut.csv")
                 result_dict=ConvertSearch.multi_convert()
 
     if request.method=="POST":
-        if query_type=="single": 
+        if query_type=="single":
             if request.form["query"]=="Try another query":
                     return redirect(url_for("select_query"))
         else:
             if request.form["submit"]=="Try another query":
                     return redirect(url_for("select_query"))
-            
-        if query_type=="single": 
-           
+
+        if query_type=="single":
+
             query=request.form.getlist("query")
             query_dict = {user_query[0]:query}   #Query[0] since there's only 1 query, and no commas
             query_dict = json.dumps(query_dict)
             return redirect(url_for("make_single_query", query=query_dict, query_type="name"))
-        
+
         else:
             query_dict={}
             default_PR = request.form.get("default_PR")
@@ -227,7 +227,7 @@ def pick_query(query_type, query, string_type):
                     query_dict[query] = request.form.getlist(query)
             query_dict = json.dumps(query_dict)
             return redirect(url_for("make_bfs_query", query=query_dict, query_type = "name"))
-          
+
     else:
         if query_type=="single":
             print("Result dict type:", type(result_dict))
@@ -235,15 +235,15 @@ def pick_query(query_type, query, string_type):
         else:
             not_in=list(set([q.lower() for q in user_query])-set([k["Display"].lower() for k in result_dict.values()]))
             return render_template("pick_results_multi.html", query=query, result_dict=result_dict, not_in=not_in)
-        
-    
+
+
 @app.route('/options/<query_type>/<result_dict>/<query>', methods=["POST","GET"])
 def display_options(result_dict, query_type, query):
     result_dict = json.loads(result_dict)
     not_in = result_dict["not_in"]
     present = result_dict["present"]
     query_parts=(json.loads(query))["QUERY_ID"].split(",")
-   
+
     if request.method=="POST":
         choice=request.form["choice"]
         if choice=="Try another query":
@@ -284,7 +284,7 @@ def bfs_query_result(query_string, max_linkers, qtype, query_type, get_direct_li
     global G
     global access_key
     global secret_key
-    
+
     query=json.loads(query_string)
     max_linkers=int(max_linkers)
     if get_direct_linkers == "True":
@@ -305,7 +305,7 @@ def single_query_result(query, depth, query_type, methods=["GET"]):
     global edges_df
     global nodes_df
     global G
-    
+
     query = json.loads(query)
     depth=int(depth)
 
