@@ -12,7 +12,7 @@ from functools import partial
 from joblib import Parallel, delayed
 
 
-def run_nx(query_pairs, qtype, max_linkers):
+def run_nx(query_pairs, G, qtype, max_linkers):
     sources = []; targets = []
     for query_pair in query_pairs:
         source, target = query_pair
@@ -72,7 +72,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     # Networkx path finding
     # Emperically tested threshold for parallelization
     if len(q_combinations) >= parallel_threshold:
-        source_targets = Parallel(n_jobs=4)(delayed(run_nx)(pair_chunk, qtype, max_linkers)
+        source_targets = Parallel(n_jobs=4)(delayed(run_nx)(pair_chunk, G, qtype, max_linkers)
                                             for pair_chunk in np.array_split(np.array(q_combinations), 4))
 
         sources = [x[0] for x in source_targets]
@@ -82,7 +82,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
         targets = list(it.chain.from_iterable(targets))
     
     elif len(q_combinations) < parallel_threshold:
-        sources, targets = run_nx(q_combinations, qtype, max_linkers)
+        sources, targets = run_nx(q_combinations, G, qtype, max_linkers)
 
     st_dict = {"source": sources, "target": targets}
     st_df = pd.DataFrame(st_dict).drop_duplicates()
