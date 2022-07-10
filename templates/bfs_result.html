@@ -357,8 +357,8 @@
             var direct = cy.nodes().filter('[type="Direct"]').not(':transparent');
             var edgeLen = Math.floor(Math.sqrt(linkers.length));
             var orphLen = Math.floor(Math.sqrt(query_orphans.length));
-            
             var clusters = [];
+
             for (var i=0; i<is_connected.length; i++) {
                 var query_node = is_connected[i];
                 var newCluster = [query_node.data().id];
@@ -369,6 +369,9 @@
                 }
                 linkers = linkers.difference(linker_neighbors);
                 clusters.push(newCluster);
+            }
+            for (var i=0; i<linkers.length; i++) {
+                clusters[clusters.length-1].push(linkers[i].data().id);
             }
             for (var i=0; i<direct.length; i++) {
                 var idx = i%is_connected.length;
