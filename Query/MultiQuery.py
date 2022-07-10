@@ -9,6 +9,39 @@ import time
 from multiprocessing import Pool
 from Query import GetEv
 from functools import partial
+from joblib import Parallel, delayed
+
+
+def run_nx(query_pairs, qtype, max_linkers):
+    sources = []; targets = []
+    for query_pair in query_pairs:
+        source, target = query_pair
+        if qtype == "all_simple_paths":
+            try:
+                path = list(nx.all_simple_paths(G, source, target, cutoff=max_linkers))
+                # Loop through interaction pairs in a path
+                for ind in path:
+                    for n1, n2 in zip(ind, ind[1:]):
+                        sources.append(n1)
+                        targets.append(n2)
+
+            except (nx.NetworkXNoPath, nx.NodeNotFound) as e:
+                pass
+
+        elif qtype == "all_shortest_paths":
+            try:
+                path = list(nx.all_shortest_paths(G, source, target))
+                path = [x for x in path if (len(x)-1)<=max_linkers]
+                for ind in path:
+                    for n1, n2 in zip(ind, ind[1:]):
+                        sources.append(n1)
+                        targets.append(n2)
+
+            except (nx.NetworkXNoPath, nx.NodeNotFound) as e:
+                pass
+
+    return sources, targets
+
 
 # queries_id: dict of format {query_name:[list of selected IDs]} (if name query)
 # or {"QUERY_ID":"comma separated string of query IDs"} (if ID query)
@@ -17,7 +50,7 @@ from functools import partial
 
 #qtype: all_simple_paths or all_shortest_paths
 
-def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get_direct_linkers, db_df, access_key, secret_key, bucket="all-abstract-ev"):   
+def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get_direct_linkers, db_df, access_key, secret_key, bucket="all-abstract-ev", parallel_threshold=40):   
     nodes_df = nodes_df.drop_duplicates(subset='Id', keep="first")
     edges_df = edges_df.drop_duplicates(subset=['source', 'target'], keep="first")
     
@@ -36,38 +69,22 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
         query_list = queries_id["QUERY_ID"].split(",")
         q_combinations = list(it.permutations(query_list, 2))
 
-    sources = list()
-    targets = list()
-    for query_pair in q_combinations:
-        source, target = query_pair
-        if qtype == "all_simple_paths":
-            try:
-                path = list(nx.all_simple_paths(G, source, target, cutoff=max_linkers))
-                # Loop through interaction pairs in a path
-                for ind in path:
-                    for n1, n2 in zip(ind, ind[1:]):
-                        sources.append(n1)
-                        targets.append(n2)        
-            except nx.NetworkXNoPath:
-                pass            
-            except nx.NodeNotFound:
-                pass
+    # Networkx path finding
+    # Emperically tested threshold for parallelization
+    if len(q_combinations) >= parallel_threshold:
+        source_targets = Parallel(n_jobs=4)(delayed(run_nx)(pair_chunk, qtype, max_linkers)
+                                            for pair_chunk in np.array_split(np.array(q_combinations), 4))
 
-        elif qtype == "all_shortest_paths":
-            try:
-                path = list(nx.all_shortest_paths(G, source, target))
-                path = [x for x in path if (len(x)-1)<=max_linkers]
-                for ind in path:
-                    for n1, n2 in zip(ind, ind[1:]):
-                        sources.append(n1)
-                        targets.append(n2)
-            except nx.NetworkXNoPath:
-                pass           
-            except nx.NodeNotFound:
-                pass
+        sources = [x[0] for x in source_targets]
+        targets = [x[1] for x in source_targets]
+
+        sources = list(it.chain.from_iterable(sources))
+        targets = list(it.chain.from_iterable(targets))
     
+    elif len(q_combinations) < parallel_threshold:
+        sources, targets = run_nx(q_combinations, qtype, max_linkers)
+
     st_dict = {"source": sources, "target": targets}
-    
     st_df = pd.DataFrame(st_dict).drop_duplicates()
 
     # Making edges
