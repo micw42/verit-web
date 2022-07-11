@@ -16,6 +16,7 @@ def run_nx(query_pairs, G, qtype, max_linkers):
     sources = []; targets = []
     for query_pair in query_pairs:
         source, target = query_pair
+        print("Running", query_pair)
         if qtype == "all_simple_paths":
             try:
                 path = list(nx.all_simple_paths(G, source, target, cutoff=max_linkers))
@@ -41,6 +42,58 @@ def run_nx(query_pairs, G, qtype, max_linkers):
                 pass
 
     return sources, targets
+
+# Get number of valid (non-direct) paths (for shortQuery allShortestPaths)
+def get_valid_paths(path_list, direct_paths):
+    valid = list(set(path_list) - set(direct_paths))
+    valid = [x for x in valid if len(set(x))>1]
+    n_valid = len(valid)
+    return n_valid
+
+def shortQuery(edges_df, query_list, q_combinations, q_type, cutoff):
+    # All edges to and from query nodes
+    subset_df = edges_df[(edges_df["source"].isin(query_list)) | (edges_df["target"].isin(query_list))]
+    # Direct connections between query nodes
+    direct_edges = subset_df[(subset_df["source"].isin(query_list)) & (subset_df["target"].isin(query_list))]
+    
+    # Return just direct connections if max linkers is 1
+    if cutoff==1:
+        return direct_edges
+    
+    direct_path_list = list(direct_edges[["source", "target"]].itertuples(index=False, name=None))
+    # List of direct paths that don't exist
+    no_direct = list(set(q_combinations) - set(direct_path_list))
+    # List of query nodes with no direct path
+    no_direct = list(sum(no_direct, ()))
+
+    # Edges between query node and non-query node
+    paths_df = subset_df[(~subset_df["source"].isin(query_list)) | (~subset_df["target"].isin(query_list))]
+    # List of nodes that target each non-query node
+    target_df = paths_df[["source", "target"]][~paths_df["target"].isin(query_list)].groupby('target')['source'].apply(list).reset_index(name='sources')
+    # List of nodes that each non-query node targets
+    source_df = paths_df[["source", "target"]][~paths_df["source"].isin(query_list)].groupby('source')['target'].apply(list).reset_index(name='targets')
+    merged_df = target_df.merge(source_df, left_on="target", right_on="source")
+    # Number of sources and targets each non-query node has
+    merged_df["source_len"] = merged_df["sources"].apply(lambda x: len(x))
+    merged_df["target_len"] = merged_df["targets"].apply(lambda x: len(x))
+    # Paths that each non-query node acts as a linker in 
+    merged_df["paths"] = merged_df.apply(lambda x: list(it.product(x.sources, x.targets)), axis=1)
+    # Number of paths that aren't already a direct connection that each non-query node acts as a linker in
+    merged_df["paths"] = merged_df["paths"].apply(lambda x: get_valid_paths(x, direct_path_list))
+
+    if q_type == "all_simple_paths":
+        linkers = merged_df[((merged_df["source_len"]>1) & (merged_df["target_len"]>0)) | ((merged_df["target_len"]>1) & (merged_df["source_len"]>0)) | (merged_df["sources"]!=merged_df["targets"])]["target"].tolist()
+        link_edges = subset_df[((subset_df["source"].isin(linkers)) | (subset_df["target"].isin(linkers)))]
+
+    elif q_type == "all_shortest_paths":
+        # Only keep linker paths between query nodes w/o direct connection
+        merged_df = merged_df[merged_df["paths"]!=0]  
+        linkers = merged_df[((merged_df["source_len"]>1) & (merged_df["target_len"]>0)) | ((merged_df["target_len"]>1) & (merged_df["source_len"]>0)) | (merged_df["sources"]!=merged_df["targets"])]["target"].tolist()
+        link_edges = subset_df[((subset_df["source"].isin(linkers)) | (subset_df["target"].isin(linkers))) & (subset_df["source"].isin(no_direct) | (subset_df["target"].isin(no_direct)))]
+
+    result_df = pd.concat([link_edges, direct_edges])
+    return result_df
+
 
 
 # queries_id: dict of format {query_name:[list of selected IDs]} (if name query)
@@ -68,38 +121,45 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     elif query_type == "id":
         query_list = queries_id["QUERY_ID"].split(",")
         q_combinations = list(it.permutations(query_list, 2))
+        
+    if max_linkers < 3:
+        # Pandas path finding
+        rel_df = shortQuery(edges_df, query_list, q_combinations, qtype, cutoff=max_linkers)
+        
+    else:
+        # Networkx path finding
+        # Emperically tested threshold for parallelization
+        if len(q_combinations) >= parallel_threshold:
+            start = time.time()
+            source_targets = Parallel(n_jobs=4, require="sharedmem", verbose=10)(delayed(run_nx)(pair_chunk, G, qtype, max_linkers)
+                                                for pair_chunk in np.array_split(np.array(q_combinations), len(q_combinations)))
+            print("Finished querying in", time.time()-start, "sec.")
 
-    # Networkx path finding
-    # Emperically tested threshold for parallelization
-    if len(q_combinations) >= parallel_threshold:
-        source_targets = Parallel(n_jobs=4)(delayed(run_nx)(pair_chunk, G, qtype, max_linkers)
-                                            for pair_chunk in np.array_split(np.array(q_combinations), 4))
+            sources = [x[0] for x in source_targets]
+            targets = [x[1] for x in source_targets]
 
-        sources = [x[0] for x in source_targets]
-        targets = [x[1] for x in source_targets]
+            sources = list(it.chain.from_iterable(sources))
+            targets = list(it.chain.from_iterable(targets))
 
-        sources = list(it.chain.from_iterable(sources))
-        targets = list(it.chain.from_iterable(targets))
-    
-    elif len(q_combinations) < parallel_threshold:
-        sources, targets = run_nx(q_combinations, G, qtype, max_linkers)
+        elif len(q_combinations) < parallel_threshold:
+            sources, targets = run_nx(q_combinations, G, qtype, max_linkers)
 
-    st_dict = {"source": sources, "target": targets}
-    st_df = pd.DataFrame(st_dict).drop_duplicates()
+        st_dict = {"source": sources, "target": targets}
+        st_df = pd.DataFrame(st_dict).drop_duplicates()
 
-    # Making edges
-    rel_df = st_df.merge(edges_df, on=["source", "target"], how="left")
+        # Making edges
+        rel_df = st_df.merge(edges_df, on=["source", "target"], how="left")
 
-    # Bidirectional edges
-    opp_df = rel_df.merge(edges_df, left_on=["source", "target"], right_on=["target","source"])
-    opp_df = opp_df.drop(labels=["source_x","target_x","color_x", "thickness_x"], axis=1).rename(columns={"source_y":"source", "target_y":"target", "color_y":"color", "thickness_y":"thickness"})
-    rel_df = pd.concat([rel_df, opp_df]).drop_duplicates(subset=["source", "target"])
+        # Bidirectional edges
+        opp_df = rel_df.merge(edges_df, left_on=["source", "target"], right_on=["target","source"])
+        opp_df = opp_df.drop(labels=["source_x","target_x","color_x", "thickness_x"], axis=1).rename(columns={"source_y":"source", "target_y":"target", "color_y":"color", "thickness_y":"thickness"})
+        rel_df = pd.concat([rel_df, opp_df]).drop_duplicates(subset=["source", "target"])
     
     # Create nodes df
     nodes = list(it.chain(*q_combinations)) # List of all query IDs
     # Add found nodes
-    nodes.extend(sources)
-    nodes.extend(targets)
+    nodes.extend(rel_df["source"].tolist())
+    nodes.extend(rel_df["target"].tolist())
     nodes = list(set(nodes))
     nodes = pd.DataFrame({"Id": nodes})
     nodes = nodes.merge(nodes_df, on="Id", how="inner")[["Id", "Label"]]
@@ -132,7 +192,6 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
 
     # Add direct connection edges to the rest of the edges
     rel_df = pd.concat([rel_df, links]).drop_duplicates(subset = ["source", "target"])
-  
     # Add evidence column
     sources = rel_df["source"].tolist()
     targets = rel_df["target"].tolist()
