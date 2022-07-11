@@ -109,6 +109,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     
     if query_type == "name":
         query_list = list(queries_id.values())
+        query_lengths = set([len(x) for x in query_list])
         # Get all possible pairs of queries (note: each query is a list of IDs)
         li_perm = list(it.permutations(query_list, 2)) 
         # Get all possible pairs of element from 1st list with element from 2nd list
@@ -121,14 +122,18 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     elif query_type == "id":
         query_list = queries_id["QUERY_ID"].split(",")
         q_combinations = list(it.permutations(query_list, 2))
+        query_lengths = {1}
         
-    if max_linkers < 3:
+    
+    if max_linkers < 3 and query_lengths=={1}:
         # Pandas path finding
+        print("Running short query")
         rel_df = shortQuery(edges_df, query_list, q_combinations, qtype, cutoff=max_linkers)
         
     else:
         # Networkx path finding
         # Emperically tested threshold for parallelization
+        print("Running nx query")
         if len(q_combinations) >= parallel_threshold:
             start = time.time()
             source_targets = Parallel(n_jobs=4, require="sharedmem", verbose=10)(delayed(run_nx)(pair_chunk, G, qtype, max_linkers)
