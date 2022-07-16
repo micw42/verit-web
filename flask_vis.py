@@ -11,11 +11,11 @@ import os
 from werkzeug.utils import secure_filename
 from os.path import expanduser
 
-pickle_path = "./newAbstrPickles/"
+pickle_path = "./fixed_ev_pickles/"
 
 UPLOAD_FOLDER = "uploads/"
 
-bucket = "all-abstract-ev"
+bucket = "updated-abstract-evidence"
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
