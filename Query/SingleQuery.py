@@ -19,6 +19,8 @@ def query(G, edges_df, nodes_df, query, depth):
     full_df = pd.DataFrame(columns = full_df_cols)
     for i in range(depth+1):
         query_df = edges_df[edges_df["source"].isin(targets)]
+        if len(query_df.index) > 10000 and i>0:
+            query_df = query_df[query_df["thickness"]>500]
         query_df["depth"] = i+1
         targets = query_df["target"].drop_duplicates().tolist()
         full_df = full_df.append(query_df)
