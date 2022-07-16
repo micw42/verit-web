@@ -11,7 +11,7 @@ import os
 from werkzeug.utils import secure_filename
 from os.path import expanduser
 
-pickle_path = "/home/veritvisualization/verit-web/newAbstrPickles/"
+pickle_path = "/home/veritvisualization/verit-web/updatedPickles/"
 
 UPLOAD_FOLDER = "uploads/"
 
