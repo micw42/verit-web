@@ -16,12 +16,12 @@
 
 <style>
     #cy {
-    width: 30%;
+    width: 50%;
     height: 50%;
     position: absolute
     }
     #cy2 {
-        width: 30%;
+        width: 50%;
         height: 50%;
         position: absolute
     }
@@ -79,20 +79,22 @@
       </div>
     </nav>
 
-   <div style="padding-top:85px;" class="container">
+   <div style="padding-top:85px;float:center;text-align: center;">
         <h2>VERIT: Visualizing Entities and Relationships in Text</h2>
         <h5 style="color:#4CAF50">Query from and visualize a network of millions of interactions. All from papers read by NLP.</h5>    
-       <div style="padding-bottom:160px">
-           <h4 style="height:50%;width:50%;float:left">Interactive Single Query Example - Senescence (mesh:D000375)</h4>
-           <h4 style="height:50%;width:50%;float:left">Interactive Multi Query Example - RB-E2F Pathway</h4>
-           </div>
-        <div id="singleQueryDiv" style="float:left;width:50%">
-          <div id="cy"></div>            
-        </div>  
-       <div id="multiQueryDiv" style="float:right;width:50%">
-           <div id="cy2"></div>
-       </div>
     </div>
+    <div style="padding-bottom:160px">        
+           <h4 style="height:50%;width:40%;float:right">Interactive Multi Query Example - RB-E2F Pathway</h4>
+        <h4 style="height:50%;width:50%;float:right">Interactive Single Query Example - Senescence (mesh:D000375)</h4>
+    </div>
+           <div>
+            <div id="singleQueryDiv" style="float:left;width:50%">
+              <div id="cy"></div>            
+            </div>  
+           <div id="multiQueryDiv" style="float:right;width:50%">
+               <div id="cy2"></div>
+           </div>
+       </div>
     <script src="{{url_for('static', filename='example.js')}}"></script>
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
