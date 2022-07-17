@@ -19,7 +19,7 @@ def query(G, edges_df, nodes_df, query, depth):
     full_df = pd.DataFrame(columns = full_df_cols)
     for i in range(depth+1):
         query_df = edges_df[edges_df["source"].isin(targets)]
-        if len(query_df.index) > 10000 and i>0:
+        if len(query_df.index) > 10000 and i>0 and depth>1:
             query_df = query_df[query_df["thickness"]>500]
         query_df["depth"] = i+1
         targets = query_df["target"].drop_duplicates().tolist()
@@ -73,6 +73,6 @@ def query(G, edges_df, nodes_df, query, depth):
     nodes = nodes[["Id", "Label", "depth"]]
     full_df = full_df[["color", "thickness", 
                      "files", "source", "target"]]
-
+    
     full_df.to_csv("query_edges.csv", index=False)
     nodes.to_csv("query_nodes.csv", index=False)

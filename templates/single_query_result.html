@@ -264,16 +264,24 @@
 
       }
     });
+      
     cy.on('mouseover', 'node', function (evt) {
-      var sel = evt.target;
-      cy.nodes().difference(sel.outgoers()).not(sel).addClass('semitransp');
-      cy.edges().difference(sel.edgesTo(sel.outgoers())).addClass("semitransp");
+        var sel = evt.target;
+        console.log(sel.degree());
+        sel.addClass('large');
+        var neighbors = sel.outgoers().union(sel.incomers());
+        cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
+        cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp");
     });
+
     cy.on('mouseout', 'node', function (evt) {
-      var sel = evt.target;
-      cy.nodes().difference(sel.outgoers()).not(sel).removeClass('semitransp');
-      cy.edges().difference(sel.edgesTo(sel.outgoers())).removeClass("semitransp");
+        var sel = evt.target;
+        sel.removeClass('large');
+        var neighbors = sel.outgoers().union(sel.incomers());
+        cy.nodes().difference(neighbors).not(sel).removeClass('semitransp');
+        cy.edges().difference(sel.edgesWith(neighbors)).removeClass("semitransp");
     });
+        
     cy.on('click', 'node', function (evt) {
       var sel = evt.target;
       if (sel.data().rank != 1000000000) {
