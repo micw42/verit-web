@@ -1582,6 +1582,7 @@ var cy = cytoscape({
           var cy2 = cytoscape({
             container: document.getElementById('cy2'),
             wheelSensitivity: 0.2,
+            zoom: 0.001,
             elements: data,
             style: [
               {
@@ -1648,7 +1649,12 @@ var cy = cytoscape({
           cy2.on('click', 'edge', function (evt) {
             var sel = evt.target;
             console.log("clicked " + sel.id());
+              console.log("zoom "+cy2.zoom());
           });
 
           cy2.maxZoom(.5);
           cy2.minZoom(.01);
+
+
+
+          
