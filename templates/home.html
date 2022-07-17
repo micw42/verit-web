@@ -17,40 +17,23 @@
 <style>
     #cy {
     width: 50%;
-    height: 50%;
-    position: absolute
+    height: 80%;
+    position: absolute;
+    padding-left:30px;
     }
     #cy2 {
         width: 50%;
-        height: 50%;
-        position: absolute
+        height: 80%;
+        position: absolute;
+        padding-right:30px;
+        float:right;
+        width:50%;
     }
     body {
         font-family: Arial, Helvetica, sans-serif;
         font-size:20px;
     }
     
-    th, td {
-        padding: 20px;
-    }
-    
-    table, th, td {
-      border: 1px solid black;
-      border-collapse: collapse;
-    }
-
-    .carousel .carousel-indicators li {background-color: black; height:8px;width:50px;}
-    .carousel .carousel-indicators li.active {background-color: white;height:8px;width:50px;}
-
-    .carousel-caption {
-        position: relative;
-        left: 0;
-        top: 0;
-        height:60px;
-        background:#4CAF50;
-        color:white;
-        line-height: 20px;
-    }
     .navbar{
         border-bottom:1px solid rgb(160, 160, 160);
     }
@@ -85,17 +68,18 @@
     </div>
     <div>        
            <h4 style="height:50%;width:50%;float:right">Interactive Multi Query Example - RB-E2F Pathway</h4>
-        <h4 style="height:50%;width:50%;float:right">Interactive Single Query Example - Senescence (mesh:D000375)</h4>
+        <h4 style="height:50%;width:50%;float:right;padding-left:30px">Interactive Single Query Example - COVID-19 (mesh:C000657245)</h4>
     </div>
     
-           <div>
+    <div>
+            <div id="multiQueryDiv" style="float:right;width:50%">
+               <div id="cy2"></div>
+           </div>
             <div id="singleQueryDiv" style="float:left;width:50%">
               <div id="cy"></div>      
             </div>  
-           <div id="multiQueryDiv" style="float:right;width:50%">
-               <div id="cy2"></div>
-           </div>
-       </div>
+    </div>
+
     <script src="{{url_for('static', filename='example.js')}}"></script>
     
 
