@@ -1,5 +1,17 @@
 import pandas as pd
 import copy
+import math
+import random
+
+def makeQuery(edges_df, query_list, limit=True, prop=0.1):
+    subset_df = edges_df[edges_df["source"].isin(query_list)].sort_values(by="thickness", axis=0, 
+                                                                        ascending=False, ignore_index=True)
+    if limit:
+        n_rows = int(prop*len(subset_df.index))
+    else:
+        n_rows = len(subset_df.index)
+    subset_df = subset_df.iloc[:n_rows, :]
+    return subset_df
 
 def query(G, edges_df, nodes_df, query, depth):
     user_query = list(query.keys())[0]
@@ -10,28 +22,27 @@ def query(G, edges_df, nodes_df, query, depth):
     # For ID queries
     else:
         query_list = list(query.values())
+        
 
-    # Recursively find target nodes
-    # Go one depth further than selected depth to find any bidirectional connections of last layer
-    targets = copy.deepcopy(query_list)
-    full_df_cols = list(edges_df.columns)
-    full_df_cols.append("depth")
-    full_df = pd.DataFrame(columns = full_df_cols)
-    for i in range(depth+1):
-        query_df = edges_df[edges_df["source"].isin(targets)]
-        if len(query_df.index) > 10000 and i>0 and depth>1:
-            query_df = query_df[query_df["thickness"]>500]
-        query_df["depth"] = i+1
-        targets = query_df["target"].drop_duplicates().tolist()
-        full_df = full_df.append(query_df)
+    if depth==1:
+        full_df = makeQuery(edges_df, query_list, limit=False)
+        full_df["depth"]=1
+    else:
+        # Recursively find target nodes
+        targets = copy.deepcopy(query_list)
+        full_df_cols = list(edges_df.columns)
+        full_df_cols.append("depth")
+        full_df = pd.DataFrame(columns = full_df_cols)
+        for i in range(depth):
+            query_df = makeQuery(edges_df, targets, prop=0.1)
+            query_df["depth"] = i+1
+            targets = query_df["target"].drop_duplicates().tolist()
+            full_df = full_df.append(query_df)
     
-    # Drop the nodes in the outermost layer that are not connected to any inner nodes
-    # Leaves only connections from last layer nodes to inner layer nodes
-    inner_edges = full_df[full_df["depth"] != depth+1]
-    outer_edges = full_df[full_df["depth"] == depth+1]
-    inner_source = full_df[full_df["depth"] == depth]["source"].drop_duplicates().tolist()
-    outer_edges = outer_edges[outer_edges["target"].isin(inner_source)]
-    full_df = inner_edges.append(outer_edges)
+    #Bidirectional edges
+    opp_df = full_df.merge(edges_df, left_on=["source", "target"], right_on=["target","source"])
+    opp_df = opp_df.drop(labels=["source_x","target_x","color_x", "thickness_x"], axis=1).rename(columns={"source_y":"source", "target_y":"target", "color_y":"color", "thickness_y":"thickness"})
+    full_df = pd.concat([full_df, opp_df]).drop_duplicates(subset=["source", "target"])
 
     # Make query nodes depth = 0, so they're in the center of the visualization
     df_dict = {"target":query_list, "depth":[0]*len(query_list)}
