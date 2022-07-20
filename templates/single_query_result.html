@@ -434,10 +434,9 @@
     var slider = document.getElementById("myRange");
     var output = document.getElementById("demo");
     output.innerHTML = slider.value;
-    var filteredEdges = cy.edges().filter('[weight < 0]');
+    var filteredEdges = cy.edges().filter('[weight < 1]');
     var filteredNodes = cy.nodes().filter(function (ele) {
-
-      return ele.degree() == -2;
+      return ele.degree() == 0;
     });
     filteredEdges = cy.remove(filteredEdges);
     filteredNodes = cy.remove(filteredNodes);
