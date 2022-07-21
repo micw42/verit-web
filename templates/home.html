@@ -1,6 +1,7 @@
 <!doctype html>
 
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -15,76 +16,86 @@
 </head>
 
 <style>
-    #cy {
+  #cy {
     width: 50%;
-    height: 80%;
+    height: 70%;
     position: absolute;
-    padding-left:30px;
-    }
-    #cy2 {
-        width: 50%;
-        height: 80%;
-        position: absolute;
-        padding-right:30px;
-        float:right;
-        width:50%;
-    }
-    body {
-        font-family: Arial, Helvetica, sans-serif;
-        font-size:20px;
-    }
-    
-    .navbar{
-        border-bottom:1px solid rgb(160, 160, 160);
-    }
+    padding-left: 30px;
+  }
+
+  #cy2 {
+    width: 50%;
+    height: 70%;
+    position: absolute;
+    padding-right: 30px;
+    float: right;
+    width: 50%;
+  }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20px;
+  }
+
+  .navbar {
+    border-bottom: 1px solid rgb(160, 160, 160);
+  }
 </style>
 
 <body>
 
-    <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="{{ url_for('home')}}">VERIT</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+  <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="{{ url_for('home')}}">VERIT</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item active">
-            <a class="nav-link" href="{{ url_for('home')}}">Home <span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('select_query')}}">Query</a>
-          </li>
-         <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('readme')}}">README</a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-
-   <div style="padding-top:85px;float:center;text-align: center;">
-        <h2>VERIT: Visualizing Entities and Relationships in Text</h2>
-        <h5 style="color:#4CAF50">Query from and visualize a network of millions of interactions. All from papers read by NLP.</h5>    
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="{{ url_for('home')}}">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('select_query')}}">Query</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('readme')}}">README</a>
+        </li>
+      </ul>
     </div>
-    <div>        
-           <h4 style="height:50%;width:50%;float:right">Interactive Multi Query Example - RB-E2F Pathway</h4>
-        <h4 style="height:50%;width:50%;float:right;padding-left:30px">Interactive Single Query Example - COVID-19 (mesh:C000657245)</h4>
-    </div>
-    
-    <div>
-            <div id="multiQueryDiv" style="float:right;width:50%">
-               <div id="cy2"></div>
-           </div>
-            <div id="singleQueryDiv" style="float:left;width:50%">
-              <div id="cy"></div>      
-            </div>  
-    </div>
+  </nav>
 
-    <script src="{{url_for('static', filename='example.js')}}"></script>
-    
+  <div style="padding-top:85px;float:center;text-align: center;">
+    <h2>VERIT: Visualizing Entities and Relationships in Text</h2>
+    <h5 style="color:#4CAF50">Query from and visualize a network of millions of interactions. All from papers read by
+      NLP.</h5>
+  </div>
+  <div>
+    <h4 style="height:50%;width:50%;float:right;padding-left:0px;text-align:center;">Multi Query - RB-E2F Pathway</h4>
+    <h4 style="height:50%;width:50%;float:left;padding-left:0px;text-align:center;">Single Query  - COVID-19</h4>
+  </div>
 
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  <div>
+    <div id="multiQueryDiv" style="float:right;width:50%">
+      <div id="cy2"></div>
+    </div>
+    <div id="singleQueryDiv" style="float:left;width:50%">
+      <div id="cy"></div>
+    </div>
+  </div>
+
+  <script src="{{url_for('static', filename='example.js')}}"></script>
+
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
 </body>
+
 </html>
