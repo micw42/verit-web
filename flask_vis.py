@@ -37,6 +37,7 @@ print("Loaded nodes.")
 
 print("Reading databases...", end="\x1b[1K\r")
 full_df=pd.read_pickle(f"{pickle_path}combinedDBs.pkl")
+uniprot_df=pd.read_pickle("./Query/UniProtMappings_human.pkl")
 
 print("Loaded databases.")
 
