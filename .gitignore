@@ -17,3 +17,4 @@ Visualization/__pycache__/*
 subset_pickles/
 static/cytoscape.js-cise
 flask_vis.py
+new-fixed-ev-ski-pickles/*
