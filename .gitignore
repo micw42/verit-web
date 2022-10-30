@@ -21,3 +21,5 @@ new-fixed-ev-ski-pickles/*
 *.json
 *.txt
 templates/bfs_result_l.html
+__pycache__/
+

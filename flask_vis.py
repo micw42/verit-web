@@ -12,8 +12,8 @@ from werkzeug.utils import secure_filename
 from os.path import expanduser
 import random
 
-pickle_path = "../verit_web/fixed_ev_pickles/"
-aws_path = "../verit_web/"
+pickle_path = "/home/verittest/verit-web/new-fixed-ev-ski-pickles/"
+aws_path = "/home/verittest/verit-web/"
 
 UPLOAD_FOLDER = "uploads/"
 
@@ -93,7 +93,7 @@ def validate(query_type):
                 query = file_contents.splitlines()
             else:
                 query=request.form["query"].split(",")
-                
+
             if string_type == "id":
                 DictChecker.check(edges_df, query, query_type=query_type)
                 return redirect(url_for("display_options", query_type=query_type))

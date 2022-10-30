@@ -2,32 +2,31 @@ import pandas as pd
 import numpy as np
 import math
 import seaborn as sns
-import markov_clustering as mc
 from operator import itemgetter
 import networkx as nx
 
 def clean_nodes():
 
     nodes_df=pd.read_csv("query_nodes.csv",header = 0)
-    
+
     def get_color(query_type):
         if query_type == "Query":
             return "#fc0800"
         else:
             return "#99beff"
-        
+
     def get_class(query_type):
         if query_type == "Query":
             return "level3"
         else:
             return "level0"
-        
+
     def get_display(query_type):
         if query_type=="Direct":
             return "none"
         else:
             return "element"
-    
+
     nodes_df["Color"] = nodes_df["Type"].apply(get_color)
     nodes_df["class"] = nodes_df["Type"].apply(get_class)
     nodes_df["display"] = nodes_df["Type"].apply(get_display)
@@ -35,12 +34,12 @@ def clean_nodes():
     return nodes_df
 
 
-    
+
 def clean_edges():
     nodes_df = pd.read_csv("query_nodes.csv",header = 0)
     direct_nodes = nodes_df[nodes_df["Type"]=="Direct"]["Id"].tolist()
     edges_df=pd.read_csv("query_edges.csv",header = 0)
-    
+
     def get_width(x):
         if x<50:
             return x+10
@@ -71,16 +70,16 @@ def clean_edges():
         elif float(color_val)< 0.8:
             return palette[8]
         return palette[9]
-    
+
     pal = list(sns.color_palette("RdBu", 10).as_hex())
     edges_df["color"]=edges_df["color"].apply(convert_col, args=(pal,))
-    
+
     def get_display(id1, id2, direct_nodes):
         if id1 in direct_nodes or id2 in direct_nodes:
             return "none"
         else:
             return "element"
-    
+
     edges_df['display'] = edges_df.apply(lambda x: get_display(x.source, x.target, direct_nodes=direct_nodes), axis=1)
 
     return edges_df
@@ -88,23 +87,23 @@ def clean_edges():
 def get_square_clusters():
     nodes_df=pd.read_csv("query_nodes.csv",header = 0)
     edges_df = pd.read_csv("query_edges.csv", header=0)
-    
+
     is_query = nodes_df[nodes_df["Type"] == "Query"]["Id"].tolist()
     is_connected = list(set(edges_df["source"].tolist()) | set(edges_df["target"].tolist()))  #All non-orphans
     query_orphans = list(set(is_query) - set(is_connected))  # Non-connected query nodes
     query_conn = list(set(is_query) - set(query_orphans))    # Connected query nodes
-    
+
     linkers = nodes_df[nodes_df["Type"] == "Linker"]["Id"].tolist()
     direct = nodes_df[nodes_df["Type"] == "Direct"]["Id"].tolist()
     n_linkers = int(math.sqrt(len(linkers)))
-    
+
     # Align connected query nodes
     if len(linkers) == 0:
         align = [{"nodeId": query_conn[i], "position": {"x": 1000*(i%2), "y": 1000*(i//2)}} for i in range(len(query_conn))]
     else:
         align = [{"nodeId": query_conn[i], "position": {"x": (n_linkers*500+5000)*(i%2), "y": (n_linkers)*100*(i//2+1)}} for i in range(len(query_conn))]
-        
-    # Align linker nodes    
+
+    # Align linker nodes
     y_coord = 0
     x_coord = 2500
     for i in range(len(linkers)):
@@ -113,7 +112,7 @@ def get_square_clusters():
         if i%n_linkers == 0:
             x_coord = 2500
             y_coord += 500
-            
+
     # Align orphan query nodes
     y_coord = -500
     x_coord = -500
@@ -124,7 +123,7 @@ def get_square_clusters():
         if (i+1)%n_orphans == 0:
             x_coord = -500
             y_coord -= 500
-            
+
     return align
 
 
@@ -132,25 +131,25 @@ def get_square_clusters():
 def get_orig_clusters():
     nodes_df=pd.read_csv("query_nodes.csv",header = 0)
     edges_df = pd.read_csv("query_edges.csv", header=0)
-    
+
     is_query = nodes_df[nodes_df["Type"] == "Query"]["Id"].tolist()
     is_connected = list(set(edges_df["source"].tolist()) | set(edges_df["target"].tolist()))  #All non-orphans
     query_orphans = list(set(is_query) - set(is_connected))  # Non-connected query nodes
     query_conn = list(set(is_query) - set(query_orphans))    # Connected query nodes
-    
+
     linkers = nodes_df[nodes_df["Type"] == "Linker"]["Id"].tolist()
     direct = nodes_df[nodes_df["Type"] == "Direct"]["Id"].tolist()
     if len(linkers) == 0:
         align = [{"nodeId": query_conn[i], "position": {"x": 1000*(i%2), "y": 1000*(i//2)}} for i in range(len(query_conn))]
     else:
         align = [{"nodeId": query_conn[i], "position": {"x": 10000*(i%2), "y": 10000*(i//2)}} for i in range(len(query_conn))]
-        
+
     orph_align = [{"nodeId": query_orphans[i], "position": {"x": (-500-500*(i%2)), "y": -500*(i//2)}} for i in range(len(query_orphans))]
     align.extend(orph_align)
     align_linkers_n1 = [{"left": query_conn[0], "right": x, "gap": 2500} for x in linkers]
     align_linkers_n2 = [{"left": x, "right": query_conn[1], "gap": 2500} for x in linkers]
     align_linkers = align_linkers_n1 + align_linkers_n2
-    return (align, align_linkers)   
+    return (align, align_linkers)
 
 #Convert nodes and edges tables into one json-style list
 def convert(nodes_df, edges_df):
@@ -170,11 +169,11 @@ def convert(nodes_df, edges_df):
     for _, row in edges_df.iterrows():
         parts=row.values.tolist()
         edges.append(parts)
-    
+
     for edge in edges:
         edge_id=edge[3]+edge[4]
-        edge_dict={"data":{"id":edge_id, "source":edge[3], "target":edge[4], 
-                           "weight":edge[5], "color":edge[0],  
+        edge_dict={"data":{"id":edge_id, "source":edge[3], "target":edge[4],
+                           "weight":edge[5], "color":edge[0],
                            "display":edge[6], "orig_display":edge[6],
                           "thickness":edge[1], "files":edge[2]}}
         elements.append(edge_dict)
@@ -193,10 +192,10 @@ def get_mc_clust():
     edges_df = edges_df[edges_df["source"].isin(q_nodes) & edges_df["target"].isin(q_nodes)]
     G = nx.from_pandas_edgelist(edges_df, edge_attr=True, source="source", target="target", create_using=nx.DiGraph())
     mat = nx.to_scipy_sparse_matrix(G)
-    
+
     result = mc.run_mcl(mat, inflation=1.2)           # run MCL with default parameters
     clusters = mc.get_clusters(result)
-    
+
     node_list = list(G.nodes())
     clust_list = [itemgetter(*list(x))(node_list) for x in clusters]
     clust_list = [list(x) if type(x) is tuple else [x] for x in clust_list]
