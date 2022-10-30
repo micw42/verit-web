@@ -244,10 +244,7 @@ def bfs_query_result(max_linkers, qtype, query_type, get_direct_linkers):
     MultiQuery.query(G, edges_df, nodes_df, query, max_linkers, qtype, query_type, get_direct_linkers = get_direct_linkers, db_df = full_df, access_key=access_key, secret_key=secret_key, bucket=bucket)
     print("Finished multiquery")
     elements = to_json_netx.clean()
-    sq_align = to_json_netx.get_square_clusters()
-    orig_align_q, orig_align_l = to_json_netx.get_orig_clusters()
-    mc_clust = to_json_netx.get_mc_clust()
-    return render_template("bfs_result.html", elements = elements, sq_align = sq_align, orig_align_q = orig_align_q, orig_align_l = orig_align_l, mc_clust=mc_clust)
+    return render_template("bfs_result.html", elements = elements)
 
 
 
