@@ -4,13 +4,13 @@ import numpy as np
 
 def name_query(name, nodes, full_df, string_type):
     if string_type == "starts_with":
-        name_query = full_df.query('name.str.startswith(@name, na=False, regex=False)', engine='python').reset_index(drop=True)
+        name_query = full_df.query('name.str.startswith(@name, na=False)', engine='python').reset_index(drop=True)
 
     elif string_type == "ends_with":
-        name_query = full_df.query('name.str.endswith(@name, na=False, regex=False)', engine='python').reset_index(drop=True)
+        name_query = full_df.query('name.str.endswith(@name, na=False)', engine='python').reset_index(drop=True)
 
     elif string_type == "contains":
-        name_query = full_df.query('name.str.contains(@name, na=False, regex=False)', engine='python').reset_index(drop=True)
+        name_query = full_df.query('name.str.contains(@name, na=False)', engine='python').reset_index(drop=True)
 
     # The following nodes are in the network, but REACH likely grounds to more
     in_net = pd.merge(nodes, name_query, left_on="Id", right_on="id", how="inner").iloc[:, 3:6].drop_duplicates().reset_index(drop=True)
@@ -31,14 +31,11 @@ def multi_query(query_list, nodes, full_df, string_type):
     if string_type == "gene":
         # Get found and unfound queries
         mapped = np.intersect1d(query_list, list(full_df["Label"]), return_indices=True)[2]
-        print("Mapped:")
-        print(mapped)
         mapped_ids = full_df.iloc[mapped].drop_duplicates(subset="Id")
-
+        
         unmapped = np.setdiff1d(query_list, list(full_df["Label"]))    # Unused
 
         # Get only IDs and PR values
-        print("Test")
         nodes_dd = nodes[["Id", "PR"]].drop_duplicates()
 
         # Unique IDs within VERIT network

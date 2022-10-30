@@ -154,7 +154,7 @@
             <h6>Toggle between layouts using the button below.</h6>
             <button id="layout-button" onclick="switch_layout()" class="btn btn-primary"
                 style="background-color:#4CAF50;padding-left:10px">Change Layout</button>
-            <p id="layout-name" style="padding-left:10px">Current Layout: CiSE</p>
+            <p id="layout-name" style="padding-left:10px">Current Layout: fCose</p>
             <h6>Toggle between showing and hiding all direct connections to query nodes.</h6>
             <button id="direct-button" onclick="show_direct()" class="btn btn-primary"
                 style="background-color:#4CAF50;padding-left:10px">Show direct</button><br><br>
@@ -222,9 +222,6 @@
 
     <script>
         const data = {{ elements | tojson }};
-        var sqAlign = {{ sq_align | tojson }};
-        var origAlignQ = {{ orig_align_q | tojson }};
-        var origAlignL = {{ orig_align_l | tojson }};
         var cy = cytoscape({
             wheelSensitivity: 0.1,
             container: document.getElementById('cy'),
@@ -236,13 +233,13 @@
                         'label': 'data(label)',
                         "text-valign": "center",
                         "text-halign": "center",
-                        width: function (ele) { return Math.min((Math.max(80, ele.degree() + 2) * 2), 500); },
-                        height: function (ele) { return Math.min((Math.max(80, ele.degree() + 2) * 2), 500); },
-                        "font-size": function (ele) { return Math.min((Math.log2(ele.degree() + 2) * 25), 350); },
                         "background-color": "data(color)",
                         "text-outline-color": "#555",
                         "text-outline-width": "2px",
                         "color": "#080707",
+                        width: function (ele) { return Math.min((Math.max(80, ele.degree() + 2) * 2), 500); },
+                        height: function (ele) { return Math.min((Math.max(80, ele.degree() + 2) * 2), 500); },
+                        "font-size": function (ele) { return Math.min((Math.log2(ele.degree() + 2) * 25), 350); },
                         'background-fit': 'contain',
                         'background-clip': 'none',
                         "display": "data(display)"
@@ -257,7 +254,6 @@
 
                         'text-background-color': 'yellow',
                         'text-background-opacity': 0.4,
-                        'width': 'data(weight)',
                         'target-arrow-shape': 'triangle',
                         'control-point-step-size': '140px',
                         'curve-style': 'bezier',
@@ -265,10 +261,12 @@
                         'line-color': "#fcfafa",
                         'target-arrow-color': '#fcfafa',
                         "overlay-opacity": "0.1",
-                        "display": "data(display)"
+                        "display": "data(display)",
+                        'width': 'data(weight)'
                     }
                 },
-                {
+                
+                 {
                     selector: 'node.semitransp',
                     style: { 'opacity': '.1' }
                 },
@@ -303,208 +301,7 @@
 
             ]
         });
-
-        function run_circle() {
-            var layout = cy.layout({
-                     name: 'breadthfirst',
-                     grid:true,
-                     roots:'node[classes @*="level3"]',
-                     maximal:true,
-                     circle:true,
-                    spacingFactor:4
-
-                });
-            layout.run();
-            var box = cy.elements().boundingBox();
-            var orphs = cy.elements().filter(function(ele) {return((ele.degree()==0));});
-            orphs.nodes().filter('[classes = "level3"]').positions(function( node, i ){
-              return {
-                x: box.x2+100+500*(i%4),
-                y: box.y1+500*(Math.floor(i/10))
-              };
-            });
-            var is_query = cy.nodes().filter('[type="Query"]');
-            var is_connected = is_query.filter(function(ele) {return((ele.degree()!=0));});
-            var direct = cy.nodes().filter('[type="Direct"]').not(':transparent');
-            for (var i=0; i<is_connected.length; i++) {
-                    ele = is_connected[i];
-                    var box = ele.position();
-                    var direct_conn = ele.outgoers().union(ele.incomers()).filter('[type="Direct"]').not(':transparent');
-                    direct_conn.positions(function( node, i ){
-                        if (box.x>0) {
-                          return {
-                            x: box.x+3000+500*(i%4),
-                            y: box.y+500*(Math.floor(i/10))
-                          };
-                        } else {
-                           return {
-                            x: box.x-3000-500*(i%4),
-                            y: box.y-500*(Math.floor(i/10))
-                          };
-                        }
-
-                    });
-                }
-            cy.zoom(0.08);
-            cy.center();
-        }
-
-        function run_cise() {
-            var is_query = cy.nodes().filter('[type="Query"]');
-            var is_connected = is_query.filter(function(ele) {return((ele.degree()!=0));});  //Connected query nodes
-            var query_orphans = is_query.filter(function(ele) {return((ele.degree()==0));}); // Non-connected query nodes
-            var linkers = cy.nodes().filter('[type="Linker"]').not(':transparent');
-            var direct = cy.nodes().filter('[type="Direct"]').not(':transparent');
-            var edgeLen = Math.floor(Math.sqrt(linkers.length));
-            var orphLen = Math.floor(Math.sqrt(query_orphans.length));
-            var clusters = [];
-
-            for (var i=0; i<is_connected.length; i++) {
-                var query_node = is_connected[i];
-                var newCluster = [query_node.data().id];
-                var neighbors = query_node.outgoers().union(query_node.incomers());
-                var linker_neighbors = neighbors.intersect(linkers);
-                for (var j=0; j<linker_neighbors.length; j++) {
-                    newCluster.push(linker_neighbors[j].data().id);
-                }
-                linkers = linkers.difference(linker_neighbors);
-                clusters.push(newCluster);
-            }
-            for (var i=0; i<linkers.length; i++) {
-                clusters[clusters.length-1].push(linkers[i].data().id);
-            }
-            for (var i=0; i<direct.length; i++) {
-                var idx = i%is_connected.length;
-                clusters[idx].push(direct[i].data().id);
-            }
-            var layout = cy.layout({
-                     name: 'cise',
-                     clusters: clusters,
-                     gravity:0.1,
-                     idealInterClusterEdgeLengthCoefficient: 5,
-                     nodeRepulsion: 30000
-
-                });
-            layout.run();
-            var box = cy.elements().boundingBox();
-            var orphs = cy.elements().filter(function(ele) {return((ele.degree()==0));});
-            orphs.nodes().filter('[classes = "level3"]').positions(function( node, i ){
-              return {
-                x: box.x2+30+500*(i%4),
-                y: box.y1+100*(Math.floor(i/10))
-              };
-            });
-        }
-
-       function run_fcose() {
-            var layout = cy.layout({
-                name: 'fcose',
-                fixedNodeConstraint: origAlignQ,
-                packComponents: false,
-                nodeRepulsion: 50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
-                nodeSeparation: 5000,
-                gravity:0,
-                relativePlacementConstraint: origAlignL
-            });
-
-            layout.run();
-            var orphs = cy.elements().filter(function(ele) {return((ele.degree()==0));});
-            orphs.nodes().filter('[classes = "level3"]').positions(function( node, i ){
-              return {
-                x: box.x2+100+500*(i%4),
-                y: box.y1+500*(Math.floor(i/10))
-              };
-            });
-            cy.zoom(0.03);
-        }
-
-        function run_grid() {
-            var is_query = cy.nodes().filter('[type="Query"]');
-            var is_connected = is_query.filter(function(ele) {return((ele.degree()!=0));});  //Connected query nodes
-            var query_orphans = is_query.filter(function(ele) {return((ele.degree()==0));}); // Non-connected query nodes
-            var linkers = cy.nodes().filter('[type="Linker"]').not(':transparent');
-            var direct = cy.nodes().filter('[type="Direct"]').not(':transparent');
-            var edgeLen = Math.floor(Math.sqrt(linkers.length));
-            var orphLen = Math.floor(Math.sqrt(query_orphans.length));
-
-            if (linkers.length == 0) {
-                is_connected.positions(function( node, i ){
-                  return {
-                    x: 1000*(i%2),
-                    y: 1000*Math.floor(i/2)
-                  };
-                });
-                for (var i=0; i<is_connected.length; i++) {
-                    ele = is_connected[i];
-                    var box = ele.position();
-                    var direct_conn = ele.outgoers().union(ele.incomers()).filter('[type="Direct"]').not(':transparent');
-                    direct_conn.positions(function( node, i ){
-                        if (box.x==1000) {
-                          return {
-                            x: box.x+3000+500*(i%4),
-                            y: box.y+500*(Math.floor(i/10))
-                          };
-                        } else {
-                           return {
-                            x: box.x-3000-500*(i%4),
-                            y: box.y-500*(Math.floor(i/10))
-                          };
-                        }
-
-                    });
-                }
-
-            } else {
-                is_connected.positions(function( node, i ){
-                  return {
-                    x: (edgeLen*500+5000)*(i%2),
-                    y: 1000*Math.floor(i/2)
-                  };
-                });
-                linkers.positions(function( node, i ){
-                  return {
-                    x: 2500+(i%edgeLen)*500,
-                    y: 500*Math.floor(i/edgeLen)
-                  };
-                });
-                for (var i=0; i<is_connected.length; i++) {
-                    ele = is_connected[i];
-                    var box = ele.position();
-                    var direct_conn = ele.outgoers().union(ele.incomers()).filter('[type="Direct"]').not(':transparent');
-                    direct_conn.positions(function( node, i ){
-                        if (box.x==edgeLen*500+5000) {
-                          return {
-                            x: box.x+edgeLen*100+1000+500*(i%4),
-                            y: box.y+500*(Math.floor(i/10))
-                          };
-                        } else {
-                           return {
-                            x: box.x-edgeLen*100-1000-500*(i%4),
-                            y: box.y-500*(Math.floor(i/10))
-                          };
-                        }
-
-                    });
-                }
-
-            }
-
-            query_orphans.positions(function( node, i ){
-                return {
-                    x: -500-500*(i%orphLen),
-                    y: -500-500*(Math.floor(i/orphLen))
-                  };
-                });
-
-            cy.zoom(0.08);
-            cy.center();
-
-        }
-
-        run_cise();
-
-
-
+        
         cy.on('mouseover', 'node', function (evt) {
             var sel = evt.target;
             console.log(sel.degree());
@@ -717,10 +514,10 @@
             filteredNodes.addClass("transp");
             var nodes = cy.filter('node');
             var currentLayout = document.getElementById("layout-name");
-            if (currentLayout.innerHTML=="Current Layout: Circle") {
+            if (currentLayout.innerHTML=="Current Layout: fCose") {
+                run_fCose();
+            } else if (currentLayout.innerHTML=="Current Layout: Circle") {
                 run_circle();
-            } else if (currentLayout.innerHTML=="Current Layout: CiSE") {
-                run_cise();
             } else {
                 run_grid();
             }
@@ -733,8 +530,8 @@
                 run_circle();
                 layout.innerHTML = "Current Layout: Circle";
             } else if (layout.innerHTML === "Current Layout: Circle") {
-                run_cise();
-                layout.innerHTML = "Current Layout: CiSE";
+                run_fCose();
+                layout.innerHTML = "Current Layout: fCose";
             } else {
                 run_grid();
                 layout.innerHTML = "Current Layout: Square force-based";
@@ -785,8 +582,137 @@
                 cy.edges().addClass("pos_colors");
             }
         }
+        
+       function run_fCose() {
+           if (cy.nodes().filter('[type="Linker"]').length==0) {
+               var layout = cy.layout({
+                    name: 'fcose',
+                    nodeRepulsion: node => 1e9,
+                    idealEdgeLength: edge => (cy.nodes().filter('[type="Query"]').length)*10+100
+                })
+           } else {
+              var layout = cy.layout({
+                name: 'fcose',
+                nodeRepulsion: node => 1e9,
+                idealEdgeLength: edge => (cy.nodes().filter('[type="Linker"]').length)/2+100,
+                   gravity: 1e-5,
+                  gravityRangeCompound: 1e-5,
+                  gravityCompound: 1e-5,
+                  gravityRange: 1e-5
+            }) 
+           }
+            layout.run();
+        }
+        
+        function run_circle() {
+            var orphs = cy.elements().filter(function(ele) {return((ele.degree()==0));});
+            var non_orphs = cy.elements().filter(function(ele) {return((ele.degree()!=0));});
+            var layout = cy.layout({
+                     name: 'breadthfirst',
+                     grid:true,
+                     roots:'node[classes @*="level3"]',
+                     maximal:true,
+                     circle:true,
+                    spacingFactor:10+non_orphs.nodes().filter('[type="Query"]').length/10+cy.nodes().filter('[type="Linker"]').not(':transparent').length/100,
 
+                });
+            layout.run();
+            var box = cy.elements().boundingBox();
+            orphs.nodes().filter('[classes = "level3"]').positions(function( node, i ){
+              return {
+                x: box.x2+100+500*(i%4),
+                y: box.y1+500*(Math.floor(i/10))
+              };
+            });
+            cy.zoom(cy.zoom()/1.2)
+            cy.center();
+        }
+        
+        function run_grid() {
+            var is_query = cy.nodes().filter('[type="Query"]');
+            var is_connected = is_query.filter(function(ele) {return((ele.degree()!=0));});  //Connected query nodes
+            var query_orphans = is_query.filter(function(ele) {return((ele.degree()==0));}); // Non-connected query nodes
+            var linkers = cy.nodes().filter('[type="Linker"]').not(':transparent');
+            var direct = cy.nodes().filter('[type="Direct"]').not(':transparent');
+            var edgeLen = Math.floor(Math.sqrt(linkers.length));
+            var orphLen = Math.floor(Math.sqrt(query_orphans.length));
 
+            if (linkers.length == 0) {
+                is_connected.positions(function( node, i ){
+                  return {
+                    x: 1000*(i%2),
+                    y: 1000*Math.floor(i/2)
+                  };
+                });
+                for (var i=0; i<is_connected.length; i++) {
+                    ele = is_connected[i];
+                    var box = ele.position();
+                    var direct_conn = ele.outgoers().union(ele.incomers()).filter('[type="Direct"]').not(':transparent');
+                    direct_conn.positions(function( node, i ){
+                        if (box.x==1000) {
+                          return {
+                            x: box.x+3000+500*(i%4),
+                            y: box.y+500*(Math.floor(i/10))
+                          };
+                        } else {
+                           return {
+                            x: box.x-3000-500*(i%4),
+                            y: box.y-500*(Math.floor(i/10))
+                          };
+                        }
+
+                    });
+                }
+
+            } else {
+                is_connected.positions(function( node, i ){
+                  return {
+                    x: (edgeLen*500+5000)*(i%2),
+                    y: 1000*Math.floor(i/2)
+                  };
+                });
+                linkers.positions(function( node, i ){
+                  return {
+                    x: 2500+(i%edgeLen)*500,
+                    y: 500*Math.floor(i/edgeLen)
+                  };
+                });
+                for (var i=0; i<is_connected.length; i++) {
+                    ele = is_connected[i];
+                    var box = ele.position();
+                    var direct_conn = ele.outgoers().union(ele.incomers()).filter('[type="Direct"]').not(':transparent');
+                    direct_conn.positions(function( node, i ){
+                        if (box.x==edgeLen*500+5000) {
+                          return {
+                            x: box.x+edgeLen*100+1000+500*(i%4),
+                            y: box.y+500*(Math.floor(i/10))
+                          };
+                        } else {
+                           return {
+                            x: box.x-edgeLen*100-1000-500*(i%4),
+                            y: box.y-500*(Math.floor(i/10))
+                          };
+                        }
+
+                    });
+                }
+
+            }
+
+            query_orphans.positions(function( node, i ){
+                return {
+                    x: -500-500*(i%orphLen),
+                    y: -500-500*(Math.floor(i/orphLen))
+                  };
+                });
+
+            
+            cy.zoom(cy.zoom()/2)
+            cy.center();
+
+        }
+        
+        run_fCose();
 
 
     </script>

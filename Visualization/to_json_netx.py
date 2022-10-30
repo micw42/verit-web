@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 import math
 import seaborn as sns
+import markov_clustering as mc
+from operator import itemgetter
+import networkx as nx
 
 def clean_nodes():
 
@@ -183,6 +186,25 @@ def clean():
     edges_df=clean_edges()
     return convert(nodes_df, edges_df)
 
+def get_mc_clust():
+    nodes_df = pd.read_csv("query_nodes.csv")
+    q_nodes = nodes_df[nodes_df["Type"]=="Query"]["Id"].tolist()
+    edges_df = pd.read_csv("query_edges.csv")
+    edges_df = edges_df[edges_df["source"].isin(q_nodes) & edges_df["target"].isin(q_nodes)]
+    G = nx.from_pandas_edgelist(edges_df, edge_attr=True, source="source", target="target", create_using=nx.DiGraph())
+    mat = nx.to_scipy_sparse_matrix(G)
+    
+    result = mc.run_mcl(mat, inflation=1.2)           # run MCL with default parameters
+    clusters = mc.get_clusters(result)
+    
+    node_list = list(G.nodes())
+    clust_list = [itemgetter(*list(x))(node_list) for x in clusters]
+    clust_list = [list(x) if type(x) is tuple else [x] for x in clust_list]
+    small = list(filter(lambda x: len(x) < 5, clust_list))
+    small = [item for sublist in small for item in sublist]    #Combine all small clusters into one
+    clust_list = list(filter(lambda x: len(x) >= 5, clust_list))
+    clust_list.append(small)
+    return clust_list
 
 
 

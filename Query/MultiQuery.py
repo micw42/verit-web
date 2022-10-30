@@ -170,10 +170,11 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
 
     # Fix the node labels to account for combined IDs (can ignore)
     if query_type == "name":
+        rel_df.to_csv("rel_df.csv", index=False)
         # Make df with user queries and corresponding IDs
         name_df = pd.DataFrame([(key, var) for (key, L) in queries_id.items() for var in L],
                  columns=['key', 'variable'])
-
+        name_df.to_csv("name_df.csv")
         # Fix edges table
         src = rel_df[["source"]]
         merged_src = pd.merge(src, name_df, how="left", left_on="source", right_on = "variable")["key"].tolist()
