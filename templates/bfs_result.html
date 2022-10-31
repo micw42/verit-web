@@ -486,42 +486,34 @@
                 modal.style.display = "none";
             }
         });
-
-
-
-
-        var slider = document.getElementById("myRange");
-        var output = document.getElementById("demo");
-        output.innerHTML = slider.value;
+        
         var filteredEdges = cy.edges().filter('[thickness < 0]');
         var filteredNodes = cy.nodes().filter(function (ele) {
             return ele.degree() == -2;
         });
         filteredEdges = cy.remove(filteredEdges);
         filteredNodes = cy.remove(filteredNodes);
-        slider.oninput = function () {
+        
+        filterEdges = function(threshold) {
             filteredNodes.removeClass("transp");
             filteredEdges.restore();
-
-            output.innerHTML = this.value;
-            threshold = this.value;
-            // filtering edges
+            
             filteredEdges = cy.edges().filter('[thickness < ' + threshold + ']');
             filteredEdges = cy.remove(filteredEdges);
             filteredNodes = cy.nodes().filter(function (ele) {
-                return ((ele.degree() == 0) && (ele.style()["background-color"] != "rgb(252,8,0)"));
+                return ((ele.degree() == 0) && (ele.data("type") != "Query"));
             });
             filteredNodes.addClass("transp");
-            var nodes = cy.filter('node');
-            var currentLayout = document.getElementById("layout-name");
-            if (currentLayout.innerHTML=="Current Layout: fCose") {
-                run_fCose();
-            } else if (currentLayout.innerHTML=="Current Layout: Circle") {
-                run_circle();
-            } else {
-                run_grid();
-            }
+            rerun_layout();
+        }
 
+        var slider = document.getElementById("myRange");
+        var output = document.getElementById("demo");
+        output.innerHTML = slider.value;
+        slider.oninput = function () {
+            output.innerHTML = this.value;
+            threshold = this.value;
+            filterEdges(threshold);
         }
 
         function switch_layout() {
@@ -537,20 +529,34 @@
                 layout.innerHTML = "Current Layout: Square force-based";
             }
         }
+        
+        function rerun_layout() {
+            var layout = document.getElementById("layout-name");
+            if (layout.innerHTML === "Current Layout: Square force-based") {
+                run_grid();
+            } else if (layout.innerHTML === "Current Layout: Circle") {
+                run_circle();
+            } else {
+                run_fCose();
+            }
+        }
+        
 
         function show_direct() {
-            var slider = document.getElementById("myRange")
-            var threshold = slider.value
             var layout = document.getElementById("direct-button");
             if (layout.innerHTML === "Show direct") {
-                cy.edges().filter("[orig_display='none']").style("display", "element")
-                cy.nodes().filter("[orig_display = 'none']").style("display", "element")
+                cy.edges().filter("[display='none']").style("display", "element")
+                cy.nodes().filter("[display = 'none']").style("display", "element")
                 layout.innerHTML = "Hide direct";
             } else {
-                cy.edges().filter("[orig_display = 'none']").style("display", "none")
-                cy.nodes().filter("[orig_display = 'none']").style("display", "none")
+                cy.edges().filter("[display = 'none']").style("display", "none")
+                cy.nodes().filter("[display = 'none']").style("display", "none")
                 layout.innerHTML = "Show direct";
             }
+            var slider = document.getElementById("myRange");
+            threshold = slider.value
+            filterEdges(threshold);
+            rerun_layout();
         }
 
         function add_colors() {
@@ -584,14 +590,17 @@
         }
         
        function run_fCose() {
+           var eles = cy.elements().filter(function (ele) {
+                return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
+            });
            if (cy.nodes().filter('[type="Linker"]').length==0) {
-               var layout = cy.layout({
+               var layout = eles.layout({
                     name: 'fcose',
                     nodeRepulsion: node => 1e9,
                     idealEdgeLength: edge => (cy.nodes().filter('[type="Query"]').length)*10+100
                 })
            } else {
-              var layout = cy.layout({
+              var layout = eles.layout({
                 name: 'fcose',
                 nodeRepulsion: node => 1e9,
                 idealEdgeLength: edge => (cy.nodes().filter('[type="Linker"]').length)/2+100,
@@ -604,30 +613,39 @@
             layout.run();
         }
         
+        const orig_zoom = cy.zoom()
         function run_circle() {
-            var orphs = cy.elements().filter(function(ele) {return((ele.degree()==0));});
-            var non_orphs = cy.elements().filter(function(ele) {return((ele.degree()!=0));});
-            var layout = cy.layout({
+            var query_orphs = cy.nodes().filter(function (ele) {
+                var neighbors = ele.outgoers().union(ele.incomers());
+                var query_neighbors = neighbors.filter('[type="Query"]')
+                console.log(ele.id()+"query_neighbors")
+                console.log(query_neighbors.length)
+                return ((query_neighbors.length==0) && (ele.data("classes")=="level3"));
+            });
+            var eles = cy.elements().difference(query_orphs).filter(function (ele) {
+                return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
+            });
+            var layout = eles.layout({
                      name: 'breadthfirst',
                      grid:true,
                      roots:'node[classes @*="level3"]',
                      maximal:true,
-                     circle:true,
-                    spacingFactor:10+non_orphs.nodes().filter('[type="Query"]').length/10+cy.nodes().filter('[type="Linker"]').not(':transparent').length/100,
-
+                     circle:true,               spacingFactor:10+eles.nodes().filter('[type="Query"]').length/10+eles.nodes().filter('[type="Linker"]').length/100,
                 });
             layout.run();
-            var box = cy.elements().boundingBox();
-            orphs.nodes().filter('[classes = "level3"]').positions(function( node, i ){
+            var box = eles.boundingBox();
+            query_orphs.positions(function( node, i ){
               return {
                 x: box.x2+100+500*(i%4),
-                y: box.y1+500*(Math.floor(i/10))
+                y: box.y1+500*(Math.floor(i/4))
               };
             });
-            cy.zoom(cy.zoom()/1.2)
+
+            cy.zoom(orig_zoom/2)              
             cy.center();
         }
         
+
         function run_grid() {
             var is_query = cy.nodes().filter('[type="Query"]');
             var is_connected = is_query.filter(function(ele) {return((ele.degree()!=0));});  //Connected query nodes
@@ -705,12 +723,12 @@
                     y: -500-500*(Math.floor(i/orphLen))
                   };
                 });
-
             
-            cy.zoom(cy.zoom()/2)
+            cy.zoom(orig_zoom/2)               
             cy.center();
 
         }
+
         
         run_fCose();
 

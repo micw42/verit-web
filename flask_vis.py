@@ -12,8 +12,8 @@ from werkzeug.utils import secure_filename
 from os.path import expanduser
 import random
 
-pickle_path = "/home/verittest/verit-web/new-fixed-ev-ski-pickles/"
-aws_path = "/home/verittest/verit-web/"
+pickle_path = "../verit_web/newAbstrPickles/"
+aws_path = "../verit_web/"
 
 UPLOAD_FOLDER = "uploads/"
 
