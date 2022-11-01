@@ -132,10 +132,26 @@
     <h6 style="padding-left:10px">Filter by thickness:</h6>
     <div style="padding-left:10px" class="slidecontainer">
       <input type="range" min="1" max="1000" value="1" class="slider" id="myRange">
+        <form action="#" id="input_thickness">
+                Enter thickness threshold: <input type="number" id="quantity" min="1">
+                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
+            </form>
       <p>Minimum edge thickness: <span id="demo"></span></p>
     </div>
+      
+      
     <h6 style="padding-left:10px">Click on connections between nodes to see the evidence for that connection.</h6> <br>
     <h6 style="padding-left:10px">Mouseover nodes to see only the nodes that the node directly targets.</h6> <br>
+      
+      
+             <div style="padding-left:10px">
+            <h6>Search for a node.</h6>
+            <form action="#" id="node_search">
+                Enter name: <input type="text" id="node_name">
+                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
+            </form>
+           <p>Current query: <span id="current_query">None</span></p>
+        </div>
 
     <h6 style="padding-left:10px">The NLP algorithm can also detect the type of relationship between two nodes (eg.
       positive or negative regulation). However, it does not do so perfectly. Use the button below to view different
@@ -265,21 +281,27 @@
       }
     });
       
+   var currently_querying = false
+
     cy.on('mouseover', 'node', function (evt) {
-        var sel = evt.target;
-        console.log(sel.degree());
-        sel.addClass('large');
-        var neighbors = sel.outgoers().union(sel.incomers());
-        cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
-        cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp");
+        if (!currently_querying) {
+            var sel = evt.target;
+            console.log(sel.degree());
+            sel.addClass('large');
+            var neighbors = sel.outgoers().union(sel.incomers());
+            cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
+            cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp");
+        }
     });
 
     cy.on('mouseout', 'node', function (evt) {
-        var sel = evt.target;
-        sel.removeClass('large');
-        var neighbors = sel.outgoers().union(sel.incomers());
-        cy.nodes().difference(neighbors).not(sel).removeClass('semitransp');
-        cy.edges().difference(sel.edgesWith(neighbors)).removeClass("semitransp");
+        if (!currently_querying) {
+            var sel = evt.target;
+            sel.removeClass('large');
+            var neighbors = sel.outgoers().union(sel.incomers());
+            cy.nodes().difference(neighbors).not(sel).removeClass('semitransp');
+            cy.edges().difference(sel.edgesWith(neighbors)).removeClass("semitransp");
+        }
     });
         
     cy.on('click', 'node', function (evt) {
@@ -430,41 +452,74 @@
                 modal.style.display = "none";
             } 
     });
+      
+      rerun_layout = function() {
+            var layout = cy.layout({
+            name: 'concentric',
+            concentric: function (node) {
+              return node.data("rank");
+            }
+          });
+          layout.run();
+      }
 
-    var slider = document.getElementById("myRange");
-    var output = document.getElementById("demo");
-    output.innerHTML = slider.value;
-    var filteredEdges = cy.edges().filter('[weight < 1]');
-    var filteredNodes = cy.nodes().filter(function (ele) {
-      return ele.degree() == 0;
-    });
-    filteredEdges = cy.remove(filteredEdges);
-    filteredNodes = cy.remove(filteredNodes);
-    slider.oninput = function () {
-      filteredNodes.restore();
-      filteredEdges.restore();
+      
+        var filteredEdges = cy.edges().filter('[thickness < 0]');
+        var filteredNodes = cy.nodes().filter(function (ele) {
+            return ele.degree() == -2;
+        });
+        filteredEdges = cy.remove(filteredEdges);
+        filteredNodes = cy.remove(filteredNodes);
+        filterEdges = function(threshold) { 
+          filteredNodes.restore();
+          filteredEdges.restore();
 
-      output.innerHTML = this.value;
-      threshold = this.value;
-      // filtering edges
-      filteredEdges = cy.edges().filter('[thickness < ' + threshold + ']');
-      filteredEdges = cy.remove(filteredEdges);
-      filteredNodes = cy.nodes().filter(function (ele) {
-        var message = "ID: " + ele.id() + "has degree " + ele.degree().toString();
-        console.log(message);
-        return ele.degree() == 0;
-      });
-
-      filteredNodes = cy.remove(filteredNodes);
-      var layout = cy.layout({
-        name: 'concentric',
-        concentric: function (node) {
-          return node.data("rank");
+          filteredEdges = cy.edges().filter('[thickness < ' + threshold + ']');
+          filteredEdges = cy.remove(filteredEdges);
+          filteredNodes = cy.nodes().filter(function (ele) {
+            return ele.degree() == 0;
+          });
+          filteredNodes = cy.remove(filteredNodes);
+            rerun_layout();
         }
-      });
 
-      layout.run();
-    }
+        var slider = document.getElementById("myRange");
+        var input_thickness = document.getElementById("input_thickness");
+        var output = document.getElementById("demo");
+        output.innerHTML = slider.value;
+        slider.oninput = function () {
+            output.innerHTML = this.value;
+            threshold = this.value;
+            filterEdges(threshold);
+        }
+        input_thickness.onsubmit = function () {
+            var thickness_val = document.getElementById("quantity");
+            output.innerHTML = thickness_val.value;
+            threshold = thickness_val.value;
+            filterEdges(threshold);
+        }
+        
+        var node_search = document.getElementById("node_search");
+        var current_query = document.getElementById("current_query");
+        node_search.onsubmit = function () {
+            currently_querying = true;
+            cy.nodes().removeClass("semitransp");
+            cy.edges().removeClass("semitransp");
+            var node_name = document.getElementById("node_name");
+            current_query.innerHTML = node_name.value; 
+            var results_nodes = cy.nodes().filter('[label @= "' + node_name.value + '"]');
+            var results_edges = results_nodes.connectedEdges()
+            cy.nodes().difference(results_nodes).addClass('semitransp');
+            cy.edges().difference(results_edges).addClass('semitransp');
+        }
+        cy.on('click', (event) => {
+          if (event.target === cy) {
+            currently_querying = false;
+            cy.nodes().removeClass("semitransp");
+            cy.edges().removeClass("semitransp");
+            current_query.innerHTML = "None"; 
+          } 
+        });
 
 
     function add_colors() {
