@@ -23,10 +23,27 @@ def name_query(name, nodes, full_df, string_type):
     
     return in_net
 
+def single_query(query, nodes, full_df):
+    # Get found and unfound queries
+    mapped_ids = full_df[full_df["Label"]==query].drop_duplicates(subset="Label")
 
-def query(name, nodes, full_df, string_type):
-    name = name.lower()
-    print("NAME:", name)
-    result = name_query(name, nodes, full_df, string_type)
+    # Get only IDs and PR values
+    nodes_dd = nodes[["Id", "PR"]].drop_duplicates()
+
+    # Unique IDs within VERIT network
+    in_net = nodes_dd.merge(mapped_ids, on="Id", how="inner")
+
+    # Reconstruct expected format
+    in_net.columns = ["id", "PR", "name"]
+    in_net["user_query"] = in_net["name"]
+
+    return in_net
+
+def query(name, nodes, full_df, uniprot_df, string_type):
+    if string_type=="gene":
+        result = single_query(name, nodes, uniprot_df)
+    else:
+        name = name.lower()
+        result = name_query(name, nodes, full_df, string_type)
     result.to_csv("singleSearchOut.csv", index=False)
 

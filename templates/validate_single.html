@@ -1,10 +1,16 @@
 {% extends "validate.html" %}
-{% block type %}Single Query{% endblock %}
+{% block type %}Single Query
+<h4>Directions:</h4>
+        <ol>
+          <li>Enter a single gene symbol</li>
+          <li>Specify depth: 1 for query's direct neighbors. >1 for recursion (Neighbor's neighbors, etc.).</li>
+        </ol>{% endblock %}
+
 {% block instructions %}
 Enter query:
 <br>
-<h6 style="color: grey">Ex: urea or CHEBI:16199</h6>
+<h6 style="color: grey">Ex: E2F1</h6>
 {% endblock %}
 
 {% block field %}<input type="text" name="query" style="width:670px;height:30px;font-size:20px"/>
-<input type="checkbox" name="default_PR"/>Default highest PageRank{% endblock %}
+{% endblock %}

@@ -16,3 +16,10 @@ ski_species_pickles/
 Visualization/__pycache__/*
 subset_pickles/
 static/cytoscape.js-cise
+flask_vis.py
+new-fixed-ev-ski-pickles/*
+*.json
+*.txt
+templates/bfs_result_l.html
+__pycache__/
+static/bfs_vis_functions.js
