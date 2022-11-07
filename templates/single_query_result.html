@@ -129,19 +129,25 @@
     <form id="queryForm" method="POST" action="{{ url_for('go_home') }}">
       <p><input class="w3-bar-item w3-button" style="color:#4CAF50" type="submit" value="Return to Homepage" /></p>
     </form>
+      <div>
+              <h6 style="padding-left:10px">Click on connections between nodes to see the evidence for that connection.</h6><br>
+        <h6 style="padding-left:10px">Mouseover nodes to see only the nodes that the node directly targets.</h6><br>
+        <h6 style="padding-left:10px"> Red represents down regulation, blue represents up regulation, and white represents inconclusive
+            interactions. For more information on the color-coding, see the README. </h6><br>
+        <h6 style="padding-left:10px">
+        Note: The NLP algorithm does not detect interaction type with perfect accuracy.
+                    </h6>
+      </div>
+      
     <h6 style="padding-left:10px">Filter by thickness:</h6>
     <div style="padding-left:10px" class="slidecontainer">
-      <input type="range" min="1" max="1000" value="1" class="slider" id="myRange">
+      <input type="range" min="1" value="1" class="slider" id="myRange">
         <form action="#" id="input_thickness">
                 Enter thickness threshold: <input type="number" id="quantity" min="1">
                 <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
             </form>
       <p>Minimum edge thickness: <span id="demo"></span></p>
     </div>
-      
-      
-    <h6 style="padding-left:10px">Click on connections between nodes to see the evidence for that connection.</h6> <br>
-    <h6 style="padding-left:10px">Mouseover nodes to see only the nodes that the node directly targets.</h6> <br>
       
       
              <div style="padding-left:10px">
@@ -152,15 +158,6 @@
             </form>
            <p>Current query: <span id="current_query">None</span></p>
         </div>
-
-    <h6 style="padding-left:10px">The NLP algorithm can also detect the type of relationship between two nodes (eg.
-      positive or negative regulation). However, it does not do so perfectly. Use the button below to view different
-      interaction types. Darker edges mean higher confidence. For more information on the color-coding, please see the
-      README.</h6> <br>
-    <div style="padding-left:10px">
-      <button id="color-button" onclick="add_colors()" class="btn btn-primary"
-        style="background-color:#4CAF50;padding-left:10px">Show Color</button>
-    </div>
   </div>
   <script>
     function w3_open() {
@@ -249,7 +246,9 @@
             'curve-style': 'bezier',
             'line-color': "#fcfafa",
             'target-arrow-color': '#fcfafa',
-            'arrow-scale': 3
+            'arrow-scale': 3,
+             'line-color': "data(color)",
+            'target-arrow-color': "data(color)"
           }
         },
         {
@@ -260,6 +259,17 @@
           selector: 'edge.semitransp',
           style: { 'opacity': '.1' }
         },
+                         {
+                    selector: 'node.transp',
+                    style: {
+                        'opacity': '0',
+                        'events': 'no'
+                    }
+                },
+                {
+                    selector: 'edge.transp',
+                    style: { 'opacity': '0' }
+                },
         {
           selector: 'edge.colors',
           style: {
@@ -273,11 +283,6 @@
         concentric: function (node) {
           return node.data("rank");
         }
-
-
-
-
-
       }
     });
       
@@ -463,6 +468,20 @@
           layout.run();
       }
 
+        function getMaxWeight(allEdges) {
+            var weight_arr = []
+            for (var i = 0; i < allEdges.length; i++) {
+                var edgeData = (allEdges[i]).data()
+                var weight = edgeData.thickness
+                weight_arr.push(weight)
+            }
+            Array.prototype.max = function() {
+              return Math.max.apply(null, this);
+            };
+            var maxWeight = weight_arr.max()
+            return(maxWeight)
+        }
+
       
         var filteredEdges = cy.edges().filter('[thickness < 0]');
         var filteredNodes = cy.nodes().filter(function (ele) {
@@ -483,18 +502,25 @@
             rerun_layout();
         }
 
+        var allEdges = cy.edges()  
+        var allMax = Math.ceil(getMaxWeight(allEdges))
         var slider = document.getElementById("myRange");
         var input_thickness = document.getElementById("input_thickness");
+        slider.max = allMax
+        var input_qty = document.getElementById("quantity");
+        input_qty.max = allMax
         var output = document.getElementById("demo");
         output.innerHTML = slider.value;
         slider.oninput = function () {
             output.innerHTML = this.value;
+            input_qty.value = this.value
             threshold = this.value;
             filterEdges(threshold);
         }
         input_thickness.onsubmit = function () {
             var thickness_val = document.getElementById("quantity");
             output.innerHTML = thickness_val.value;
+            slider.value=thickness_val.value
             threshold = thickness_val.value;
             filterEdges(threshold);
         }
@@ -503,20 +529,25 @@
         var current_query = document.getElementById("current_query");
         node_search.onsubmit = function () {
             currently_querying = true;
-            cy.nodes().removeClass("semitransp");
-            cy.edges().removeClass("semitransp");
+            cy.nodes().removeClass("transp");
+            cy.edges().removeClass("transp");
             var node_name = document.getElementById("node_name");
             current_query.innerHTML = node_name.value; 
-            var results_nodes = cy.nodes().filter('[label @= "' + node_name.value + '"]');
+            var results_nodes = cy.nodes().filter(function(ele) {
+                return ((ele.style()["display"] != "none") && 
+                        (ele.style()["opacity"] != "0") &&
+                       (ele.data("label").toLowerCase() === node_name.value.toLowerCase()));})
+            var neighbors = results_nodes.outgoers().union(results_nodes.incomers());
             var results_edges = results_nodes.connectedEdges()
-            cy.nodes().difference(results_nodes).addClass('semitransp');
-            cy.edges().difference(results_edges).addClass('semitransp');
+            var results_nodes = results_nodes.union(neighbors)
+            cy.nodes().difference(results_nodes).addClass('transp');
+            cy.edges().difference(results_edges).addClass('transp');
         }
         cy.on('click', (event) => {
           if (event.target === cy) {
             currently_querying = false;
-            cy.nodes().removeClass("semitransp");
-            cy.edges().removeClass("semitransp");
+            cy.nodes().removeClass("transp");
+            cy.edges().removeClass("transp");
             current_query.innerHTML = "None"; 
           } 
         });

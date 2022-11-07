@@ -214,6 +214,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     rel_df["color2"] = rel_df["color"] * rel_df["thickness"]
     id_concat = lambda x: "%%".join(x) # Concat all source and target IDs of merged nodes
     aggregation_functions = {'color2': 'sum','thickness': 'sum', "orig_source":id_concat, "orig_target":id_concat}
+    rel_df.to_csv("rel_df_before_agg.csv")
     rel_df = rel_df.groupby(["source", "target"]).aggregate(aggregation_functions).reset_index()
     rel_df["color"] = rel_df["color2"]/rel_df["thickness"]
     def formatter(sources, targets):

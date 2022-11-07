@@ -184,14 +184,7 @@
         <h3>Single Query</h3>
         <hr>
         <p>Takes one ID or entity name as input and finds all neighbors eminating from it.</p><br>
-        <h4>Directions:</h4>
-        <br>
-        <ol>
-          <li>Enter a single ID or entity name</li>
-          <br>
-          <li>Specify depth: 1 for query's direct neighbors. >1 for recursion (Neighbor's neighbors, etc.).</li>
-          <br>
-        </ol>
+        
         <h3><input type="submit" class="btn btn-primary" name="query_type" value="Make a single query"
             style="background-color:#4CAF50" /></h3>
         <br>
@@ -202,23 +195,14 @@
       <form method="POST" action="#">
         <h3>Multi Query</h3>
         <hr>
-        <p>Takes a comma-separated list of IDs or entity names as input. Finds all possible pair combinations within
+        <p>Takes a comma-separated list of IDs or entity names as input. Finds paths between all possible pair combinations within
           this list.</p>
-        <h4>Directions:</h4>
-        <br>
-        <ol>
-          <li>Enter comma-separated list of IDs or entity names.</li>
-          <br>
-          <li>Enter maximum number of edges between any pair of entities (<3 recommended).</li>
-              <br>
-          <li>Select network type:
+          
+          <h4>Two path-finding options:</h4>
             <ul>
-              <li>All simple paths</li>
-              <li>All shortest paths</li>
+              <li>All simple paths: Finds all simple paths between all pairs with less than or equal to the user-specified maximum number of edges</li>
+              <li>All shortest paths: Finds all shortest paths between all pairs</li>
             </ul>
-          </li>
-          <br>
-        </ol>
         <p><input type="submit" class="btn btn-primary" name="query_type" value="Make a Multi Query"
             style="background-color:#4CAF50;" /></p>
       </form>

@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename
 from os.path import expanduser
 import random
 
-pickle_path = "../verit_web/newAbstrPickles/"
+pickle_path = "../verit_web/SkiPickles/"
 aws_path = "../verit_web/"
 
 UPLOAD_FOLDER = "uploads/"

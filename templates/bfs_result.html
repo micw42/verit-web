@@ -23,6 +23,11 @@
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- CSS only -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+    <!-- JavaScript Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
     <title>Result</title>
 </head>
 
@@ -141,27 +146,49 @@
             <h6><input class="w3-bar-item w3-button" style="color:#4CAF50" type="submit" value="Return to Homepage" />
             </h6>
         </form>
+        
+                <div>
+        <h6 style="padding-left:10px">Click on connections between nodes to see the evidence for that connection.</h6><br>
+        <h6 style="padding-left:10px">Mouseover nodes to see only the nodes that the node directly targets.</h6><br>
+        <h6 style="padding-left:10px"> Red represents down regulation, blue represents up regulation, and white represents inconclusive
+            interactions. For more information on the color-coding, see the README. </h6><br>
+        <h6 style="padding-left:10px">
+        Note: The NLP algorithm does not detect interaction type with perfect accuracy.
+                    </h6>
+                    
+        </div><br>
 
 
         <h6 style="padding-left:10px">Filter by thickness:</h6>
         <div style="padding-left:10px" class="slidecontainer">
-            <input type="range" min="1" max="100" value="1" class="slider" id="myRange">
+            <input type="range" min="1" value="1" class="slider" id="myRange">
             <form action="#" id="input_thickness">
                 Enter thickness threshold: <input type="number" id="quantity" min="1">
                 <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
             </form>
             <p>Minimum edge thickness: <span id="demo"></span></p>
         </div>
-        <h6 style="padding-left:10px">Click on connections between nodes to see the evidence for that connection.</h6><br>
-        <h6 style="padding-left:10px">Mouseover nodes to see only the nodes that the node directly targets.</h6><br>
+
+        <br>
         <div style="padding-left:10px">
-            <h6>Toggle between layouts using the button below.</h6>
-            <button id="layout-button" onclick="switch_layout()" class="btn btn-primary"
-                style="background-color:#4CAF50;padding-left:10px">Change Layout</button>
-            <p id="layout-name" style="padding-left:10px">Current Layout: fCose</p>
+            <h6>Change Layout.</h6>
+            <select id="layout-button" onchange="switch_layout()" class="btn btn-primary"
+                style="background-color:#4CAF50;padding-left:10px">
+                <option value="fCose">fCose</option>
+                <option value="Circle">Circle</option>
+                <option value="Grid">Grid</option>
+            </select>
+            <div style="padding-left:10px" class="slidecontainer" id="fCose_settings">
+                Adjust node repulsion: <input type="range" min="3" max="18" value="9" class="slider" id="nr_slider">
+                 <p>Current node repulsion: <span id="cur_nr"></span></p>
+        </div> <br>
             <h6>Toggle between showing and hiding all direct connections to query nodes.</h6>
-            <button id="direct-button" onclick="show_direct()" class="btn btn-primary"
-                style="background-color:#4CAF50;padding-left:10px">Show direct</button><br><br>
+            
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="direct-button" onchange="show_direct()">
+              <label class="form-check-label" for="direct-button">Show direct neighbors</label>&nbsp;<i class="fa fa-question-circle" aria-hidden="true" title="Direct neighbors are nodes directly connected to a node by 1 edge." style="cursor:pointer"></i>
+            </div>
+            <br><br>
 
         </div>
         
@@ -172,17 +199,6 @@
                 <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
             </form>
            <p>Current query: <span id="current_query">None</span></p>
-        </div>
-
-
-        <h6 style="padding-left:10px">Experimental: Color-code the edges by interaction type</h6>
-        <h6 style="padding-left:10px">The NLP algorithm can also detect the type of relationship between two nodes (eg.
-            positive or negative regulation). However, it does not do so perfectly. Use the button below to color-code
-            the edges. Red represents down regulation, blue represents up regulation, and white represents inconclusive
-            interactions. For more information on the color-coding, please see the README.</h6><br>
-        <div style="padding-left:10px">
-            <button id="color-button" onclick="add_colors()" class="btn btn-primary"
-                style="background-color:#4CAF50;padding-left:10px">Show Color</button>
         </div>
     </div>
     </div>
@@ -232,6 +248,7 @@
     </div>
 
 
+    <script src="{{url_for('static', filename='bfs_vis_functions.js')}}"></script>
 
     <script>
         const data = {{ elements | tojson }};
@@ -275,7 +292,9 @@
                         'target-arrow-color': '#fcfafa',
                         "overlay-opacity": "0.1",
                         "display": "data(display)",
-                        'width': 'data(weight)'
+                        'width': 'data(weight)',
+                        'line-color': "data(color)",
+                        'target-arrow-color': "data(color)"
                     }
                 },
                 
@@ -508,17 +527,85 @@
             }
         });
         
+        function getMaxWeight(allEdges) {
+            var weight_arr = []
+            for (var i = 0; i < allEdges.length; i++) {
+                var edgeData = (allEdges[i]).data()
+                var weight = edgeData.thickness
+                weight_arr.push(weight)
+            }
+            Array.prototype.max = function() {
+              return Math.max.apply(null, this);
+            };
+            var maxWeight = weight_arr.max()
+            return(maxWeight)
+        }
+
+
+        
         var filteredEdges = cy.edges().filter('[thickness < 0]');
         var filteredNodes = cy.nodes().filter(function (ele) {
             return ele.degree() == -2;
         });
         filteredEdges = cy.remove(filteredEdges);
         filteredNodes = cy.remove(filteredNodes);
+
+        var slider = document.getElementById("myRange");
+        var queryEdges = cy.edges().filter(function (ele) {
+            return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
+        });
+        var allEdges = cy.edges()    
+        var queryMax = Math.ceil(getMaxWeight(queryEdges))
+        var allMax = Math.ceil(getMaxWeight(allEdges))
+        slider.max = queryMax
+        var input_qty = document.getElementById("quantity");
+        input_qty.max = queryMax
+        var output = document.getElementById("demo");
+        output.innerHTML = slider.value;
+        slider.oninput = function () {
+            output.innerHTML = this.value;
+            input_qty.value = this.value
+            threshold = this.value;
+            filterEdges(threshold);
+        }
+        input_thickness.onsubmit = function () {
+            var thickness_val = document.getElementById("quantity");
+            output.innerHTML = thickness_val.value;
+            slider.value=thickness_val.value
+            threshold = thickness_val.value;
+            filterEdges(threshold);
+        }
+        
+        var node_search = document.getElementById("node_search");
+        var current_query = document.getElementById("current_query");
+        node_search.onsubmit = function () {
+            currently_querying = true;
+            cy.nodes().removeClass("transp");
+            cy.edges().removeClass("transp");
+            var node_name = document.getElementById("node_name");
+            current_query.innerHTML = node_name.value; 
+            var results_nodes = cy.nodes().filter(function(ele) {
+                return ((ele.style()["display"] != "none") && 
+                        (ele.style()["opacity"] != "0") &&
+                       (ele.data("label").toLowerCase() === node_name.value.toLowerCase()));})
+            console.log("Result nodes: "+results_nodes.length)
+            var neighbors = results_nodes.outgoers().union(results_nodes.incomers());
+            var results_edges = results_nodes.connectedEdges()
+            var results_nodes = results_nodes.union(neighbors)
+            cy.nodes().difference(results_nodes).addClass('transp');
+            cy.edges().difference(results_edges).addClass('transp');
+        }
+        cy.on('click', (event) => {
+            currently_querying = false;
+            cy.nodes().removeClass("transp");
+            cy.edges().removeClass("transp");
+            current_query.innerHTML = "None"; 
+        });
         
         filterEdges = function(threshold) {
             filteredNodes.removeClass("transp");
             filteredEdges.restore();
-            
+
             filteredEdges = cy.edges().filter('[thickness < ' + threshold + ']');
             filteredEdges = cy.remove(filteredEdges);
             filteredNodes = cy.nodes().filter(function (ele) {
@@ -528,84 +615,75 @@
             rerun_layout();
         }
 
-        var slider = document.getElementById("myRange");
-        var input_thickness = document.getElementById("input_thickness");
-        var output = document.getElementById("demo");
-        output.innerHTML = slider.value;
-        slider.oninput = function () {
-            output.innerHTML = this.value;
-            threshold = this.value;
-            filterEdges(threshold);
-        }
-        input_thickness.onsubmit = function () {
-            var thickness_val = document.getElementById("quantity");
-            output.innerHTML = thickness_val.value;
-            threshold = thickness_val.value;
-            filterEdges(threshold);
-        }
-        
-        var node_search = document.getElementById("node_search");
-        var current_query = document.getElementById("current_query");
-        node_search.onsubmit = function () {
-            currently_querying = true;
-            cy.nodes().removeClass("semitransp");
-            cy.edges().removeClass("semitransp");
-            var node_name = document.getElementById("node_name");
-            current_query.innerHTML = node_name.value; 
-            var results_nodes = cy.nodes().filter('[label @= "' + node_name.value + '"]');
-            var results_edges = results_nodes.connectedEdges()
-            cy.nodes().difference(results_nodes).addClass('semitransp');
-            cy.edges().difference(results_edges).addClass('semitransp');
-        }
-        cy.on('click', (event) => {
-          if (event.target === cy) {
-            currently_querying = false;
-            cy.nodes().removeClass("semitransp");
-            cy.edges().removeClass("semitransp");
-            current_query.innerHTML = "None"; 
-          } 
-        });
-
         function switch_layout() {
-            var layout = document.getElementById("layout-name");
-            if (layout.innerHTML === "Current Layout: Square force-based") {
+            var layout = document.getElementById("layout-button");
+            if (layout.value === "Circle") {
                 run_circle();
-                layout.innerHTML = "Current Layout: Circle";
-            } else if (layout.innerHTML === "Current Layout: Circle") {
-                run_fCose();
-                layout.innerHTML = "Current Layout: fCose";
+                document.getElementById("fCose_settings").style.display = "none";
+            } else if (layout.value === "fCose") {
+                run_fCose(idealEL=iel, nodeRep=nr);
+                document.getElementById("fCose_settings").style.display = "block";
             } else {
                 run_grid();
-                layout.innerHTML = "Current Layout: Square force-based";
+                document.getElementById("fCose_settings").style.display = "none";
+
             }
         }
         
+        var nr_slider = document.getElementById("nr_slider")
+        var cur_nr = document.getElementById("cur_nr")
+        var nr = 1e9
+        if (cy.nodes().filter('[type="Linker"]').length==0) {
+            var iel = (cy.nodes().filter('[type="Query"]').length)*10+100
+        } else {
+            var iel = (cy.nodes().filter('[type="Linker"]').length)/2+100
+        }
+        cur_nr.innerHTML="1e9"
+        nr_slider.value=9
+        nr_slider.oninput = function () {
+            cur_nr.innerHTML = "1e"+this.value;
+            var nr = 10**(this.value);
+            run_fCose(idealEL=iel, nodeRep=nr)
+        }
+ 
+        
+        function reset_slider() {
+            nr_slider.value=9
+            cur_nr.innerHTML="1e9"
+        }
+        
         function rerun_layout() {
-            var layout = document.getElementById("layout-name");
-            if (layout.innerHTML === "Current Layout: Square force-based") {
+            var layout = document.getElementById("layout-button");
+            if (layout.value === "Grid") {
                 run_grid();
-            } else if (layout.innerHTML === "Current Layout: Circle") {
+            } else if (layout.valueL === "Circle") {
                 run_circle();
             } else {
-                run_fCose();
+                run_fCose(idealEL=iel, nodeRep=1e9);
+                reset_slider()
             }
         }
         
 
         function show_direct() {
             var layout = document.getElementById("direct-button");
-            if (layout.innerHTML === "Show direct") {
+            var slider = document.getElementById("myRange");
+            var input_qty = document.getElementById("quantity");
+        
+            if (layout.checked) {
                 cy.edges().filter("[display='none']").style("display", "element")
                 cy.nodes().filter("[display = 'none']").style("display", "element")
-                layout.innerHTML = "Hide direct";
+                slider.max = allMax
+                input_qty.max = allMax
             } else {
                 cy.edges().filter("[display = 'none']").style("display", "none")
                 cy.nodes().filter("[display = 'none']").style("display", "none")
-                layout.innerHTML = "Show direct";
-            }
-            var slider = document.getElementById("myRange");
+                slider.max = queryMax
+                input_qty.max = queryMax
+            }                              
             threshold = slider.value
             filterEdges(threshold);
+            output.innerHTML = threshold;
             rerun_layout();
         }
 
@@ -639,30 +717,25 @@
             }
         }
         
-       function run_fCose() {
+        
+       function run_fCose(idealEL, nodeRep=1e9) {
            var eles = cy.elements().filter(function (ele) {
                 return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
-            });
-           if (cy.nodes().filter('[type="Linker"]').length==0) {
-               var layout = eles.layout({
-                    name: 'fcose',
-                    nodeRepulsion: node => 1e9,
-                    idealEdgeLength: edge => (cy.nodes().filter('[type="Query"]').length)*10+100
-                })
-           } else {
-              var layout = eles.layout({
+            }); 
+            var layout = cy.layout({
                 name: 'fcose',
-                nodeRepulsion: node => 1e9,
-                idealEdgeLength: edge => (cy.nodes().filter('[type="Linker"]').length)/2+100,
-                   gravity: 1e-5,
+                nodeRepulsion: node => nodeRep,
+                idealEdgeLength: edge => idealEL,
+                gravity: 1e-5,
                   gravityRangeCompound: 1e-5,
                   gravityCompound: 1e-5,
                   gravityRange: 1e-5
             }) 
-           }
             layout.run();
         }
         
+        run_fCose(idealEL=iel)
+       
         const orig_zoom = cy.zoom()
         function run_circle() {
             var query_orphs = cy.nodes().filter(function (ele) {
@@ -778,9 +851,6 @@
             cy.center();
 
         }
-
-        
-        run_fCose();
 
 
     </script>
