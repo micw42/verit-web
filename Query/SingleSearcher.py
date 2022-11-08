@@ -41,6 +41,7 @@ def single_query(query, nodes, full_df):
 
 def query(name, nodes, full_df, uniprot_df, string_type):
     if string_type=="gene":
+        name = name.upper()
         result = single_query(name, nodes, uniprot_df)
     else:
         name = name.lower()

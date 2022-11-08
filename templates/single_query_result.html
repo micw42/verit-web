@@ -124,7 +124,7 @@
 
 
 <body>
-  <div class="w3-sidebar w3-bar-block w3-border-right" style="display:none;width:30%" id="mySidebar">
+  <div class="w3-sidebar w3-bar-block w3-border-right" style="display:block;width:30%" id="mySidebar">
     <button onclick="w3_close()" class="w3-bar-item w3-large">Close &times;</button>
     <form id="queryForm" method="POST" action="{{ url_for('go_home') }}">
       <p><input class="w3-bar-item w3-button" style="color:#4CAF50" type="submit" value="Return to Homepage" /></p>
@@ -269,6 +269,12 @@
                 {
                     selector: 'edge.transp',
                     style: { 'opacity': '0' }
+                },
+                          {
+                    selector: 'node.searched',
+                    style: {
+                        'background-color': "#26ff12"
+                    }
                 },
         {
           selector: 'edge.colors',
@@ -531,12 +537,14 @@
             currently_querying = true;
             cy.nodes().removeClass("transp");
             cy.edges().removeClass("transp");
+            cy.nodes().removeClass("searched");
             var node_name = document.getElementById("node_name");
             current_query.innerHTML = node_name.value; 
             var results_nodes = cy.nodes().filter(function(ele) {
                 return ((ele.style()["display"] != "none") && 
                         (ele.style()["opacity"] != "0") &&
                        (ele.data("label").toLowerCase() === node_name.value.toLowerCase()));})
+            results_nodes.addClass('searched')
             var neighbors = results_nodes.outgoers().union(results_nodes.incomers());
             var results_edges = results_nodes.connectedEdges()
             var results_nodes = results_nodes.union(neighbors)
@@ -548,6 +556,7 @@
             currently_querying = false;
             cy.nodes().removeClass("transp");
             cy.edges().removeClass("transp");
+              cy.nodes().removeClass("searched");
             current_query.innerHTML = "None"; 
           } 
         });

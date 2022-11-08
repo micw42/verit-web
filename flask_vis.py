@@ -12,12 +12,16 @@ from werkzeug.utils import secure_filename
 from os.path import expanduser
 import random
 
-pickle_path = "../verit_web/SkiPickles/"
-aws_path = "../verit_web/"
+with open("settings.txt") as file:
+    settings = [x.strip("\n") for x in file.readlines()]
+print(settings)
+
+pickle_path = settings[0]
+aws_path = settings[1]
 
 UPLOAD_FOLDER = "uploads/"
 
-bucket = "updated-ski-evidence"
+bucket = settings[2]
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -93,22 +97,28 @@ def validate(query_type):
                 query = file_contents.splitlines()
             else:
                 query=request.form["query"].split(",")
+                query = [x.strip() for x in query]
 
             if string_type == "id":
                 DictChecker.check(edges_df, query, query_type=query_type)
-                return redirect(url_for("display_options", query_type=query_type))
+                return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
             #If the query is a text box format with name contains/begins/ends
             else:
                 MultiSearcher.query(query, nodes_df, full_df, uniprot_df, string_type)
                 result = pd.read_csv("multiSearchOut.csv")
                 result_dict=ConvertSearch.multi_convert()
-                if default_PR or string_type=="gene":
+                if string_type=="gene" or default_PR:
                     query_dict={}
-                    for query in result_dict:
-                        query_dict[query] = [result_dict[query]["max_PR"]]
+                    for query_key in result_dict:
+                        query_dict[query_key] = [result_dict[query_key]["max_PR"]]
                     with open("query_dict.json", "w") as outfile:
                         json.dump(query_dict, outfile)
-                    return redirect(url_for("make_bfs_query", query_type = "name"))
+                    print("query:", query)
+                    print("query-dict:", query_dict)
+                    ConvertSearch.get_missing(query, query_dict, string_type)
+                    print("Redirecting")
+                    return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
+
                 else:
                     with open("query_dict.json", "w") as outfile:
                         json.dump(result_dict, outfile)
@@ -117,18 +127,26 @@ def validate(query_type):
                     return redirect(url_for("pick_query", query=query, query_type = "name"))
 
         else:
-            query=request.form["query"]
+            query=request.form["query"].strip()
             if string_type=="id":
                 DictChecker.check(edges_df, query, query_type=query_type)
-                return redirect(url_for("display_options", query_type=query_type))
+                return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
             else:
                 SingleSearcher.query(query, nodes_df, full_df, uniprot_df, string_type)
                 result_dict=ConvertSearch.single_convert()
+                print("Result_dict_1:", result_dict)
                 if default_PR or string_type=="gene":
-                    query = {"QUERY_ID":result_dict["max_PR"]}
+                    if result_dict:
+                        query_dict = {"QUERY_ID":result_dict["max_PR"]}
+                        result_dict = {"not_in":[], "present":[query]}
+                    else:
+                        query_dict = {"QUERY_ID":[]}
+                        result_dict = {"not_in":[query], "present":[]}
                     with open("query_dict.json", "w") as outfile:
-                            json.dump(query, outfile)
-                    return redirect(url_for("make_single_query", query_type=query_type))
+                            json.dump(query_dict, outfile)
+                    with open("result_dict.json", "w") as outfile:
+                            json.dump(result_dict, outfile)
+                    return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
                 else:
                     with open("query_dict.json", "w") as outfile:
                             json.dump(result_dict, outfile)
@@ -181,15 +199,17 @@ def pick_query(query, query_type):
             return render_template("pick_results_multi.html", query=query, result_dict=result_dict, not_in=not_in)
 
 
-@app.route('/options/<query_type>', methods=["POST","GET"])
-def display_options(query_type):
+@app.route('/options/<query_type>/<string_type>', methods=["POST","GET"])
+def display_options(query_type, string_type):
+    print("At display options")
     with open('query_dict.json') as json_file:
         query = json.load(json_file)
     with open('result_dict.json') as json_file:
         result_dict = json.load(json_file)
+    print("Query:", query)
+    print("Result dict:", result_dict)
     not_in = result_dict["not_in"]
     present = result_dict["present"]
-    query_parts=query["QUERY_ID"].split(",")
 
     if request.method=="POST":
         choice=request.form["choice"]
@@ -197,11 +217,14 @@ def display_options(query_type):
             return redirect(url_for("select_query"))
         else:
             if query_type=="dijkstra":
-                return redirect(url_for("make_bfs_query", query=query, query_type = "id"))
+                if string_type == "id":
+                    return redirect(url_for("make_bfs_query", query=query, query_type = "id"))
+                else:
+                    return redirect(url_for("make_bfs_query", query=query, query_type = "name"))
             elif query_type=="single":
                 return redirect(url_for("make_single_query", query=query, query_type = "id"))
     else:
-        return render_template("validate_result.html", not_in=not_in, query_type=query_type, present=present, query=query)
+        return render_template("validate_result.html", not_in=not_in, query_type=query_type, present=present)
 
 @app.route('/bfs/<query_type>', methods=["POST","GET"])
 def make_bfs_query(query_type):
