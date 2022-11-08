@@ -1,5 +1,7 @@
 import pandas as pd
 import time
+import numpy as np
+import json
 
 def single_convert():
     results=pd.read_csv("singleSearchOut.csv")
@@ -53,4 +55,19 @@ def multi_convert():
     print("Finished CV2 in", time.time()-s)
 
     return result_dict
+
+def get_missing(query_list, result_dict, string_type):
+    if string_type=="gene":
+        query_list = [x.upper() for x in query_list]
+    in_net = list(result_dict.keys())
+    in_net = [x.replace("SPACE", " ") for x in in_net]
+    print("In net:", in_net)
+    not_in = np.setdiff1d(query_list, in_net)
+    print("Not in:", list(not_in))
+    result_dict = {"not_in": list(not_in), "present":in_net, "query":query_list}
+    print("Result dict:", result_dict)
+    with open("result_dict.json", "w") as outfile:
+        json.dump(result_dict, outfile)
+
+    
 

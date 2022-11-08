@@ -152,9 +152,6 @@
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('home')}}">Home <span class="sr-only">(current)</span></a>
-        </li>
         <li class="nav-item active">
           <a class="nav-link" href="{{ url_for('select_query')}}">Query</a>
         </li>
@@ -200,8 +197,8 @@
           
           <h4>Two path-finding options:</h4>
             <ul>
-              <li>All simple paths: Finds all simple paths between all pairs with less than or equal to the user-specified maximum number of edges</li>
-              <li>All shortest paths: Finds all shortest paths between all pairs</li>
+              <li>All simple paths: Finds all paths between all pairs with less than or equal to the user-specified maximum number of edges</li>
+              <li>All shortest paths: Finds only shortest paths between all pairs with less than or equal to the user-specified maximum number of edges</li>
             </ul>
         <p><input type="submit" class="btn btn-primary" name="query_type" value="Make a Multi Query"
             style="background-color:#4CAF50;" /></p>

@@ -11,7 +11,7 @@ def check(edges_table, queries_id, query_type):
     '''
     if query_type=="single":
         queries_id = [queries_id]
-        
+
     all_specs = pd.concat([edges_table["source"], edges_table["target"]]).unique()
     
     present = np.intersect1d(all_specs, queries_id)
