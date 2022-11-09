@@ -177,10 +177,7 @@
         {% set continue = False %}
         {% else %}
 
-        <h5>These queries were found:</h5>
-        {% for p in present %}
-        <p>{{ p }}</p>
-        {% endfor %}
+
         <h5>These queries were not found:</h5>
         {% for n in not_in %}
         <p>{{ n }}</p>

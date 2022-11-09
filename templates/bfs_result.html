@@ -182,11 +182,11 @@
                 Adjust node repulsion: <input type="range" min="3" max="18" value="9" class="slider" id="nr_slider">
                  <p>Current node repulsion: <span id="cur_nr"></span></p>
         </div> <br>
-            <h6>Toggle between showing and hiding all direct connections to query nodes.</h6>
+            <h6>Toggle between showing and hiding direct neighbors.</h6>
             
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" role="switch" id="direct-button" onchange="show_direct()">
-              <label class="form-check-label" for="direct-button">Show direct neighbors</label>&nbsp;<i class="fa fa-question-circle" aria-hidden="true" title="Direct neighbors are nodes directly connected to a node by 1 edge." style="cursor:pointer"></i>
+              <label class="form-check-label" for="direct-button">Show direct neighbors with thickness > 20</label>&nbsp;<i class="fa fa-question-circle" aria-hidden="true" title="Direct neighbors are nodes directly connected to a node by 1 edge." style="cursor:pointer"></i>
             </div>
             <br><br>
 

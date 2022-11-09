@@ -226,17 +226,31 @@
       </ul>
        
         <h5>Advanced: change query type (default is gene symbol).</h5>
-       <select name="queryType" id="cars" style="width:180px;height:30px;font-size:20px">
+       <select name="queryType" id="cars" style="width:180px;height:30px;font-size:20px" onchange="showPR()">
           <option value="starts_with">Name starts with</option>
           <option value="ends_with">Name ends with</option>
           <option value="contains">Name contains</option>
           <option value="id">ID</option>
-          <option value="gene" selected="selected">Gene</option>
+          <option value="gene" selected="selected">Official gene symbol</option>
         </select>
         
         <div style="word-wrap:break-word">
-            <h5 ><input type="checkbox" name="default_PR"/> Name queries only: Default highest pagerank (recommended for large queries)&nbsp;<i class="fa fa-question-circle" aria-hidden="true" title="To help the user choose an effective query, we rank the ID results of name queries using the PageRank algorithm. Check this box to default to the IDs with the highest PageRank values. For more information on PageRank, please see the README." style="cursor:pointer"></i>
+            <h5 id="default_PR" style="display:none" ><input type="checkbox" name="default_PR" /> Name queries only: Default highest pagerank (recommended for large queries)&nbsp;<i class="fa fa-question-circle" aria-hidden="true" title="To help the user choose an effective query, we rank the ID results of name queries using the PageRank algorithm. Check this box to default to the IDs with the highest PageRank values. For more information on PageRank, please see the README." style="cursor:pointer"></i></h5>
         </div>
+        
+    <script>
+        function showPR() {
+            var query_type = document.getElementById("cars").value
+            var name_queries = ["starts_with", "ends_with", "contains"]
+            var checkbox = document.getElementById("default_PR")
+            if (name_queries.includes(query_type)) {
+                checkbox.style.display="block"
+            } else {
+                checkbox.style.display="none"
+            }
+            
+        }
+        </script>
 
       <br>
       <p><input type="submit" class="btn btn-primary" value="Submit" style="background-color:#4CAF50" /></p> <br>

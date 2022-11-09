@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename
 from os.path import expanduser
 import random
 
-with open("/home/veritvisualization/verit-web/settings.txt") as file:
+with open("settings.txt") as file:
     settings = [x.strip("\n") for x in file.readlines()]
 print(settings)
 
@@ -207,18 +207,18 @@ def display_options(query_type, string_type):
     not_in = result_dict["not_in"]
     present = result_dict["present"]
 
-    if request.method=="POST":
-        choice=request.form["choice"]
-        if choice=="Try another query":
-            return redirect(url_for("select_query"))
-        else:
-            if query_type=="dijkstra":
-                if string_type == "id":
-                    return redirect(url_for("make_bfs_query", query_type = "id"))
-                else:
-                    return redirect(url_for("make_bfs_query", query_type = "name"))
-            elif query_type=="single":
-                return redirect(url_for("make_single_query", query_type = "id"))
+    if request.method=="POST" or len(not_in)==0:
+        if request.method=="POST":
+            choice=request.form["choice"]
+            if choice=="Try another query":
+                return redirect(url_for("select_query"))
+        if query_type=="dijkstra":
+            if string_type == "id":
+                return redirect(url_for("make_bfs_query", query_type = "id"))
+            else:
+                return redirect(url_for("make_bfs_query", query_type = "name"))
+        elif query_type=="single":
+            return redirect(url_for("make_single_query", query_type = "id"))
     else:
         return render_template("validate_result.html", not_in=not_in, query_type=query_type, present=present)
 
