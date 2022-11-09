@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename
 from os.path import expanduser
 import random
 
-with open("settings.txt") as file:
+with open("/home/veritvisualization/verit-web/settings.txt") as file:
     settings = [x.strip("\n") for x in file.readlines()]
 print(settings)
 
