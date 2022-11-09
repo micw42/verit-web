@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename
 from os.path import expanduser
 import random
 
-with open("settings.txt") as file:
+with open("/home/veritvisualization/verit-web/settings.txt") as file:
     settings = [x.strip("\n") for x in file.readlines()]
 print(settings)
 
@@ -113,8 +113,6 @@ def validate(query_type):
                         query_dict[query_key] = [result_dict[query_key]["max_PR"]]
                     with open("query_dict.json", "w") as outfile:
                         json.dump(query_dict, outfile)
-                    print("query:", query)
-                    print("query-dict:", query_dict)
                     ConvertSearch.get_missing(query, query_dict, string_type)
                     print("Redirecting")
                     return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
@@ -206,8 +204,6 @@ def display_options(query_type, string_type):
         query = json.load(json_file)
     with open('result_dict.json') as json_file:
         result_dict = json.load(json_file)
-    print("Query:", query)
-    print("Result dict:", result_dict)
     not_in = result_dict["not_in"]
     present = result_dict["present"]
 
@@ -218,11 +214,11 @@ def display_options(query_type, string_type):
         else:
             if query_type=="dijkstra":
                 if string_type == "id":
-                    return redirect(url_for("make_bfs_query", query=query, query_type = "id"))
+                    return redirect(url_for("make_bfs_query", query_type = "id"))
                 else:
-                    return redirect(url_for("make_bfs_query", query=query, query_type = "name"))
+                    return redirect(url_for("make_bfs_query", query_type = "name"))
             elif query_type=="single":
-                return redirect(url_for("make_single_query", query=query, query_type = "id"))
+                return redirect(url_for("make_single_query", query_type = "id"))
     else:
         return render_template("validate_result.html", not_in=not_in, query_type=query_type, present=present)
 
