@@ -111,6 +111,8 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     st_df = pd.DataFrame(st_dict).drop_duplicates()
 
     # Making edges
+    print("Edges_df columns:", edges_df.columns)
+    print("Nrow edges_df:", len(edges_df.index))
     rel_df = st_df.merge(edges_df, on=["source", "target"], how="left")
 
     # Bidirectional edges

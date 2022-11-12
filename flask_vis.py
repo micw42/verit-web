@@ -267,8 +267,8 @@ def bfs_query_result(max_linkers, qtype, query_type, get_direct_linkers):
     print("Starting multiquery")
     MultiQuery.query(G, edges_df, nodes_df, query, max_linkers, qtype, query_type, get_direct_linkers = get_direct_linkers, db_df = full_df, access_key=access_key, secret_key=secret_key, bucket=bucket)
     print("Finished multiquery")
-    edges_df = pd.read_csv("query_edges.csv",header = 0)
-    n_edges = len(edges_df.index)
+    query_edges = pd.read_csv("query_edges.csv",header = 0)
+    n_edges = len(query_edges.index)
     filtered = False
     if n_edges > 5000:
         to_json_netx.filter_graph()
