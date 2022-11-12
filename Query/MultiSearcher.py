@@ -30,8 +30,7 @@ def multi_query(query_list, nodes, full_df, string_type):
     # Gene querying can be streamlined
     if string_type == "gene":
         # Get found and unfound queries
-        mapped = np.intersect1d(query_list, list(full_df["Label"]), return_indices=True)[2]
-        mapped_ids = full_df.iloc[mapped].drop_duplicates(subset="Id")
+        mapped_ids = full_df[full_df["Label"].isin(query_list)].drop_duplicates(subset=["Id", "Label"])
         
         unmapped = np.setdiff1d(query_list, list(full_df["Label"]))    # Unused
 

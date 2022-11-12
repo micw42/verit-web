@@ -5,6 +5,16 @@ import seaborn as sns
 from operator import itemgetter
 import networkx as nx
 
+def filter_graph():
+    nodes_df=pd.read_csv("query_nodes.csv",header = 0)
+    edges_df = pd.read_csv("query_edges.csv",header = 0)
+    edges_df = edges_df[edges_df["thickness"] > 20]
+    all_ids = list(np.union1d(edges_df["source"], edges_df["target"]))
+    nodes_df = nodes_df[nodes_df["Id"].isin(all_ids)]
+    edges_df.to_csv("query_edges.csv", index=False)
+    nodes_df.to_csv("query_nodes.csv", index=False)
+
+
 def clean_nodes():
 
     nodes_df=pd.read_csv("query_nodes.csv",header = 0)

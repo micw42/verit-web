@@ -62,6 +62,10 @@ def get_missing(query_list, result_dict, string_type):
     in_net = list(result_dict.keys())
     in_net = [x.replace("SPACE", " ") for x in in_net]
     not_in = np.setdiff1d(query_list, in_net)
+    print("query_list:", query_list)
+    print("result-dict:", result_dict)
+    print("in_net:", in_net)
+    print("not_in:", not_in)
     result_dict = {"not_in": list(not_in), "present":in_net, "query":query_list}
     with open("result_dict.json", "w") as outfile:
         json.dump(result_dict, outfile)

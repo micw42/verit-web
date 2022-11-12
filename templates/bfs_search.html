@@ -191,14 +191,19 @@
 
 
         <form id="myForm" method="POST" action="#">
-            <h5>Maximum Number of Edges Between Nodes: <input type="text" name="max_linkers" value="1"
+            <h5>Maximum Number of Edges Between Nodes (&lt=2 recommended): <input type="text" name="max_linkers" value="1"
                     style="width:30px" /></h5>
-
-            <h5>
+        <h5>
                 Query Type: 
-                &nbsp&nbsp<input type="radio" name="qtype" value="all_simple_paths" checked="checked"/>All Simple Paths
-                &nbsp&nbsp<input type="radio" name="qtype" value="all_shortest_paths" />All Shortest Paths
+                <br>
+                <input type="radio" name="qtype" id="all_paths" value="all_simple_paths" checked="checked">
+                <label for="all_paths">All Paths: Finds all paths between all pairs with less than or equal to the user-specified maximum number of edges</label>
+                <br>
+                <input type="radio" name="qtype" value="all_shortest_paths" />All Shortest Paths: Finds only shortest paths between all pairs with less than or equal to the user-specified maximum number of edges
             </h5> <br>
+
+
+
             <ul class="nav">
                 <li style="display:inline">
                     <p><input type="submit" class="btn btn-primary" value="Generate Visualization"

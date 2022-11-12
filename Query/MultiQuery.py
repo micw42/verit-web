@@ -164,17 +164,16 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     nodes = nodes.merge(db_df, left_on="Id", right_on="id", how="left")
     nodes["name"] = nodes["name"].fillna(nodes["Label"])
     nodes["id"] = nodes["id"].fillna(nodes["Id"])
+    nodes["name"] = nodes["name"].fillna("NAN")
     syn_concat = lambda x: "%%".join(x)  # Separate each synonym with %%
     aggregation_functions = {'Id': 'first', 'Label':"first", "name":syn_concat}
     nodes = nodes.groupby('id').aggregate(aggregation_functions)
 
     # Fix the node labels to account for combined IDs (can ignore)
     if query_type == "name":
-        rel_df.to_csv("rel_df.csv", index=False)
         # Make df with user queries and corresponding IDs
         name_df = pd.DataFrame([(key, var) for (key, L) in queries_id.items() for var in L],
                  columns=['key', 'variable'])
-        name_df.to_csv("name_df.csv")
         # Fix edges table
         src = rel_df[["source"]]
         merged_src = pd.merge(src, name_df, how="left", left_on="source", right_on = "variable")["key"].tolist()
@@ -214,7 +213,6 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     rel_df["color2"] = rel_df["color"] * rel_df["thickness"]
     id_concat = lambda x: "%%".join(x) # Concat all source and target IDs of merged nodes
     aggregation_functions = {'color2': 'sum','thickness': 'sum', "orig_source":id_concat, "orig_target":id_concat}
-    rel_df.to_csv("rel_df_before_agg.csv")
     rel_df = rel_df.groupby(["source", "target"]).aggregate(aggregation_functions).reset_index()
     rel_df["color"] = rel_df["color2"]/rel_df["thickness"]
     def formatter(sources, targets):

@@ -177,8 +177,8 @@
         {% set continue = False %}
         {% else %}
 
-
-        <h5>These queries were not found:</h5>
+        <h5>{{present | length}} queries found.</h5>
+        <h5>{{not_in | length}} queries were not found:</h5>
         {% for n in not_in %}
         <p>{{ n }}</p>
         {% endfor %}

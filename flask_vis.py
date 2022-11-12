@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename
 from os.path import expanduser
 import random
 
-with open("/home/veritvisualization/verit-web/settings.txt") as file:
+with open("settings.txt") as file:
     settings = [x.strip("\n") for x in file.readlines()]
 print(settings)
 
@@ -43,7 +43,7 @@ print("Loaded nodes.")
 
 print("Reading databases...", end="\x1b[1K\r")
 full_df=pd.read_pickle(f"{pickle_path}combinedDBs.pkl")
-uniprot_df=pd.read_pickle(f"{pickle_path}UniProtMappings_human.pkl")
+uniprot_df=pd.read_pickle(f"{pickle_path}FiltUniProtMappings_human.pkl")
 
 print("Loaded databases.")
 
@@ -224,6 +224,11 @@ def display_options(query_type, string_type):
 
 @app.route('/bfs/<query_type>', methods=["POST","GET"])
 def make_bfs_query(query_type):
+    with open('query_dict.json') as json_file:
+        query = json.load(json_file)
+    q_len = len(query)
+    if q_len > 100:
+        return redirect(url_for("bfs_query_result", max_linkers=1, qtype = "all_shortest_paths", query_type = query_type, get_direct_linkers = True))
     if request.method=="POST":
         max_linkers=int(request.form["max_linkers"])
         qtype = request.form["qtype"]
@@ -262,8 +267,14 @@ def bfs_query_result(max_linkers, qtype, query_type, get_direct_linkers):
     print("Starting multiquery")
     MultiQuery.query(G, edges_df, nodes_df, query, max_linkers, qtype, query_type, get_direct_linkers = get_direct_linkers, db_df = full_df, access_key=access_key, secret_key=secret_key, bucket=bucket)
     print("Finished multiquery")
+    edges_df = pd.read_csv("query_edges.csv",header = 0)
+    n_edges = len(edges_df.index)
+    filtered = False
+    if n_edges > 5000:
+        to_json_netx.filter_graph()
+        filtered = True
     elements = to_json_netx.clean()
-    return render_template("bfs_result.html", elements = elements)
+    return render_template("bfs_result.html", elements = elements, filtered=filtered)
 
 
 
