@@ -175,6 +175,28 @@
     color: white;
   }
 
+    
+            .loader {
+        border: 10px solid #f3f3f3;
+        /* Light grey */
+        border-top: 10px solid #04AA6D;
+        /* Green */
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1.5s linear infinite;
+        margin-left: 10px;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
 </style>
 
 <body>
@@ -218,7 +240,7 @@
     <hr>
     <h5>{% block instructions %}{% endblock %}</h5>
 
-    <form method="POST" action="#" method="post" enctype="multipart/form-data">
+    <form id="myForm" method="POST" action="#" method="post" enctype="multipart/form-data">
       <ul class="nav">
         <li style="display:inline-block">
           <div style="word-wrap:break-word">{% block field %}{% endblock %}</div>
@@ -253,8 +275,30 @@
         </script>
 
       <br>
-      <p><input type="submit" class="btn btn-primary" value="Submit" style="background-color:#4CAF50" /></p> <br>
+                    <ul class="nav">
+                <li style="display:inline">
+                    <p><input type="submit" class="btn btn-primary" value="Submit"
+                            style="background-color:#4CAF50" /></p>
+                </li>
+                <li style="display:inline">
+                    <div id="loadingIcon" style="display:none;">
+                        <div class="loader"></div>
+                        <p id="message" style="color:#04AA6D"></p>
+                    </div>
+                </li>
+            </ul>
+        
+        
     </form>
+      
+              <script>
+            var form = document.getElementById("myForm");
+            function move() {
+                document.getElementById("message").innerHTML = "Validating query, please wait.";
+                document.getElementById("loadingIcon").style.display = "block";
+            }
+            form.addEventListener('submit', move);
+        </script>
 
     <h6>If querying using ID, refer to the table below for formatting:</h6>
 
