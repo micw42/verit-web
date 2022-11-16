@@ -849,7 +849,7 @@
             var layout = document.getElementById("layout-button");
             if (layout.value === "Grid") {
                 run_grid();
-            } else if (layout.valueL === "Circle") {
+            } else if (layout.value === "Circle") {
                 run_circle();
             } else {
                 run_fCose(idealEL=iel, nodeRep=1e9);
@@ -1003,9 +1003,7 @@
                 y: box.y1+500*(Math.floor(i/4))
               };
             });
-
-            cy.zoom(orig_zoom/2)              
-            cy.center();
+           
         }
         
 
