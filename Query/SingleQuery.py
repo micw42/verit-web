@@ -4,7 +4,7 @@ import math
 import random
 
 def makeQuery(edges_df, query_list, limit=True, prop=0.1):
-    subset_df = edges_df[edges_df["source"].isin(query_list)].sort_values(by="thickness", axis=0, 
+    subset_df = edges_df[edges_df["source"].isin(query_list) | edges_df["target"].isin(query_list)].sort_values(by="thickness", axis=0, 
                                                                         ascending=False, ignore_index=True)
     if limit:
         n_rows = int(prop*len(subset_df.index))
@@ -50,6 +50,9 @@ def query(G, edges_df, nodes_df, query, depth):
     # Only need the targets, since every node (except for some query nodes) are a target at least once
     unique_targets = full_df[["target", "depth"]].drop_duplicates(subset = "target", keep="first")
     nodes = zero_rows.append(unique_targets)
+    unique_sources = full_df[["source", "depth"]].drop_duplicates(subset = "source", keep="first")
+    unique_sources = unique_sources.rename(columns={'source': 'target'})
+    nodes = nodes.append(unique_sources)
     nodes = nodes.drop_duplicates(subset = "target", keep="first") 
     nodes_df = nodes_df.drop_duplicates(subset='Id', keep="first")
     nodes = pd.merge(nodes, nodes_df, left_on = "target", right_on = "Id", how="inner")
