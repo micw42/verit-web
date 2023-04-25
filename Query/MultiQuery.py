@@ -127,7 +127,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     nodes.extend(rel_df["target"].tolist())
     nodes = list(set(nodes))
     nodes = pd.DataFrame({"Id": nodes})
-    nodes = nodes.merge(nodes_df, on="Id", how="inner")[["Id", "Label"]]
+    nodes = nodes.merge(nodes_df, on="Id", how="inner")[["Id", "Label", "KB"]]
 
     # IDs that were found (not in original query list)
     found_ids = set(rel_df["source"].tolist()) | set(rel_df["target"].tolist()) - set(query_list)
@@ -150,7 +150,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     sources = sources.rename(columns = {"source":"Id"})
     full_nodes = pd.concat([targets, sources]).drop_duplicates(subset = ["Id"])
     full_nodes = full_nodes.merge(nodes_df, on = "Id", how = "inner")
-    full_nodes = full_nodes[["Id", "Label"]]
+    full_nodes = full_nodes[["Id", "Label", "KB"]]
 
     # Add direct connection nodes to the rest of the nodes
     nodes = pd.concat([nodes, full_nodes])
@@ -168,7 +168,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     nodes["id"] = nodes["id"].fillna(nodes["Id"])
     nodes["name"] = nodes["name"].fillna("NAN")
     syn_concat = lambda x: "%%".join(x)  # Separate each synonym with %%
-    aggregation_functions = {'Id': 'first', 'Label':"first", "name":syn_concat}
+    aggregation_functions = {'Id': 'first', 'Label':"first", "KB":"first", "name":syn_concat}
     nodes = nodes.groupby('id').aggregate(aggregation_functions)
 
     # Fix the node labels to account for combined IDs (can ignore)
@@ -205,7 +205,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
 
     # Combine synonyms again for nodes that were just fixed
     syn_concat = lambda x: "%%".join(x)
-    aggregation_functions = {"Label":"first", 'name': syn_concat}
+    aggregation_functions = {"Label":"first", "KB":"first", 'name': syn_concat}
     nodes = nodes.groupby("Id").aggregate(aggregation_functions).reset_index()
 
     # For edges connecting nodes that correspond to multiple IDs,
@@ -234,7 +234,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
 
     rel_df = rel_df[["color", "thickness",
                      "files", "source", "target"]]
-    nodes = nodes[["Id", "Label", "name"]]
+    nodes = nodes[["Id", "Label", "KB", "name"]]
 
     # Indicate whether each node is query (part of user query list),
     # linker (found by Netx algorithm), or direct (direct connection to query node not found by Netx)

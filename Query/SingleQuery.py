@@ -84,7 +84,7 @@ def query(G, edges_df, nodes_df, query, depth):
         return files
     full_df["files"] = full_df.apply(lambda x: formatter(x.orig_source, x.orig_target), axis=1)
     
-    nodes = nodes[["Id", "Label", "depth"]]
+    nodes = nodes[["Id", "Label", "depth", "KB"]]
     full_df = full_df[["color", "thickness", 
                      "files", "source", "target"]]
     
