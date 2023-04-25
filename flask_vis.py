@@ -274,7 +274,7 @@ def bfs_query_result(max_linkers, qtype, query_type, get_direct_linkers):
         to_json_netx.filter_graph()
         filtered = True
     elements = to_json_netx.clean()
-    return render_template("bfs_result_KB.html", elements = elements, filtered=filtered)
+    return render_template("bfs_result.html", elements = elements, filtered=filtered)
 
 
 
