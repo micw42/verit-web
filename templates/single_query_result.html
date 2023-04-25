@@ -139,6 +139,12 @@
                     </h6>
       </div>
       
+              <div style="padding-left:10px">
+            <a href="/getNodes">Export nodes table</a>
+            <br>
+            <a href="/getEdges">Export edges table</a>
+        </div><br>
+      
     <h6 style="padding-left:10px">Filter by thickness:</h6>
     <div style="padding-left:10px" class="slidecontainer">
       <input type="range" min="1" value="1" class="slider" id="myRange">
@@ -148,6 +154,26 @@
             </form>
       <p>Minimum edge thickness: <span id="demo"></span></p>
     </div>
+      
+      
+      <div style="padding-left:10px" class="slidecontainer">
+        <form id="kb_form" action="#">
+                    <h6>Filter by knowledge base (Press ctrl to select multiple):</h6>
+        <select name="ddl" id="kb_list" multiple>
+            <option value='CHEBI'>CHEBI</option>
+            <option value='uniprot'>Uniprot</option>
+            <option value='GO'>Gene Ontology</option>
+            <option value='pubchem'>PubChem</option>
+            <option value='mesh'>Mesh</option>
+            <option value='fplx'>FamPlex</option>
+            <option value='PR'>PR</option>
+            <option value='interpro'>Interpro</option>
+            <option value='pfam'>Protein Families</option>           
+        </select>
+            <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
+        </form>
+                    <button id="kb_reset_button" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Reset</button>
+        </div>
       
       
              <div style="padding-left:10px">
@@ -298,6 +324,8 @@
         if (!currently_querying) {
             var sel = evt.target;
             console.log(sel.degree());
+            console.log(sel.data("KB"))
+            console.log(sel.id())
             sel.addClass('large');
             var neighbors = sel.outgoers().union(sel.incomers());
             cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
@@ -465,7 +493,10 @@
     });
       
       rerun_layout = function() {
-            var layout = cy.layout({
+            var eles = cy.elements().filter(function (ele) {
+                return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
+            });
+            var layout = eles.layout({
             name: 'concentric',
             concentric: function (node) {
               return node.data("rank");
@@ -474,6 +505,51 @@
           layout.run();
       }
 
+       function getSelectValues(select) {
+              var result = [];
+              var options = select && select.options;
+              var opt;
+
+              for (var i=0, iLen=options.length; i<iLen; i++) {
+                opt = options[i];
+
+                if (opt.selected) {
+                  result.push(opt.value);
+                }
+              }
+              return result;
+        }
+      
+        var kb_form =  document.getElementById("kb_form");
+        var selected_kbs = []
+        kb_form.onsubmit = function() {
+            var slider = document.getElementById("myRange");
+            var threshold=slider.value
+            var kb_select = document.getElementById("kb_list");
+            selected_kbs = getSelectValues(kb_select);
+            console.log(selected_kbs)
+            filterKBs(selected_kbs)
+            console.log("KB filter threshold: "+threshold)
+            filterEdges(threshold)
+            return false
+        } 
+         
+        var kb_reset_button =  document.getElementById("kb_reset_button"); 
+         kb_reset_button.onclick = function() {
+            var slider = document.getElementById("myRange");
+            var threshold=slider.value
+            var elements = document.getElementById("kb_list").options;
+            for(var i = 0; i < elements.length; i++){
+              elements[i].selected = false;
+            }
+             console.log("reset selected KBs")
+            selected_kbs = []
+            resetKBs()
+            filterEdges(threshold)
+            return false
+         }
+      
+      
         function getMaxWeight(allEdges) {
             var weight_arr = []
             for (var i = 0; i < allEdges.length; i++) {
@@ -496,7 +572,7 @@
         filteredEdges = cy.remove(filteredEdges);
         filteredNodes = cy.remove(filteredNodes);
         filterEdges = function(threshold) { 
-          filteredNodes.restore();
+          filteredNodes.removeClass("transp");
           filteredEdges.restore();
 
           filteredEdges = cy.edges().filter('[thickness < ' + threshold + ']');
@@ -504,7 +580,7 @@
           filteredNodes = cy.nodes().filter(function (ele) {
             return ele.degree() == 0;
           });
-          filteredNodes = cy.remove(filteredNodes);
+          filteredNodes.addClass("transp");
             rerun_layout();
         }
 
@@ -522,6 +598,7 @@
             input_qty.value = this.value
             threshold = this.value;
             filterEdges(threshold);
+            filterKBs(selected_kbs)
         }
         input_thickness.onsubmit = function () {
             var thickness_val = document.getElementById("quantity");
@@ -529,13 +606,14 @@
             slider.value=thickness_val.value
             threshold = thickness_val.value;
             filterEdges(threshold);
+            filterKBs(selected_kbs)
         }
         
         var node_search = document.getElementById("node_search");
         var current_query = document.getElementById("current_query");
         node_search.onsubmit = function () {
             currently_querying = true;
-            cy.nodes().removeClass("transp");
+            //cy.nodes().removeClass("transp");
             cy.edges().removeClass("transp");
             cy.nodes().removeClass("searched");
             var node_name = document.getElementById("node_name");
@@ -558,9 +636,45 @@
             cy.edges().removeClass("transp");
               cy.nodes().removeClass("searched");
             current_query.innerHTML = "None"; 
+             var slider = document.getElementById("myRange");
+            var threshold=slider.value
+            filterEdges(threshold)
+            filterKBs(selected_kbs)
           } 
         });
 
+        var excludedEdges = cy.edges().filter('[thickness < 0]');
+        var excludedNodes = cy.nodes().filter(function (ele) {
+            return ele.degree() == -2;
+        });
+        excludedEdges = cy.remove(excludedEdges);
+        excludedNodes = cy.remove(excludedNodes);
+        console.log("excluded nodes length:"+excludedNodes.length)  
+        filterKBs = function(kb_list) {
+            resetKBs()
+            console.log("Starting filerKBs")
+            if (kb_list.length!=0) {
+ 
+                excludedNodes = cy.nodes().filter(function(ele) {
+                    return (!((kb_list.includes(ele.data("KB")) && ele.degree()!=0) | ele.data("rank")==1000000000))
+                });
+
+                excludedEdges = cy.edges().filter(function(ele) {
+                    return (ele.isEdge() && (excludedNodes.includes(ele.source()) | excludedNodes.includes(ele.target())))
+                })  
+                console.log(excludedEdges)
+                excludedEdges = cy.remove(excludedEdges)
+                excludedNodes.addClass("transp");
+                rerun_layout();
+
+            }
+        } 
+        
+        resetKBs = function() {
+            excludedNodes.removeClass("transp")
+            excludedEdges.restore()
+            rerun_layout();
+        }
 
     function add_colors() {
       var x = document.getElementById("color-button");

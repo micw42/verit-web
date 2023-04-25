@@ -180,8 +180,13 @@
                     </h6>
                     
         </div><br>
+        <div style="padding-left:10px">
+            <a href="/getNodes">Export nodes table</a>
+            <br>
+            <a href="/getEdges">Export edges table</a>
+        </div>
 
-
+        <br>
         <h6 style="padding-left:10px">Filter by thickness:</h6>
 
         <div style="padding-left:10px" class="slidecontainer">
@@ -199,10 +204,25 @@
                     <div id="filter_loader" class="loader"></div>
                 </li>
             </ul>
-                                
-            
-
-            
+        </div>
+        
+        <div style="padding-left:10px" class="slidecontainer">
+        <form id="kb_form" action="#">
+                    <h6>Filter by knowledge base (Press ctrl to select multiple):</h6>
+        <select name="ddl" id="kb_list" multiple>
+            <option value='CHEBI'>CHEBI</option>
+            <option value='uniprot'>Uniprot</option>
+            <option value='GO'>Gene Ontology</option>
+            <option value='pubchem'>PubChem</option>
+            <option value='mesh'>Mesh</option>
+            <option value='fplx'>FamPlex</option>
+            <option value='PR'>PR</option>
+            <option value='interpro'>Interpro</option>
+            <option value='pfam'>Protein Families</option>           
+        </select>
+            <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
+        </form>
+                    <button id="kb_reset_button" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Reset</button>
         </div>
 
         <br>
@@ -450,6 +470,7 @@
             if (!currently_querying) {
                var sel = evt.target;
                 console.log(sel.degree());
+                console.log(sel.data("KB"));
                 sel.addClass('large');
                 var neighbors = sel.outgoers().union(sel.incomers());
                 cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
@@ -651,6 +672,50 @@
             }
         });
         
+         function getSelectValues(select) {
+              var result = [];
+              var options = select && select.options;
+              var opt;
+
+              for (var i=0, iLen=options.length; i<iLen; i++) {
+                opt = options[i];
+
+                if (opt.selected) {
+                  result.push(opt.value);
+                }
+              }
+              return result;
+        }
+        
+        var kb_form =  document.getElementById("kb_form");
+        var selected_kbs = []
+        kb_form.onsubmit = function() {
+            var slider = document.getElementById("myRange");
+            var threshold=slider.value
+            var kb_select = document.getElementById("kb_list");
+            selected_kbs = getSelectValues(kb_select);
+            filterKBs(selected_kbs)
+            console.log("KB filter threshold: "+threshold)
+            filterEdges(threshold)
+            return false
+        } 
+         
+        var kb_reset_button =  document.getElementById("kb_reset_button"); 
+         kb_reset_button.onclick = function() {
+            var slider = document.getElementById("myRange");
+            var threshold=slider.value
+            var elements = document.getElementById("kb_list").options;
+            for(var i = 0; i < elements.length; i++){
+              elements[i].selected = false;
+            }
+             console.log("reset selected KBs")
+            selected_kbs = []
+            resetKBs()
+            filterEdges(threshold)
+            return false
+         }
+         
+         
         function getMaxWeight(allEdges) {
             var weight_arr = []
             for (var i = 0; i < allEdges.length; i++) {
@@ -689,13 +754,16 @@
         slider.oninput = function () {
             threshold = this.value;
             run_filter_edges(threshold)
+            console.log("slider selected kbs: "+selected_kbs)
+            filterKBs(selected_kbs)
             output.innerHTML = this.value;
             input_qty.value = this.value
         }
-        input_thickness.onsubmit = async function () {
+        input_thickness.onsubmit = async function () {          
             var thickness_val = document.getElementById("quantity");
             var threshold = thickness_val.value;
             run_filter_edges(threshold)
+            filterKBs(selected_kbs)
             output.innerHTML = threshold
             slider.value=threshold
         }
@@ -706,7 +774,7 @@
         node_search.onsubmit = function () {
             currently_querying = true;
             reset_button.style.display="block"
-            cy.nodes().removeClass("transp");
+            //cy.nodes().removeClass("transp");
             cy.edges().removeClass("transp");
             cy.nodes().removeClass("searched");
             var node_name = document.getElementById("node_name");
@@ -738,6 +806,10 @@
             cy.nodes().removeClass("transp");
             cy.edges().removeClass("transp");
             cy.nodes().removeClass("searched");
+            var slider = document.getElementById("myRange");
+            var threshold=slider.value
+            filterEdges(threshold)
+            filterKBs(selected_kbs)
             current_query.innerHTML = "None"; 
             reset_button.style.display = "None"
         }
@@ -768,6 +840,33 @@
             rerun_layout();
         }
         
+        var excludedEdges = cy.edges().filter('[thickness < 0]');
+        var excludedNodes = cy.nodes().filter(function (ele) {
+            return ele.degree() == -2;
+        });
+        excludedEdges = cy.remove(excludedEdges);
+        excludedNodes = cy.remove(excludedNodes);
+        filterKBs = function(kb_list) {
+            resetKBs()
+            if (kb_list.length!=0) {
+                excludedNodes = cy.nodes().filter(function(ele) {
+                    return (!((kb_list.includes(ele.data("KB")) && ele.degree()!=0) | ele.data("type")=="Query"))
+                });
+                excludedNodes.addClass("transp");
+                excludedEdges = cy.edges().filter(function(ele) {
+                    return ((excludedNodes.includes(ele.source()) | excludedNodes.includes(ele.target())))
+                })
+                excludedEdges = cy.remove(excludedEdges)
+                rerun_layout();                
+            }
+        } 
+        
+        resetKBs = function() {
+            excludedEdges.restore()
+            excludedNodes.removeClass("transp")
+            rerun_layout();
+        } 
+         
         function run_filter_edges(threshold) {
             const status = document.querySelector('#filter_loading');
             const loader = document.querySelector('#filter_loader');
@@ -879,6 +978,7 @@
         function show_direct(show=true) {
             var slider = document.getElementById("myRange");
             var input_qty = document.getElementById("quantity");
+            console.log("direct kb list: "+kb_list);
 
             if (show) {
                 cy.edges().filter("[display='none']").style("display", "element")
@@ -892,7 +992,7 @@
                 input_qty.max = queryMax
             }                              
             threshold = slider.value
-            filterEdges(threshold);
+            filterEdges(threshold, selected_kbs);
             output.innerHTML = threshold;
             rerun_layout();
         }

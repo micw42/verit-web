@@ -171,8 +171,8 @@ def convert(nodes_df, edges_df):
 
     elements=[]
     for node in nodes:
-        node_dict={"data":{"id":node[0], "label":node[1], "type":node[3], "syn":node[2],
-                           "color":node[4], "classes":node[5], "display":node[6], "orig_display":node[6]}}
+        node_dict={"data":{"id":node[0], "label":node[1], "KB":node[2], "type":node[4], "syn":node[3],
+                           "color":node[5], "classes":node[6], "display":node[7], "orig_display":node[7]}}
         elements.append(node_dict)
 
     edges=[]

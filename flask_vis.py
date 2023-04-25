@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request, redirect, jsonify
+from flask import Flask, render_template, url_for, request, redirect, jsonify, Response, make_response
 from Query import DictChecker, SingleQuery, SingleSearcher, MultiSearcher, ConvertSearch, MultiQuery, GeneConvert, GetEv
 from Visualization import to_json, to_json_netx
 import pandas as pd
@@ -38,7 +38,7 @@ edges_df=pd.read_pickle(f"{pickle_path}edges.pkl")
 print("Loaded edges.")
 
 print("Reading nodes...", end="\x1b[1K\r")
-nodes_df=pd.read_pickle(f"{pickle_path}nodes.pkl")
+nodes_df=pd.read_pickle(f"{pickle_path}nodes_withKB.pkl")
 print("Loaded nodes.")
 
 print("Reading databases...", end="\x1b[1K\r")
@@ -274,7 +274,7 @@ def bfs_query_result(max_linkers, qtype, query_type, get_direct_linkers):
         to_json_netx.filter_graph()
         filtered = True
     elements = to_json_netx.clean()
-    return render_template("bfs_result.html", elements = elements, filtered=filtered)
+    return render_template("bfs_result_KB.html", elements = elements, filtered=filtered)
 
 
 
@@ -302,6 +302,26 @@ def process_data():
 @app.route("/go_home", methods=["POST"])
 def go_home():
     return redirect(url_for("home"))
+
+@app.route("/getNodes")
+def getNodes():
+    # with open("outputs/Adjacency.csv") as fp:
+    #     csv = fp.read()
+    df = pd.read_csv("query_nodes.csv")
+    resp = make_response(df.to_csv())
+    resp.headers["Content-Disposition"] = "attachment; filename=query_nodes.csv"
+    resp.headers["Content-Type"] = "text/csv"
+    return resp
+
+@app.route("/getEdges")
+def getEdges():
+    # with open("outputs/Adjacency.csv") as fp:
+    #     csv = fp.read()
+    df = pd.read_csv("query_edges.csv")
+    resp = make_response(df.to_csv())
+    resp.headers["Content-Disposition"] = "attachment; filename=query_edges.csv"
+    resp.headers["Content-Type"] = "text/csv"
+    return resp
 
 if __name__=="__main__":
     print(f'\n{clr.Fore.BLUE}*****  IGNORE ADDRESS GIVEN BELOW. RUN USING localhost:5001  *****\n')
