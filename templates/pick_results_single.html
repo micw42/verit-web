@@ -226,9 +226,22 @@ function toggle(elem) {
                                    <li style="margin-left:40px">{{ n }}</li>
                                 {% endfor %}
                     <div style = "padding-left:40px" class="container">
+                        
  {% set btn_id = "toggle"+loop.index|string %}
-  <button type="button" onclick = toggle({{btn_id}}); id={{btn_id}} class="btn btn-info" data-toggle="collapse" data-target="#Arr{{loop.index|string}}" style="background-color:#4CAF50">Show More</button>
-  <div id="Arr{{loop.index|string}}" class="collapse">
+                        <!--
+  <button type="button" onclick = toggle({{btn_id}}); id={{btn_id}} class="btn btn-info" data-toggle="collapse" data-target="#Arr{{loop.index|string}}" style="background-color:#4CAF50">Show More</button> -->
+                        <li role="presentation" class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+      Dropdown <span class="caret"></span>
+    </a>
+    <ul class="dropdown-menu">
+       {% for n in id_dict["names"][4:len] %}
+                                   <li >{{ n }}</li>
+                                {% endfor %}
+    </ul>
+  </li>
+                        
+  <div id="Arr{{loop.index|string}}" class="dropdown">
     {% for n in id_dict["names"][4:len] %}
                                    <li >{{ n }}</li>
                                 {% endfor %}

@@ -183,6 +183,7 @@
                 <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
             </form>
            <p>Current query: <span id="current_query">None</span></p>
+                <button id="reset" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;padding-left:10px">Reset graph</button>
         </div>
   </div>
   <script>
@@ -308,7 +309,11 @@
             'line-color': "data(color)",
             'target-arrow-color': "data(color)"
           }
-        }
+        },
+          {
+                    selector: 'node.mouseup',
+                    style: { 'background-color': "#26ff12" }
+                },
       ],
       layout: {
         name: 'concentric',
@@ -317,6 +322,7 @@
         }
       }
     });
+      
       
    var currently_querying = false
 
@@ -345,6 +351,7 @@
         
     cy.on('click', 'node', function (evt) {
       var sel = evt.target;
+        sel.shift({ x: 500, y: 500 });
       if (sel.data().rank != 1000000000) {
         var modal = document.getElementById("querier");
         var span = document.getElementById("closeQuery");
@@ -492,6 +499,27 @@
             } 
     });
       
+      
+      cy.on('box', function (evt) {
+             var sel = evt.target
+             console.log(sel.length)
+             sel.filter(function(ele) {return((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"))}).addClass("mouseup")
+        }); 
+         
+
+
+         cy.on('tap', function(event){
+          // target holds a reference to the originator
+          // of the event (core or element)
+          var evtTarget = event.target;
+
+          if( evtTarget === cy ){
+            cy.nodes().removeClass("mouseup")
+          } 
+        }); 
+      
+     
+      
       rerun_layout = function() {
             var eles = cy.elements().filter(function (ele) {
                 return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
@@ -611,7 +639,9 @@
         
         var node_search = document.getElementById("node_search");
         var current_query = document.getElementById("current_query");
+        var reset_button = document.getElementById("reset")  
         node_search.onsubmit = function () {
+            reset_button.style.display="block"
             currently_querying = true;
             //cy.nodes().removeClass("transp");
             cy.edges().removeClass("transp");
@@ -629,19 +659,21 @@
             cy.nodes().difference(results_nodes).addClass('transp');
             cy.edges().difference(results_edges).addClass('transp');
         }
-        cy.on('click', (event) => {
-          if (event.target === cy) {
+      
+        function reset_query() {
+            var node_name = document.getElementById("node_name");
             currently_querying = false;
             cy.nodes().removeClass("transp");
             cy.edges().removeClass("transp");
-              cy.nodes().removeClass("searched");
-            current_query.innerHTML = "None"; 
-             var slider = document.getElementById("myRange");
+            cy.nodes().removeClass("searched");
+            var slider = document.getElementById("myRange");
             var threshold=slider.value
             filterEdges(threshold)
             filterKBs(selected_kbs)
-          } 
-        });
+            current_query.innerHTML = "None"; 
+            node_name.value=""
+            reset_button.style.display = "None"
+        }
 
         var excludedEdges = cy.edges().filter('[thickness < 0]');
         var excludedNodes = cy.nodes().filter(function (ele) {
