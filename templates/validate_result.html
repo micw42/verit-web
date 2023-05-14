@@ -193,14 +193,11 @@
 
         {% if continue %}
         <form method="POST" action="#">
-            <p><input type="submit" class="btn btn-primary" name="choice" value="Continue"
-                    style="background-color:#4CAF50" /></p>
+            <p><input type="submit" class="btn btn-primary" name="choice" value="Continue" /></p>
         </form>
         {% endif %}
-        <form method="POST" action="#">
-            <p><input type="submit" name="choice" class="btn btn-primary" value="Try another query"
-                    style="background-color:#4CAF50" /></p>
-        </form>
+        <button onclick="history.go(-1)" style="background-color:#4CAF50" class="btn btn-primary"> Go Back </button>
+
 
 
     </div>

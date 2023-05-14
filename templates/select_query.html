@@ -5,10 +5,12 @@
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
 
   <!-- Cytoscape.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
@@ -30,16 +32,20 @@
     position: absolute;
 
   }
-
+    
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20px;
+  }
+    
   #progressbar {
-
     margin-bottom: 30px;
     overflow: hidden;
     color: lightgrey
   }
 
   #progressbar .active {
-    color: #4CAF50
+    color: #2F8D46
   }
 
   #progressbar li {
@@ -54,6 +60,7 @@
   #progressbar #step1:before {
     content: "1";
     padding-left: 20px;
+    cursor: pointer;
 
   }
 
@@ -162,7 +169,7 @@
     </div>
   </nav>
 
-  <div style="padding-top:65px;" class="container">
+  <div style="padding-top:80px;" class="container">
 
 
     <ul id="progressbar">
@@ -178,9 +185,9 @@
 
     <div id="single" style="padding-bottom:0px;padding-top:20px;height:100%;position:relative;float:left;width:50%">
       <form method="POST" action="#" style="height:100%;width:100%">
-        <h3>Single Query</h3>
+        <h2>Single Query</h2>
         <hr>
-        <p>Takes one ID or entity name as input and finds all neighbors eminating from it.</p><br>
+        <h5>Takes one ID or entity name as input and finds all neighbors eminating from it.</h5><br>
         
         <h3><input type="submit" class="btn btn-primary" name="query_type" value="Make a single query"
             style="background-color:#4CAF50" /></h3>
@@ -190,10 +197,10 @@
     </div>
     <div id="dijkstra" style="padding-top:20px;float:left;width:50%" class="container">
       <form method="POST" action="#">
-        <h3>Multi Query</h3>
+        <h2>Multi Query</h2>
         <hr>
-        <p>Takes a comma-separated list of IDs or entity names as input. Finds paths between all possible pair combinations within
-          this list.</p>
+        <h5>Takes a comma-separated list of IDs or entity names as input. Finds paths between all possible pair combinations within
+          this list.</h5>
         <p><input type="submit" class="btn btn-primary" name="query_type" value="Make a Multi Query"
             style="background-color:#4CAF50;" /></p>
       </form>

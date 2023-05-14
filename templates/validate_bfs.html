@@ -6,11 +6,17 @@
 {% block field %}
 Enter comma-separated list of human gene symbols:
 <h6 style="color: grey">Ex: E2F1,CCNE1,RB1</h6>
-<input type="text" name="query" style="width:800px;height:30px;font-size:28px"/>
+<input type="text" name="query" style="width:800px;height:30px;font-size:15px"/>
+<select name="queryType" id="cars" style="width:180px;height:30px;font-size:15px" onchange="showPR()">
+          <option value="starts_with">Name starts with</option>
+          <option value="ends_with">Name ends with</option>
+          <option value="contains">Name contains</option>
+          <option value="id">ID</option>
+          <option value="gene" selected="selected">Official gene symbol</option>
+        </select>
 <br>
 <h5>Or upload a newline-separated file:   <input type = "file" name = "file"/></h5> 
-<h6 style="color: grey">Note: If query is shorter than 100 items, you will be able to choose additional settings on the next page; otherwise, default settings will be used to generate the network.</h6>
-<br>
+<h6 style="color: grey">Note: Queries with >100 entries will default to the highest pagerank ID.</h6>
 
 {% endblock %}
 {% block checkbox %}

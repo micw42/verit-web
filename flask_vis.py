@@ -208,10 +208,6 @@ def display_options(query_type, string_type):
     present = result_dict["present"]
 
     if request.method=="POST" or len(not_in)==0:
-        if request.method=="POST":
-            choice=request.form["choice"]
-            if choice=="Try another query":
-                return redirect(url_for("select_query"))
         if query_type=="dijkstra":
             if string_type == "id":
                 return redirect(url_for("make_bfs_query", query_type = "id"))
