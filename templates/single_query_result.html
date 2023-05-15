@@ -1,746 +1,712 @@
 <!doctype html>
-
 <html lang="en">
-
-<head>
-  <meta charset="utf-8">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
-  <script type=text/javascript>
-    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-  </script>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js"></script>
-  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  <title>Result</title>
-</head>
-
-<style>
-  #cy {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    background: #4a4a4a;
-    z-index: -1;
-  }
-
-  .modal {
-    display: none;
-    /* Hidden by default */
-    position: fixed;
-    /* Stay in place */
-    z-index: 1;
-    /* Sit on top */
-    padding-top: 100px;
-    /* Location of the box */
-    left: 0;
-    top: 0;
-    width: 100%;
-    /* Full width */
-    height: 100%;
-    /* Full height */
-    overflow: auto;
-    /* Enable scroll if needed */
-    background-color: rgb(0, 0, 0);
-    /* Fallback color */
-    background-color: rgba(0, 0, 0, 0.4);
-    /* Black w/ opacity */
-  }
-
-  /* Modal Content */
-  .modal-content {
-    background-color: #fefefe;
-    margin: auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    font-family: Arial, Helvetica, sans-serif;
-  }
-
-  .modal-body {
-    max-height: calc(100vh - 210px);
-    overflow-y: auto;
-  }
-
-  /* The Close Button */
-  .close {
-    color: #aaaaaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-  }
-
-  .close:hover,
-  .close:focus {
-    color: #000;
-    text-decoration: none;
-    cursor: pointer;
-
-
-  }
-
-  #menuDiv {
-    padding: 0px 20px 20px 0px
-  }
-
-  #posEv {
-    float: left;
-    padding-right: 20px;
-    width: 33%;
-    font-size: large;
-  }
-
-  #negEv {
-    float: left;
-    width: 33%;
-    padding-right: 20px;
-    font-size: large;
-  }
-
-  #incEv {
-    float: right;
-    width: 33%;
-    font-size: large;
-  }
-
-
-  #posThicknessVal {
-    float: left;
-    width: 33%;
-  }
-
-  #negThicknessVal {
-    float: left;
-    width: 33%;
-  }
-
-  #incThicknessVal {
-    float: right;
-    width: 33%;
-  }
-</style>
-
-
-<body>
-  <div class="w3-sidebar w3-bar-block w3-border-right" style="display:block;width:30%" id="mySidebar">
-    <button onclick="w3_close()" class="w3-bar-item w3-large">Close &times;</button>
-    <form id="queryForm" method="POST" action="{{ url_for('go_home') }}">
-      <p><input class="w3-bar-item w3-button" style="color:#4CAF50" type="submit" value="Return to Homepage" /></p>
-    </form>
-      <div>
-              <h6 style="padding-left:10px">Click on connections between nodes to see the evidence for that connection.</h6><br>
-        <h6 style="padding-left:10px">Mouseover nodes to see only the nodes that the node directly targets.</h6><br>
-        <h6 style="padding-left:10px"> Red represents down regulation, blue represents up regulation, and white represents inconclusive
-            interactions. For more information on the color-coding, see the README. </h6><br>
-        <h6 style="padding-left:10px">
-        Note: The NLP algorithm does not detect interaction type with perfect accuracy.
-                    </h6>
-      </div>
-      
-              <div style="padding-left:10px">
-            <a href="/getNodes">Export nodes table</a>
-            <br>
-            <a href="/getEdges">Export edges table</a>
-        </div><br>
-      
-    <h6 style="padding-left:10px">Filter by thickness:</h6>
-    <div style="padding-left:10px" class="slidecontainer">
-      <input type="range" min="1" value="1" class="slider" id="myRange">
-        <form action="#" id="input_thickness">
-                Enter thickness threshold: <input type="number" id="quantity" min="1">
-                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
+    <head>
+        <meta charset="utf-8">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
+        <script type=text/javascript>
+            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        </script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js"></script>
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+            integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <title>Result</title>
+    </head>
+    <style>
+        .reload {
+          font-family: Lucida Sans Unicode
+        }
+        #cy {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        background: #4a4a4a;
+        z-index: -1;
+        }
+        .modal {
+        display: none;
+        /* Hidden by default */
+        position: fixed;
+        /* Stay in place */
+        z-index: 1;
+        /* Sit on top */
+        padding-top: 100px;
+        /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%;
+        /* Full width */
+        height: 100%;
+        /* Full height */
+        overflow: auto;
+        /* Enable scroll if needed */
+        background-color: rgb(0, 0, 0);
+        /* Fallback color */
+        background-color: rgba(0, 0, 0, 0.4);
+        /* Black w/ opacity */
+        }
+        /* Modal Content */
+        .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        font-family: Arial, Helvetica, sans-serif;
+        }
+        .modal-body {
+        max-height: calc(100vh - 210px);
+        overflow-y: auto;
+        }
+        /* The Close Button */
+        .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+        }
+        #menuDiv {
+        padding: 0px 20px 20px 0px
+        }
+        #posEv {
+        float: left;
+        padding-right: 20px;
+        width: 33%;
+        font-size: large;
+        }
+        #negEv {
+        float: left;
+        width: 33%;
+        padding-right: 20px;
+        font-size: large;
+        }
+        #incEv {
+        float: right;
+        width: 33%;
+        font-size: large;
+        }
+        #posThicknessVal {
+        float: left;
+        width: 33%;
+        }
+        #negThicknessVal {
+        float: left;
+        width: 33%;
+        }
+        #incThicknessVal {
+        float: right;
+        width: 33%;
+        }
+    </style>
+    <body>
+        <div class="w3-sidebar w3-bar-block w3-border-right" style="display:block;width:30%" id="mySidebar">
+            <button onclick="w3_close()" class="w3-bar-item w3-large">Close &times;</button>
+            <form id="queryForm" method="POST" action="{{ url_for('go_home') }}">
+                <p><input class="w3-bar-item w3-button w3-border-bottom" style="color:#4CAF50;" type="submit" value="Return to Homepage" /></p>
             </form>
-      <p>Minimum edge thickness: <span id="demo"></span></p>
-    </div>
-      
-      
-      <div style="padding-left:10px" class="slidecontainer">
-        <form id="kb_form" action="#">
-                    <h6>Filter by knowledge base (Press ctrl to select multiple):</h6>
-        <select name="ddl" id="kb_list" multiple>
-            <option value='CHEBI'>CHEBI</option>
-            <option value='uniprot'>Uniprot</option>
-            <option value='GO'>Gene Ontology</option>
-            <option value='pubchem'>PubChem</option>
-            <option value='mesh'>Mesh</option>
-            <option value='fplx'>FamPlex</option>
-            <option value='PR'>PR</option>
-            <option value='interpro'>Interpro</option>
-            <option value='pfam'>Protein Families</option>           
-        </select>
-            <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
-        </form>
-                    <button id="kb_reset_button" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Reset</button>
+            <div style="padding:20px;padding-top:0px">
+                <h2 style="padding-bottom:10px;">Details</h2>
+                <h6>
+                    Click on connections between nodes to see the evidence for that connection. <br> <br>
+                    Mouseover nodes to see only the nodes that the node directly targets. <br> <br>
+                    Red, blue, and white edges indicate down, up, and inconclusive relationships, respectively.
+                    Details found in README. <br> <br>
+                    Click the <span class=".reload;">&#x21bb;</span> icon to reload the visualization after making
+                    adjustments.
+                </h6>
+            </div>
+            
+            <hr>
+            
+            <div style="padding-left:20px;padding-bottom:20px" class="slidecontainer">
+            <h2 style="padding-bottom:10px;">Parameters</h2>
+            <h6>Filter by thickness:</h6>
+                <input type="range" min="1" value="1" class="slider" id="myRange" style="width:50%;margin-left:20px">
+                <form action="#" id="input_thickness" style="display:inline;">
+                    <input type="number" id="quantity" min="1" style="width:15%">
+                    <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
+                </form>
+                <br>
+            </div>
+
+            <div style="padding-left:20px;padding-bottom:20px">
+                <h6>Search for a node:</h6>
+                <form action="#" id="node_search" style="display:inline;">
+                    <input type="text" id="node_name" style="width:66%;margin-left:20px;">
+                    <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
+                </form>
+                <button id="reset" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;"><span class=reload>&#171;</span></button>
+                <p style="color:grey;margin-left:20px;">(Current search: <span id="current_query">None</span>)</p>
+            </div>
+            
+            <div style="padding-left:20px;padding-bottom:20px" class="slidecontainer">
+                <form id="kb_form" action="#">
+                    <h6>Filter by knowledge base:</h6>
+                    <select name="ddl" id="kb_list" style="width:66%;margin-left:20px;" multiple>
+                        <option value='CHEBI'>CHEBI</option>
+                        <option value='uniprot'>Uniprot</option>
+                        <option value='GO'>Gene Ontology</option>
+                        <option value='pubchem'>PubChem</option>
+                        <option value='mesh'>Mesh</option>
+                        <option value='fplx'>FamPlex</option>
+                        <option value='PR'>PR</option>
+                        <option value='interpro'>Interpro</option>
+                        <option value='pfam'>Protein Families</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px"><span class=reload>&#x21bb;</span></button>
+                </form>
+                <h6 style="color:grey;margin-left:20px"> Ctrl/Shift to select multiple.<br>Ctrl to deselect.</h6>
+            </div>
+            
+            <hr>
+            
+            <div style="padding:20px;padding-top:0px;text-align:center">
+                <h6>
+                    Note: Inaccuracies should be expected due to errors in the NLP.
+                </h6> <br>
+                   
+                <a href="/getNodes" style="padding-right:20px;">Export nodes (.tsv)</a>
+                <a href="/getEdges">Export edges (.tsv)</a>
+            </div>
+                <br>
         </div>
-      
-      
-             <div style="padding-left:10px">
-            <h6>Search for a node.</h6>
-            <form action="#" id="node_search">
-                Enter name: <input type="text" id="node_name">
-                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
-            </form>
-           <p>Current query: <span id="current_query">None</span></p>
-                <button id="reset" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;padding-left:10px">Reset graph</button>
+ 
+        <script>
+            function w3_open() {
+              document.getElementById("mySidebar").style.display = "block";
+            }
+            
+            function w3_close() {
+              document.getElementById("mySidebar").style.display = "none";
+            }
+        </script>
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeEv">&times;</span>
+                <div class="modal-header">
+                    <h1 id="thickness" style="font-family: Arial, Helvetica, sans-serif"></h1>
+                    <h1 style="font-family: Arial, Helvetica, sans-serif">Evidence for this connection:</h1>
+                </div>
+                <div id="modalBody" class="modal-body">
+                    <h2 id="posThicknessVal"></h2>
+                    <h2 id="negThicknessVal"></h2>
+                    <h2 id="incThicknessVal"></h2>
+                    <div id="posEv"></div>
+                    <div id="negEv"></div>
+                    <div id="incEv"></div>
+                </div>
+            </div>
         </div>
-  </div>
-  <script>
-    function w3_open() {
-      document.getElementById("mySidebar").style.display = "block";
-    }
-
-    function w3_close() {
-      document.getElementById("mySidebar").style.display = "none";
-    }
-  </script>
-
-
-  <div id="myModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeEv">&times;</span>
-      <div class="modal-header">
-        <h1 id="thickness" style="font-family: Arial, Helvetica, sans-serif"></h1>
-        <h1 style="font-family: Arial, Helvetica, sans-serif">Evidence for this connection:</h1>
-      </div>
-      <div id="modalBody" class="modal-body">
-
-        <h2 id="posThicknessVal"></h2>
-        <h2 id="negThicknessVal"></h2>
-        <h2 id="incThicknessVal"></h2>
-        <div id="posEv"></div>
-        <div id="negEv"></div>
-        <div id="incEv"></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="querier" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeQuery">&times;</span>
-      <div class="modal-header">
-        <h1 style="font-family: Arial, Helvetica, sans-serif" id="nodeID"></h1>
-      </div>
-      <div class="modal-body">
-
-        <form id="queryForm" method="POST" action="{{ url_for('process_data') }}">
-          <p><input id="next_query" type="text" name="next_query" /></p>
-          <p><input type="submit" value="Single Query on this ID" /></p>
-        </form>
-      </div>
-    </div>
-  </div>
-
-
-  <div id="cy"></div>
-
-
-  <script>
-    const data = {{ elements | tojson }};
-    var cy = cytoscape({
-      wheelSensitivity: 0.1,
-      container: document.getElementById('cy'),
-      elements: data,
-      style: [
-        {
-          selector: 'node',
-          style: {
-            "width": "2000px",
-            "height": "2000px",
-            "content": "data(label)",
-            "font-size": "250px",
-            "text-valign": "center",
-            "text-halign": "center",
-            "background-color": "data(color)",
-            "text-outline-color": "#555",
-            "text-outline-width": "2px",
-            "color": "#121111",
-            "overlay-padding": "6px",
-            "z-index": "10",
-            'background-fit': 'contain'
-
-          }
-        }, {
-          selector: 'edge',
-          style: {
-
-            'text-background-color': 'yellow',
-            'text-background-opacity': 0.4,
-            'width': 'data(weight)',
-            'target-arrow-shape': 'triangle',
-            'control-point-step-size': '140px',
-            'curve-style': 'bezier',
-            'line-color': "#fcfafa",
-            'target-arrow-color': '#fcfafa',
-            'arrow-scale': 3,
-             'line-color': "data(color)",
-            'target-arrow-color': "data(color)"
-          }
-        },
-        {
-          selector: 'node.semitransp',
-          style: { 'opacity': '.1' }
-        },
-        {
-          selector: 'edge.semitransp',
-          style: { 'opacity': '.1' }
-        },
-                         {
-                    selector: 'node.transp',
-                    style: {
-                        'opacity': '0',
-                        'events': 'no'
-                    }
+        <div id="querier" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeQuery">&times;</span>
+                <div class="modal-header">
+                    <h1 style="font-family: Arial, Helvetica, sans-serif" id="nodeID"></h1>
+                </div>
+                <div class="modal-body">
+                    <form id="queryForm" method="POST" action="{{ url_for('process_data') }}">
+                        <p><input id="next_query" type="text" name="next_query" /></p>
+                        <p><input type="submit" value="Single Query on this ID" /></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div id="cy"></div>
+        <script>
+            const data = {{ elements | tojson }};
+            var cy = cytoscape({
+              wheelSensitivity: 0.1,
+              container: document.getElementById('cy'),
+              elements: data,
+              style: [
+                {
+                  selector: 'node',
+                  style: {
+                    "width": "2000px",
+                    "height": "2000px",
+                    "content": "data(label)",
+                    "font-size": "250px",
+                    "text-valign": "center",
+                    "text-halign": "center",
+                    "background-color": "data(color)",
+                    "text-outline-color": "#555",
+                    "text-outline-width": "2px",
+                    "color": "#121111",
+                    "overlay-padding": "6px",
+                    "z-index": "10",
+                    'background-fit': 'contain'
+            
+                  }
+                }, {
+                  selector: 'edge',
+                  style: {
+            
+                    'text-background-color': 'yellow',
+                    'text-background-opacity': 0.4,
+                    'width': 'data(weight)',
+                    'target-arrow-shape': 'triangle',
+                    'control-point-step-size': '140px',
+                    'curve-style': 'bezier',
+                    'line-color': "#fcfafa",
+                    'target-arrow-color': '#fcfafa',
+                    'arrow-scale': 3,
+                     'line-color': "data(color)",
+                    'target-arrow-color': "data(color)"
+                  }
                 },
                 {
-                    selector: 'edge.transp',
-                    style: { 'opacity': '0' }
+                  selector: 'node.semitransp',
+                  style: { 'opacity': '.1' }
                 },
-                          {
-                    selector: 'node.searched',
-                    style: {
-                        'background-color': "#26ff12"
-                    }
+                {
+                  selector: 'edge.semitransp',
+                  style: { 'opacity': '.1' }
                 },
-        {
-          selector: 'edge.colors',
-          style: {
-            'line-color': "data(color)",
-            'target-arrow-color': "data(color)"
-          }
-        },
-          {
-                    selector: 'node.mouseup',
-                    style: { 'background-color': "#26ff12" }
+                                 {
+                            selector: 'node.transp',
+                            style: {
+                                'opacity': '0',
+                                'events': 'no'
+                            }
+                        },
+                        {
+                            selector: 'edge.transp',
+                            style: { 'opacity': '0' }
+                        },
+                                  {
+                            selector: 'node.searched',
+                            style: {
+                                'background-color': "#26ff12"
+                            }
+                        },
+                {
+                  selector: 'edge.colors',
+                  style: {
+                    'line-color': "data(color)",
+                    'target-arrow-color': "data(color)"
+                  }
                 },
-      ],
-      layout: {
-        name: 'concentric',
-        concentric: function (node) {
-          return node.data("rank");
-        }
-      }
-    });
-      
-      
-   var currently_querying = false
-
-    cy.on('mouseover', 'node', function (evt) {
-        if (!currently_querying) {
-            var sel = evt.target;
-            console.log(sel.degree());
-            console.log(sel.data("KB"))
-            console.log(sel.id())
-            sel.addClass('large');
-            var neighbors = sel.outgoers().union(sel.incomers());
-            cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
-            cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp");
-        }
-    });
-
-    cy.on('mouseout', 'node', function (evt) {
-        if (!currently_querying) {
-            var sel = evt.target;
-            sel.removeClass('large');
-            var neighbors = sel.outgoers().union(sel.incomers());
-            cy.nodes().difference(neighbors).not(sel).removeClass('semitransp');
-            cy.edges().difference(sel.edgesWith(neighbors)).removeClass("semitransp");
-        }
-    });
-        
-    cy.on('click', 'node', function (evt) {
-      var sel = evt.target;
-        sel.shift({ x: 500, y: 500 });
-      if (sel.data().rank != 1000000000) {
-        var modal = document.getElementById("querier");
-        var span = document.getElementById("closeQuery");
-        var info = sel.data().label + " (" + sel.data().id + ")";
-        var id = document.getElementById("next_query");
-        id.value = sel.data().id;
-        id.style.display = "block";
-        document.getElementById("nodeID").innerHTML = info;
-        modal.style.display = "block";
-        window.onclick = function (event) {
-          if (event.target == modal) {
-            modal.style.display = "none";
-          }
-
-        }
-        span.onclick = function () {
-          modal.style.display = "none";
-        }
-      }
-
-    });
-
-    cy.on('click', 'edge', function (evt) {
-      var sel = evt.target;
-            console.log(sel.data().files);
-            
-            function getEvidence() {
-                var retval;
-                $.ajaxSetup({
-                    async: false
-                });
-                $(function() {
-                  $.getJSON($SCRIPT_ROOT + '/_get_evidence', {
-                    files:sel.data().files
-                  }, function(data) {
-                      console.log(data.result);
-                      retval = data.result;
-                      return false;
-                  }); 
-                });
-                console.log(retval);
-                return retval;
-            }
-            
-            var ev = getEvidence();
-            console.log(ev);
-            
-            var modal = document.getElementById("myModal");
-            var span = document.getElementsByClassName("close")[0];
-            var thickness = document.getElementById("thickness");
-            var ev_split = ev.split("%%");
-            var ev_length = ev_split.length;
-            thickness.innerHTML = "Total mentions: " + ev_length;
-            var ul_pos = document.createElement("ul");
-            var ul_neg = document.createElement("ul");
-            var ul_inc = document.createElement("ul");
-            var negCount = 0;
-            var posCount = 0;
-            var incCount = 0;
-            for (var i = 0; i < ev_split.length; i++) {
-                // Create the list item:
-                var item = document.createElement('li');
-                var cont = document.createElement("div");
-
-                var parts = ev_split[i].split("|");
-                var text = parts[0];
-                var act = parts[1];
-
-
-                // Set its contents:
-                item.appendChild(document.createTextNode(text));
-                cont.appendChild(item)
-                if (act === "Activation (Negative)") {
-                    cont.style.color = "red";
-                    negCount = negCount += 1;
-                } else if (act === "Activation (Positive)") {
-                    cont.style.color = "blue";
-                    posCount = posCount += 1;
-                }
-                else {
-                    cont.style.color = "black";
-                    incCount = incCount += 1;
-                }
-
-                cont.style.padding = "0px 0px 20px 0px";
-
-
-                // Add it to the list:
-                if (act === "Activation (Positive)") {
-                    ul_pos.appendChild(cont);
-                } else if (act === "Activation (Negative)") {
-                    ul_neg.appendChild(cont);
-                } else {
-                    ul_inc.appendChild(cont);
-                }
-
-            }
-
-            function createFiller() {
-                var fillerText = document.createElement("li");
-                var fillerCont = document.createElement("div");
-
-                fillerText.appendChild(document.createTextNode("This is filler text"));
-                fillerCont.appendChild(fillerText);
-                fillerCont.style.padding = "0px 0px 20px 0px";
-                fillerCont.style.color = "blue";
-
-                var fillerText = document.createElement("li");
-                var fillerCont = document.createElement("div");
-
-                fillerText.appendChild(document.createTextNode("This is filler text"));
-                fillerCont.appendChild(fillerText);
-                fillerCont.style.padding = "0px 0px 20px 0px";
-                fillerCont.style.color = "white";
-                return fillerCont;
-            }
-
-            var fillerPos = createFiller();
-            var fillerNeg = createFiller();
-            var fillerInc = createFiller();
-            ul_pos.appendChild(fillerPos);
-            ul_neg.appendChild(fillerNeg);
-            ul_inc.appendChild(fillerInc);
-
-            document.getElementById("posThicknessVal").innerHTML = "Positive: " + posCount;
-            document.getElementById("negThicknessVal").innerHTML = "Negative: " + negCount;
-            document.getElementById("incThicknessVal").innerHTML = "Inconclusive: " + incCount;
-            document.getElementById("posEv").innerHTML = ul_pos.innerHTML;
-            document.getElementById("negEv").innerHTML = ul_neg.innerHTML;
-            document.getElementById("incEv").innerHTML = ul_inc.innerHTML;
-            modal.style.display = "block";
-
-            window.onclick = function (event) {
-                if (event.target == modal) {
-                    var modalBody = document.getElementById("modalBody");
-                    modalBody.scrollTop = 0;
-                    modal.style.display = "none";
-                }
-            }
-
-            span.onclick = function () {
-                var modalBody = document.getElementById("modalBody");
-                modalBody.scrollTop = 0;
-                modal.style.display = "none";
-            } 
-    });
-      
-      
-      cy.on('box', function (evt) {
-             var sel = evt.target
-             console.log(sel.length)
-             sel.filter(function(ele) {return((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"))}).addClass("mouseup")
-        }); 
-         
-
-
-         cy.on('tap', function(event){
-          // target holds a reference to the originator
-          // of the event (core or element)
-          var evtTarget = event.target;
-
-          if( evtTarget === cy ){
-            cy.nodes().removeClass("mouseup")
-          } 
-        }); 
-      
-     
-      
-      rerun_layout = function() {
-            var eles = cy.elements().filter(function (ele) {
-                return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
-            });
-            var layout = eles.layout({
-            name: 'concentric',
-            concentric: function (node) {
-              return node.data("rank");
-            }
-          });
-          layout.run();
-      }
-
-       function getSelectValues(select) {
-              var result = [];
-              var options = select && select.options;
-              var opt;
-
-              for (var i=0, iLen=options.length; i<iLen; i++) {
-                opt = options[i];
-
-                if (opt.selected) {
-                  result.push(opt.value);
+                  {
+                            selector: 'node.mouseup',
+                            style: { 'background-color': "#26ff12" }
+                        },
+              ],
+              layout: {
+                name: 'concentric',
+                concentric: function (node) {
+                  return node.data("rank");
                 }
               }
-              return result;
-        }
-      
-        var kb_form =  document.getElementById("kb_form");
-        var selected_kbs = []
-        kb_form.onsubmit = function() {
-            var slider = document.getElementById("myRange");
-            var threshold=slider.value
-            var kb_select = document.getElementById("kb_list");
-            selected_kbs = getSelectValues(kb_select);
-            console.log(selected_kbs)
-            filterKBs(selected_kbs)
-            console.log("KB filter threshold: "+threshold)
-            filterEdges(threshold)
-            return false
-        } 
-         
-        var kb_reset_button =  document.getElementById("kb_reset_button"); 
-         kb_reset_button.onclick = function() {
-            var slider = document.getElementById("myRange");
-            var threshold=slider.value
-            var elements = document.getElementById("kb_list").options;
-            for(var i = 0; i < elements.length; i++){
-              elements[i].selected = false;
-            }
-             console.log("reset selected KBs")
-            selected_kbs = []
-            resetKBs()
-            filterEdges(threshold)
-            return false
-         }
-      
-      
-        function getMaxWeight(allEdges) {
-            var weight_arr = []
-            for (var i = 0; i < allEdges.length; i++) {
-                var edgeData = (allEdges[i]).data()
-                var weight = edgeData.thickness
-                weight_arr.push(weight)
-            }
-            Array.prototype.max = function() {
-              return Math.max.apply(null, this);
-            };
-            var maxWeight = weight_arr.max()
-            return(maxWeight)
-        }
+            });
+              
+              
+            var currently_querying = false
+            
+            cy.on('mouseover', 'node', function (evt) {
+                if (!currently_querying) {
+                    var sel = evt.target;
+                    console.log(sel.degree());
+                    console.log(sel.data("KB"))
+                    console.log(sel.id())
+                    sel.addClass('large');
+                    var neighbors = sel.outgoers().union(sel.incomers());
+                    cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
+                    cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp");
+                }
+            });
+            
+            cy.on('mouseout', 'node', function (evt) {
+                if (!currently_querying) {
+                    var sel = evt.target;
+                    sel.removeClass('large');
+                    var neighbors = sel.outgoers().union(sel.incomers());
+                    cy.nodes().difference(neighbors).not(sel).removeClass('semitransp');
+                    cy.edges().difference(sel.edgesWith(neighbors)).removeClass("semitransp");
+                }
+            });
+                
+            cy.on('click', 'node', function (evt) {
+              var sel = evt.target;
+                sel.shift({ x: 500, y: 500 });
+              if (sel.data().rank != 1000000000) {
+                var modal = document.getElementById("querier");
+                var span = document.getElementById("closeQuery");
+                var info = sel.data().label + " (" + sel.data().id + ")";
+                var id = document.getElementById("next_query");
+                id.value = sel.data().id;
+                id.style.display = "block";
+                document.getElementById("nodeID").innerHTML = info;
+                modal.style.display = "block";
+                window.onclick = function (event) {
+                  if (event.target == modal) {
+                    modal.style.display = "none";
+                  }
+            
+                }
+                span.onclick = function () {
+                  modal.style.display = "none";
+                }
+              }
+            
+            });
+            
+            cy.on('click', 'edge', function (evt) {
+              var sel = evt.target;
+                    console.log(sel.data().files);
+                    
+                    function getEvidence() {
+                        var retval;
+                        $.ajaxSetup({
+                            async: false
+                        });
+                        $(function() {
+                          $.getJSON($SCRIPT_ROOT + '/_get_evidence', {
+                            files:sel.data().files
+                          }, function(data) {
+                              console.log(data.result);
+                              retval = data.result;
+                              return false;
+                          }); 
+                        });
+                        console.log(retval);
+                        return retval;
+                    }
+                    
+                    var ev = getEvidence();
+                    console.log(ev);
+                    
+                    var modal = document.getElementById("myModal");
+                    var span = document.getElementsByClassName("close")[0];
+                    var thickness = document.getElementById("thickness");
+                    var ev_split = ev.split("%%");
+                    var ev_length = ev_split.length;
+                    thickness.innerHTML = "Total mentions: " + ev_length;
+                    var ul_pos = document.createElement("ul");
+                    var ul_neg = document.createElement("ul");
+                    var ul_inc = document.createElement("ul");
+                    var negCount = 0;
+                    var posCount = 0;
+                    var incCount = 0;
+                    for (var i = 0; i < ev_split.length; i++) {
+                        // Create the list item:
+                        var item = document.createElement('li');
+                        var cont = document.createElement("div");
+            
+                        var parts = ev_split[i].split("|");
+                        var text = parts[0];
+                        var act = parts[1];
+            
+            
+                        // Set its contents:
+                        item.appendChild(document.createTextNode(text));
+                        cont.appendChild(item)
+                        if (act === "Activation (Negative)") {
+                            cont.style.color = "red";
+                            negCount = negCount += 1;
+                        } else if (act === "Activation (Positive)") {
+                            cont.style.color = "blue";
+                            posCount = posCount += 1;
+                        }
+                        else {
+                            cont.style.color = "black";
+                            incCount = incCount += 1;
+                        }
+            
+                        cont.style.padding = "0px 0px 20px 0px";
+            
+            
+                        // Add it to the list:
+                        if (act === "Activation (Positive)") {
+                            ul_pos.appendChild(cont);
+                        } else if (act === "Activation (Negative)") {
+                            ul_neg.appendChild(cont);
+                        } else {
+                            ul_inc.appendChild(cont);
+                        }
+            
+                    }
+            
+                    function createFiller() {
+                        var fillerText = document.createElement("li");
+                        var fillerCont = document.createElement("div");
+            
+                        fillerText.appendChild(document.createTextNode("This is filler text"));
+                        fillerCont.appendChild(fillerText);
+                        fillerCont.style.padding = "0px 0px 20px 0px";
+                        fillerCont.style.color = "blue";
+            
+                        var fillerText = document.createElement("li");
+                        var fillerCont = document.createElement("div");
+            
+                        fillerText.appendChild(document.createTextNode("This is filler text"));
+                        fillerCont.appendChild(fillerText);
+                        fillerCont.style.padding = "0px 0px 20px 0px";
+                        fillerCont.style.color = "white";
+                        return fillerCont;
+                    }
+            
+                    var fillerPos = createFiller();
+                    var fillerNeg = createFiller();
+                    var fillerInc = createFiller();
+                    ul_pos.appendChild(fillerPos);
+                    ul_neg.appendChild(fillerNeg);
+                    ul_inc.appendChild(fillerInc);
+            
+                    document.getElementById("posThicknessVal").innerHTML = "Positive: " + posCount;
+                    document.getElementById("negThicknessVal").innerHTML = "Negative: " + negCount;
+                    document.getElementById("incThicknessVal").innerHTML = "Inconclusive: " + incCount;
+                    document.getElementById("posEv").innerHTML = ul_pos.innerHTML;
+                    document.getElementById("negEv").innerHTML = ul_neg.innerHTML;
+                    document.getElementById("incEv").innerHTML = ul_inc.innerHTML;
+                    modal.style.display = "block";
+            
+                    window.onclick = function (event) {
+                        if (event.target == modal) {
+                            var modalBody = document.getElementById("modalBody");
+                            modalBody.scrollTop = 0;
+                            modal.style.display = "none";
+                        }
+                    }
+            
+                    span.onclick = function () {
+                        var modalBody = document.getElementById("modalBody");
+                        modalBody.scrollTop = 0;
+                        modal.style.display = "none";
+                    } 
+            });
+              
+              
+              cy.on('box', function (evt) {
+                     var sel = evt.target
+                     console.log(sel.length)
+                     sel.filter(function(ele) {return((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"))}).addClass("mouseup")
+                }); 
+                 
+            
+            
+                 cy.on('tap', function(event){
+                  // target holds a reference to the originator
+                  // of the event (core or element)
+                  var evtTarget = event.target;
+            
+                  if( evtTarget === cy ){
+                    cy.nodes().removeClass("mouseup")
+                  } 
+                }); 
+              
+             
+              
+              rerun_layout = function() {
+                    var eles = cy.elements().filter(function (ele) {
+                        return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
+                    });
+                    var layout = eles.layout({
+                    name: 'concentric',
+                    concentric: function (node) {
+                      return node.data("rank");
+                    }
+                  });
+                  layout.run();
+              }
+            
+               function getSelectValues(select) {
+                      var result = [];
+                      var options = select && select.options;
+                      var opt;
+            
+                      for (var i=0, iLen=options.length; i<iLen; i++) {
+                        opt = options[i];
+            
+                        if (opt.selected) {
+                          result.push(opt.value);
+                        }
+                      }
+                      return result;
+                }
+              
+                var kb_form =  document.getElementById("kb_form");
+                var selected_kbs = []
+                kb_form.onsubmit = function() {
+                    var slider = document.getElementById("myRange");
+                    var threshold=slider.value
+                    var kb_select = document.getElementById("kb_list");
+                    selected_kbs = getSelectValues(kb_select);
+                    console.log(selected_kbs)
+                    filterKBs(selected_kbs)
+                    console.log("KB filter threshold: "+threshold)
+                    filterEdges(threshold)
+                    return false
+                } 
 
-      
-        var filteredEdges = cy.edges().filter('[thickness < 0]');
-        var filteredNodes = cy.nodes().filter(function (ele) {
-            return ele.degree() == -2;
-        });
-        filteredEdges = cy.remove(filteredEdges);
-        filteredNodes = cy.remove(filteredNodes);
-        filterEdges = function(threshold) { 
-          filteredNodes.removeClass("transp");
-          filteredEdges.restore();
-
-          filteredEdges = cy.edges().filter('[thickness < ' + threshold + ']');
-          filteredEdges = cy.remove(filteredEdges);
-          filteredNodes = cy.nodes().filter(function (ele) {
-            return ele.degree() == 0;
-          });
-          filteredNodes.addClass("transp");
-            rerun_layout();
-        }
-
-        var allEdges = cy.edges()  
-        var allMax = Math.ceil(getMaxWeight(allEdges))
-        var slider = document.getElementById("myRange");
-        var input_thickness = document.getElementById("input_thickness");
-        slider.max = allMax
-        var input_qty = document.getElementById("quantity");
-        input_qty.max = allMax
-        var output = document.getElementById("demo");
-        output.innerHTML = slider.value;
-        slider.oninput = function () {
-            output.innerHTML = this.value;
-            input_qty.value = this.value
-            threshold = this.value;
-            filterEdges(threshold);
-            filterKBs(selected_kbs)
-        }
-        input_thickness.onsubmit = function () {
-            var thickness_val = document.getElementById("quantity");
-            output.innerHTML = thickness_val.value;
-            slider.value=thickness_val.value
-            threshold = thickness_val.value;
-            filterEdges(threshold);
-            filterKBs(selected_kbs)
-        }
-        
-        var node_search = document.getElementById("node_search");
-        var current_query = document.getElementById("current_query");
-        var reset_button = document.getElementById("reset")  
-        node_search.onsubmit = function () {
-            reset_button.style.display="block"
-            currently_querying = true;
-            //cy.nodes().removeClass("transp");
-            cy.edges().removeClass("transp");
-            cy.nodes().removeClass("searched");
-            var node_name = document.getElementById("node_name");
-            current_query.innerHTML = node_name.value; 
-            var results_nodes = cy.nodes().filter(function(ele) {
-                return ((ele.style()["display"] != "none") && 
-                        (ele.style()["opacity"] != "0") &&
-                       (ele.data("label").toLowerCase() === node_name.value.toLowerCase()));})
-            results_nodes.addClass('searched')
-            var neighbors = results_nodes.outgoers().union(results_nodes.incomers());
-            var results_edges = results_nodes.connectedEdges()
-            var results_nodes = results_nodes.union(neighbors)
-            cy.nodes().difference(results_nodes).addClass('transp');
-            cy.edges().difference(results_edges).addClass('transp');
-        }
-      
-        function reset_query() {
-            var node_name = document.getElementById("node_name");
-            currently_querying = false;
-            cy.nodes().removeClass("transp");
-            cy.edges().removeClass("transp");
-            cy.nodes().removeClass("searched");
-            var slider = document.getElementById("myRange");
-            var threshold=slider.value
-            filterEdges(threshold)
-            filterKBs(selected_kbs)
-            current_query.innerHTML = "None"; 
-            node_name.value=""
-            reset_button.style.display = "None"
-        }
-
-        var excludedEdges = cy.edges().filter('[thickness < 0]');
-        var excludedNodes = cy.nodes().filter(function (ele) {
-            return ele.degree() == -2;
-        });
-        excludedEdges = cy.remove(excludedEdges);
-        excludedNodes = cy.remove(excludedNodes);
-        console.log("excluded nodes length:"+excludedNodes.length)  
-        filterKBs = function(kb_list) {
-            resetKBs()
-            console.log("Starting filerKBs")
-            if (kb_list.length!=0) {
- 
-                excludedNodes = cy.nodes().filter(function(ele) {
-                    return (!((kb_list.includes(ele.data("KB")) && ele.degree()!=0) | ele.data("rank")==1000000000))
+              
+              
+                function getMaxWeight(allEdges) {
+                    var weight_arr = []
+                    for (var i = 0; i < allEdges.length; i++) {
+                        var edgeData = (allEdges[i]).data()
+                        var weight = edgeData.thickness
+                        weight_arr.push(weight)
+                    }
+                    Array.prototype.max = function() {
+                      return Math.max.apply(null, this);
+                    };
+                    var maxWeight = weight_arr.max()
+                    return(maxWeight)
+                }
+            
+              
+                var filteredEdges = cy.edges().filter('[thickness < 0]');
+                var filteredNodes = cy.nodes().filter(function (ele) {
+                    return ele.degree() == -2;
                 });
-
-                excludedEdges = cy.edges().filter(function(ele) {
-                    return (ele.isEdge() && (excludedNodes.includes(ele.source()) | excludedNodes.includes(ele.target())))
-                })  
-                console.log(excludedEdges)
-                excludedEdges = cy.remove(excludedEdges)
-                excludedNodes.addClass("transp");
-                rerun_layout();
-
+                filteredEdges = cy.remove(filteredEdges);
+                filteredNodes = cy.remove(filteredNodes);
+                filterEdges = function(threshold) { 
+                  filteredNodes.removeClass("transp");
+                  filteredEdges.restore();
+            
+                  filteredEdges = cy.edges().filter('[thickness < ' + threshold + ']');
+                  filteredEdges = cy.remove(filteredEdges);
+                  filteredNodes = cy.nodes().filter(function (ele) {
+                    return ele.degree() == 0;
+                  });
+                  filteredNodes.addClass("transp");
+                    rerun_layout();
+                }
+            
+                var allEdges = cy.edges()  
+                var allMax = Math.ceil(getMaxWeight(allEdges))
+                var slider = document.getElementById("myRange");
+                var input_thickness = document.getElementById("input_thickness");
+                slider.max = allMax
+                var input_qty = document.getElementById("quantity");
+                input_qty.max = allMax
+                var output = document.getElementById("quantity");
+                output.innerHTML = slider.value;
+                slider.oninput = function () {
+                    output.innerHTML = this.value;
+                    input_qty.value = this.value
+                    threshold = this.value;
+                    filterEdges(threshold);
+                    filterKBs(selected_kbs)
+                }
+                input_thickness.onsubmit = function () {
+                    var thickness_val = document.getElementById("quantity");
+                    output.innerHTML = thickness_val.value;
+                    slider.value=thickness_val.value
+                    threshold = thickness_val.value;
+                    filterEdges(threshold);
+                    filterKBs(selected_kbs)
+                }
+                
+                var node_search = document.getElementById("node_search");
+                var current_query = document.getElementById("current_query");
+                var reset_button = document.getElementById("reset")  
+                node_search.onsubmit = function () {
+                    reset_button.style="background-color:#4CAF50;"
+                    //cy.nodes().removeClass("transp");
+                    cy.edges().removeClass("transp");
+                    cy.nodes().removeClass("searched");
+                    var node_name = document.getElementById("node_name");
+                    current_query.innerHTML = node_name.value; 
+                    var results_nodes = cy.nodes().filter(function(ele) {
+                        return ((ele.style()["display"] != "none") && 
+                                (ele.style()["opacity"] != "0") &&
+                               (ele.data("label").toLowerCase() === node_name.value.toLowerCase()));})
+                    results_nodes.addClass('searched')
+                    var neighbors = results_nodes.outgoers().union(results_nodes.incomers());
+                    var results_edges = results_nodes.connectedEdges()
+                    var results_nodes = results_nodes.union(neighbors)
+                    cy.nodes().difference(results_nodes).addClass('transp');
+                    cy.edges().difference(results_edges).addClass('transp');
+                }
+              
+                function reset_query() {
+                    var node_name = document.getElementById("node_name");
+                    currently_querying = false;
+                    cy.nodes().removeClass("transp");
+                    cy.edges().removeClass("transp");
+                    cy.nodes().removeClass("searched");
+                    var slider = document.getElementById("myRange");
+                    var threshold=slider.value
+                    filterEdges(threshold)
+                    filterKBs(selected_kbs)
+                    current_query.innerHTML = "None"; 
+                    node_name.value=""
+                    reset_button.style.display = "None"
+                }
+            
+                var excludedEdges = cy.edges().filter('[thickness < 0]');
+                var excludedNodes = cy.nodes().filter(function (ele) {
+                    return ele.degree() == -2;
+                });
+                excludedEdges = cy.remove(excludedEdges);
+                excludedNodes = cy.remove(excludedNodes);
+                console.log("excluded nodes length:"+excludedNodes.length)  
+                filterKBs = function(kb_list) {
+                    resetKBs()
+                    console.log("Starting filerKBs")
+                    if (kb_list.length!=0) {
+            
+                        excludedNodes = cy.nodes().filter(function(ele) {
+                            return (!((kb_list.includes(ele.data("KB")) && ele.degree()!=0) | ele.data("rank")==1000000000))
+                        });
+            
+                        excludedEdges = cy.edges().filter(function(ele) {
+                            return (ele.isEdge() && (excludedNodes.includes(ele.source()) | excludedNodes.includes(ele.target())))
+                        })  
+                        console.log(excludedEdges)
+                        excludedEdges = cy.remove(excludedEdges)
+                        excludedNodes.addClass("transp");
+                        rerun_layout();
+            
+                    }
+                } 
+                
+                resetKBs = function() {
+                    excludedNodes.removeClass("transp")
+                    excludedEdges.restore()
+                    rerun_layout();
+                }
+            
+            function add_colors() {
+              var x = document.getElementById("color-button");
+              if (x.innerHTML === "Show Color") {
+                x.innerHTML = "Hide Color";
+                cy.edges().addClass("colors");
+              } else {
+                x.innerHTML = "Show Color";
+                cy.edges().removeClass("colors");
+              }
             }
-        } 
-        
-        resetKBs = function() {
-            excludedNodes.removeClass("transp")
-            excludedEdges.restore()
-            rerun_layout();
-        }
-
-    function add_colors() {
-      var x = document.getElementById("color-button");
-      if (x.innerHTML === "Show Color") {
-        x.innerHTML = "Hide Color";
-        cy.edges().addClass("colors");
-      } else {
-        x.innerHTML = "Show Color";
-        cy.edges().removeClass("colors");
-      }
-    }
-
-    function switch_color() {
-      var x = document.getElementById("current-color");
-      if (x.innerHTML === "Current: Positive interactions") {
-        x.innerHTML = "Current: Negative interactions";
-        cy.edges().removeClass("pos_colors");
-        cy.edges().addClass("neg_colors");
-      } else if (x.innerHTML == "Current: Negative interactions") {
-        x.innerHTML = "Current: Inconclusive interactions";
-        cy.edges().removeClass("neg_colors");
-        cy.edges().addClass("inc_colors");
-      } else if (x.innerHTML == "Current: Inconclusive interactions") {
-        x.innerHTML = "Current: None";
-        cy.edges().removeClass("inc_colors");
-      } else {
-        x.innerHTML = "Current: Positive interactions";
-        cy.edges().addClass("pos_colors");
-      }
-    }
-  </script>
-  <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
-
-
-</body>
-
+            
+            function switch_color() {
+              var x = document.getElementById("current-color");
+              if (x.innerHTML === "Current: Positive interactions") {
+                x.innerHTML = "Current: Negative interactions";
+                cy.edges().removeClass("pos_colors");
+                cy.edges().addClass("neg_colors");
+              } else if (x.innerHTML == "Current: Negative interactions") {
+                x.innerHTML = "Current: Inconclusive interactions";
+                cy.edges().removeClass("neg_colors");
+                cy.edges().addClass("inc_colors");
+              } else if (x.innerHTML == "Current: Inconclusive interactions") {
+                x.innerHTML = "Current: None";
+                cy.edges().removeClass("inc_colors");
+              } else {
+                x.innerHTML = "Current: Positive interactions";
+                cy.edges().addClass("pos_colors");
+              }
+            }
+        </script>
+        <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
+    </body>
 </html>
