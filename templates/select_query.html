@@ -57,27 +57,22 @@
     font-weight: 400;
   }
 
-  #progressbar #step1:before {
+    #progressbar #step1:before {
     content: "1";
-    padding-left: 20px;
-    cursor: pointer;
-
-  }
-
-  #progressbar #step2:before {
+    text-align: center;
+    }
+    #progressbar #step2:before {
     content: "2";
-    padding-left: 20px;
-  }
-
-  #progressbar #step3:before {
+    text-align: center;
+    }
+    #progressbar #step3:before {
     content: "3";
-    padding-left: 20px;
-  }
-
-  #progressbar #step4:before {
+    text-align: center;
+    }
+    #progressbar #step4:before {
     content: "4";
-    padding-left: 20px;
-  }
+    text-align: center;
+    }
 
   #progressbar li:before {
     width: 50px;
@@ -169,19 +164,16 @@
     </div>
   </nav>
 
-  <div style="padding-top:80px;" class="container">
+    <div style="padding-top:80px;" class="container">
 
-
-    <ul id="progressbar">
-      <li class="active" id="step1">
-        <strong>Select query algorithm</strong>
-      </li>
-      <li id="step2"><strong>Input query</strong></li>
-      <li id="step3"><strong>Validate query</strong></li>
-      <li id="step4"><strong>Input additional parameters</strong></li>
-    </ul>
-
-
+        <div style="text-align:center;">
+            <ul id="progressbar">
+                <li class="active" id="step1"><strong>Select query algorithm</strong></li>
+                <li id="step2"><strong>Input query</strong></li>
+                <li id="step3"><strong>Validate query</strong></li>
+                <li id="step4"><strong>Input additional parameters</strong></li>
+            </ul>
+        </div>
 
     <div id="single" style="padding-bottom:0px;padding-top:20px;height:100%;position:relative;float:left;width:50%">
       <form method="POST" action="#" style="height:100%;width:100%">

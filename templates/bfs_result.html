@@ -141,14 +141,17 @@
         #posThickness {
         float: left;
         width: 33%;
+        padding-bottom: 10px;
         }
         #negThickness {
         float: left;
         width: 33%;
+        padding-bottom: 10px;
         }
         #incThickness {
         float: right;
         width: 33%;
+        padding-bottom: 10px;
         }
     </style>
     <body>
@@ -312,16 +315,19 @@
             }
         </script>
         <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
+
         <div id="myModal" class="modal">
-            <div class="modal-content">
+            <div class="modal-content" style="height:90%;">
                 <span class="close">&times;</span>
-                <div class="modal-header text-center" style="background-color: #c7c5c5;">
-                    <svg  xmlns="http://www.w3.org/2000/svg" style="overflow: visible">
+                <div class="modal-header text-center" style="background-color:#c7c5c5;height:100px">
+                    
+                    <svg  xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
                         <g>
-                            <circle id="source" cx="150" cy="80" r="90" />
-                            <text id="source_lab" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <circle id="source" cx="230" cy="80" r="30" />
+                            <text id="source_lab" x="230" y="80" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
                         </g>
                     </svg>
+                                        
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 100">
                         <defs>
                             <marker id="arrowhead" markerWidth="10" markerHeight="7" 
@@ -329,15 +335,21 @@
                                 <polygon id="triangle" points="0 2, 8 3.5, 0 5" />
                             </marker>
                         </defs>
-                        <line id="line" x1="10" y1="50" x2="270" y2="50" stroke="#000" 
+                        
+                        <text id="line_lab" dominant-baseline="central" text-anchor="middle" x="138" y="40" font-family="Verdana" font-size="12" fill="black"></text>
+                        
+                        <line id="line" x1="10" y1="60" x2="270" y2="60" stroke="#000" 
                             stroke-width="8" marker-end="url(#arrowhead)" />
                     </svg>
+                    
+                    
                     <svg  xmlns="http://www.w3.org/2000/svg" style="overflow: visible">
                         <g>
-                            <circle id="target" cx="150" cy="80" r="90" />
-                            <text id="target_lab" x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <circle id="target" cx="70" cy="80" r="30" />
+                            <text id="target_lab" x="70" y="80" dominant-baseline="central" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
                         </g>
                     </svg>
+                    
                 </div>
                 <div id="modalBody" class="modal-body">
                     <h1 id="thickness" style="font-family: Arial, Helvetica, sans-serif"></h1>
@@ -350,6 +362,7 @@
                 </div>
             </div>
         </div>
+
         <div id="synModal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
@@ -370,6 +383,8 @@
                 </div>
             </div>
         </div>
+
+
         <script src="{{url_for('static', filename='bfs_vis_functions.js')}}"></script>
         <script>
             const data = {{ elements | tojson }};
@@ -618,6 +633,7 @@
                 var source_lab = document.getElementById("source_lab");
                 var tar_node = document.getElementById("target");
                 var target_lab = document.getElementById("target_lab");
+                var line_lab = document.getElementById("line_lab");
                 
                 var sel_source = sel.source();
                 var sel_target = sel.target();
@@ -638,18 +654,24 @@
                 } else {
                     var tar_lab = target+" ("+target_id+")"
                 }
-                
+
+                <!-- Visualize clicked edge/nodes -->                
                 source_lab.innerHTML = src_lab
                 target_lab.innerHTML = tar_lab
-                src_node.style.fill=sel.source().data().color;
-                tar_node.style.fill=sel.target().data().color;
+
+                src_node.style.fill = sel.source().data().color;
+
+                tar_node.style.fill = sel.target().data().color;
+                
                 triangle.style.fill = sel.data().color;
                 line.style.stroke = sel.data().color;
+
                 var span = document.getElementsByClassName("close")[0];
                 var thickness = document.getElementById("thickness");
                 var ev_split = ev.split("%%");
                 var ev_length = ev_split.length;
-                thickness.innerHTML = "Total mentions: " + ev_length;
+                line_lab.innerHTML = "Total mentions: " + ev_length;
+
                 var ul_pos = document.createElement("ul");
                 var ul_neg = document.createElement("ul");
                 var ul_inc = document.createElement("ul");
@@ -682,8 +704,7 @@
                     }
             
                     cont.style.padding = "0px 0px 20px 0px";
-            
-            
+
                     // Add it to the list:
                     if (act === "Activation (Positive)") {
                         ul_pos.appendChild(cont);
@@ -694,9 +715,7 @@
                     }
             
                 }
-                
-            
-                
+
                 function createFiller() {
                     var fillerText = document.createElement("li");
                     var fillerCont = document.createElement("div");

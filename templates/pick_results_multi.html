@@ -42,21 +42,19 @@
         }
         #progressbar #step1:before {
         content: "1";
-        padding-left: 20px;
-        cursor: pointer;
+        text-align: center;
         }
         #progressbar #step2:before {
         content: "2";
-        padding-left: 20px;
-        cursor: pointer;
+        text-align: center;
         }
         #progressbar #step3:before {
         content: "3";
-        padding-left: 20px;
+        text-align: center;
         }
         #progressbar #step4:before {
         content: "4";
-        padding-left: 20px;
+        text-align: center;
         }
         #progressbar li:before {
         width: 50px;
@@ -130,8 +128,8 @@
             
                 });
             });
-            
         </script>
+        
         <script>
             // Function to run on click:
             function change(btn_id) {
@@ -143,6 +141,7 @@
             
             }
         </script>
+
         <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
             <a class="navbar-brand" href="{{ url_for('home')}}">VERIT</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
@@ -160,15 +159,17 @@
                 </ul>
             </div>
         </nav>
+
         <div style="padding-top:80px;" class="container">
-            <ul id="progressbar">
-                <li class="active" id="step1">
-                    <strong>Select query algorithm</strong>
-                </li>
-                <li class="active" id="step2"><strong>Input query</strong></li>
-                <li class="active" id="step3"><strong>Validate query</strong></li>
-                <li id="step4"><strong>Input additional parameters</strong></li>
-            </ul>
+            <div style="text-align:center;">
+                <ul id="progressbar">
+                    <li class="active" id="step1"><strong>Select query algorithm</strong></li>
+                    <li class="active" id="step2"><strong>Input query</strong></li>
+                    <li class="active" id="step3"><strong>Validate query</strong></li>
+                    <li id="step4"><strong>Input additional parameters</strong></li>
+                </ul>
+            </div>
+
             <script>
                 // Function to run on click:
                 function toggle(elem) {
@@ -181,9 +182,19 @@
                 }
                 
             </script>
-            <h2>
-            Query validation 
-            <h2/>
+            
+            <script>
+                step1 = document.getElementById("step1");
+                step2 = document.getElementById("step2");
+                step1.onclick = function () {
+                  location.href = "/selectQuery";
+                };
+                step2.onclick = function () {
+                  window.history.back();
+                };
+            </script>
+
+            <h2>Query validation<h2/>
             <hr/>
             {% if not_in|length != 0 %}
             {% if not result_dict %}

@@ -57,20 +57,19 @@
         }
         #progressbar #step1:before {
         content: "1";
-        padding-left: 20px;
-        cursor: pointer;
+        text-align: center;
         }
         #progressbar #step2:before {
         content: "2";
-        padding-left: 20px;
+        text-align: center;
         }
         #progressbar #step3:before {
         content: "3";
-        padding-left: 20px;
+        text-align: center;
         }
         #progressbar #step4:before {
         content: "4";
-        padding-left: 20px;
+        text-align: center;
         }
         #progressbar li:before {
         width: 50px;
@@ -176,24 +175,26 @@
             </script>
         </nav>
         <div style="padding-top:80px;" class="container">
-            <ul id="progressbar">
-                <li class="active" id="step1">
-                    <strong>Select query algorithm</strong>
-                </li>
-                <li class="active" id="step2"><strong>Input query</strong></li>
-                <li class="active" id="step3"><strong>Validate query</strong></li>
-                <li id="step4"><strong>Input additional parameters</strong></li>
-            </ul>
+            <div style="text-align:center;">
+                <ul id="progressbar">
+                    <li class="active" id="step1"><strong>Select query algorithm</strong></li>
+                    <li class="active" id="step2"><strong>Input query</strong></li>
+                    <li class="active" id="step3"><strong>Validate query</strong></li>
+                    <li id="step4"><strong>Input additional parameters</strong></li>
+                </ul>
+            </div>
+            
             <script>
                 step1 = document.getElementById("step1");
                 step2 = document.getElementById("step2");
                 step1.onclick = function () {
-                  window.history.go(-2);
+                  location.href = "/selectQuery";
                 };
                 step2.onclick = function () {
                   window.history.back();
                 };
             </script>
+            
             <h2>
             Query validation 
             <h2/>
