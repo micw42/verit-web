@@ -188,7 +188,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
         rename_dict1 = {"source":"orig_source", "target":"orig_target"}
         rename_dict2 = {"merged_source":"source", "merged_target":"target"}
         rel_df = rel_df.rename(columns=rename_dict1).rename(columns=rename_dict2)
-
+        
         # Fix nodes table
         id_converted = pd.merge(nodes, name_df, how="left", left_on="Id", right_on="variable")["key"]
         nodes["Id2"] = id_converted.tolist()
@@ -231,11 +231,23 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
                                        "thickness",
                                        "files"
                                        "source", "target"])
-
+        
+    name_df["variable"] = name_df.groupby(['key'])['variable'].transform(lambda x: ', '.join(x))
+    name_df = name_df.drop_duplicates()
+    source_ids = pd.merge(rel_df, name_df, how="left", left_on="source", right_on = "key")["variable"].tolist()
+    target_ids = pd.merge(rel_df, name_df, how="left", left_on="target", right_on = "key")["variable"].tolist()
+    rel_df["source_id"] = source_ids
+    rel_df["target_id"] = target_ids
+    rel_df.source_id.fillna(rel_df.source, inplace=True)
+    rel_df.target_id.fillna(rel_df.target, inplace=True)
     rel_df = rel_df[["color", "thickness",
-                     "files", "source", "target"]]
-    nodes = nodes[["Id", "Label", "KB", "name"]]
-
+                     "files", "source", "target", "source_id", "target_id"]]
+    
+    display_ids = pd.merge(nodes, name_df, how="left", left_on="Id", right_on="key")["variable"].tolist()
+    nodes["display_id"] = display_ids
+    nodes.display_id.fillna(nodes.Id, inplace=True)
+    nodes = nodes[["Id", "Label", "KB", "name", "display_id"]]
+    
     # Indicate whether each node is query (part of user query list),
     # linker (found by Netx algorithm), or direct (direct connection to query node not found by Netx)
     # For visualization
@@ -245,6 +257,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
         nodes["Type"] = ["Query" if x in query_list else ("Linker" if x in found_ids else "Direct") for x in nodes['Id']]
 
     nodes["Label"] = nodes["Label"].str.replace("SPACE", " ")
+    nodes = nodes[["Id", "Label", "KB", "name", "Type", "display_id"]]
 
     # Remove recursive edges
     rel_df = rel_df[rel_df["source"] != rel_df["target"]]
@@ -252,3 +265,15 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     # Write edges and nodes
     nodes.to_csv("query_nodes.csv", index=False)
     rel_df.to_csv("query_edges.csv", index=False)
+    
+    nodes['name'] = nodes['name'].str.replace('%%',', ')
+    nodes = nodes.rename(columns={"name": "Synonyms"})
+    rel_df = rel_df.merge(nodes, left_on="source", right_on="Id").drop(labels="Id", axis=1).rename(columns={"Label":"source_name"})
+    rel_df = rel_df.merge(nodes, left_on="target", right_on="Id").drop(labels="Id", axis=1).rename(columns={"Label":"target_name"})
+    rel_df = rel_df.rename(columns={"color":"score", "thickness":"evidence_count"})
+    rel_df = rel_df[["source_id", "source_name", "target_id", "target_name", "evidence_count", "score"]]
+    nodes = nodes.drop(labels="Id", axis=1).rename(columns={"display_id":"Id"})
+    nodes = nodes[["Id", "Label", "KB", "Synonyms", "Type"]]
+    
+    nodes.to_csv("query_nodes_cleaned.csv", index=False)
+    rel_df.to_csv("query_edges_cleaned.csv", index=False)

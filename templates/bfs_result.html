@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
     <script type=text/javascript>
       $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
     </script>
@@ -172,6 +172,11 @@
         float: right;
         width: 33%;
     }
+    dl{height:200px;}
+    dl{overflow:hidden; overflow-y:scroll;}
+    ul {
+  list-style: none;
+}
 </style>
 
 
@@ -222,26 +227,89 @@
             </ul>
         </div>
         
-        <div style="padding-left:10px" class="slidecontainer">
-        <form id="kb_form" action="#">
-                    <h6>Filter by knowledge base (Press ctrl to select multiple):</h6>
-        <select name="ddl" id="kb_list" multiple>
-            <option value='CHEBI'>CHEBI</option>
-            <option value='uniprot'>Uniprot</option>
-            <option value='GO'>Gene Ontology</option>
-            <option value='pubchem'>PubChem</option>
-            <option value='mesh'>Mesh</option>
-            <option value='fplx'>FamPlex</option>
-            <option value='PR'>PR</option>
-            <option value='interpro'>Interpro</option>
-            <option value='pfam'>Protein Families</option>           
-        </select>
+        <div style="padding-left:10px;" class="slidecontainer">
+        <form  id="kb_form" action="#">
+                    <h6>Filter by knowledge base:</h6>
+            <dl style="border:1px solid black;width: fit-content;">
+    <dt>Genes/proteins</dt>
+    <dd>
+        <ul style="padding-left:0;padding-bottom:0;margin-bottom:0">
+            <li >
+                <input class="allCheckbox" id="all_prot" value="all_prot" type="checkbox" />
+                <label class="allLabel" for="all_prot">Select all</label>
+            </li>   
+        </ul>
+        <ul style="padding-top:0;margin-top:0">
+            <li>
+                <input class="messageCheckbox" id="uniprot" value="uniprot" type="checkbox"/>
+                <label for="uniprot">Uniprot</label>
+            </li>    
+            <li>
+                <input class="messageCheckbox" id="fplx" value="fplx" type="checkbox" />
+                <label for="fplx">FamPlex</label>
+            </li>  
+            <li>
+                <input class="messageCheckbox" id="PR" value="PR" type="checkbox" />
+                <label for="PR">PR</label>
+            </li>  
+            <li>
+                <input class="messageCheckbox" id="interpro" value="interpro" type="checkbox" />
+                <label for="interpro">Interpro</label>
+            </li>  
+            <li>
+                <input class="messageCheckbox" id="pfam" value="pfam" type="checkbox" />
+                <label for="pfam">Protein Families</label>
+            </li>  
+        </ul>
+    </dd>
+    <dt>Chemicals</dt>
+    <dd>
+                <ul style="padding-left:0;padding-bottom:0;margin-bottom:0">
+            <li >
+                <input class="allCheckbox" id="all_chem" value="all_chem" type="checkbox" />
+                <label class="allLabel" for="all_prot">Select all</label>
+            </li>   
+        </ul>
+        <ul style="padding-top:0;margin-top:0">
+             <li>
+                <input class="messageCheckbox" id="CHEBI" value="CHEBI" type="checkbox" />
+                <label for="CHEBI">CHEBI</label>
+            </li>    
+            <li>
+                <input class="messageCheckbox" id="pubchem" value="pubchem" type="checkbox" />
+                <label for="pubchem">PubChem</label>
+            </li>  
+        </ul>
+    </dd>
+    <dt>Cellular events</dt>
+    <dd>
+        <ul>
+             <li>
+                <input class="messageCheckbox" id="GO" value="GO" type="checkbox" />
+                <label for="GO">Gene Ontology</label>
+            </li>    
+        </ul>
+    </dd>
+    <dt>Diseases</dt>
+    <dd>
+        <ul>
+             <li>
+                <input class="messageCheckbox" id="mesh" value="mesh" type="checkbox" />
+                <label for="mesh">Mesh</label>
+            </li>    
+        </ul>
+    </dd>
+</dl>
+        
             <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
         </form>
                     <button id="kb_reset_button" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Reset</button>
         </div>
 
         <br>
+        
+    
+        
         <div style="padding-left:10px">
             <h6>Change Layout.</h6>
             <select id="layout-button" onchange="run_switch_layout()" class="btn btn-primary"
@@ -284,7 +352,9 @@
                     <div id="nr_loader" class="loader"></div>
                 </li>
             </ul>
-            <h6>Toggle between showing and hiding direct neighbors.</h6>
+        </div>
+            
+         <h6>Toggle between showing and hiding direct neighbors.</h6>
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" role="switch" id="direct-button" onchange="run_show_direct()">
               <label class="form-check-label" for="direct-button">Show direct neighbors with thickness > 20</label>&nbsp;<i class="fa fa-question-circle" aria-hidden="true" title="Direct neighbors are nodes directly connected to a node by 1 edge." style="cursor:pointer"></i>
@@ -297,9 +367,6 @@
                     <div id="direct_loader" class="loader"></div>
                 </li>
             </ul>
-            <br><br>
-
-        </div>
         
        <div style="padding-left:10px">
             <h6>Search for a node.</h6>
@@ -321,6 +388,76 @@
         function w3_close() {
             document.getElementById("mySidebar").style.display = "none";
         }
+        
+$("optgroup").on("click", function() {
+    if($(this).children("option").is(':selected')) {
+        $(this).children("option").prop("selected", false);
+    } else {
+        $(this).children("option").prop("selected", "selected");
+    } 
+});
+        
+        
+        $("option").on("click", function() {
+            if($(this).is(':selected')) {
+                $(this).prop("selected", false);
+            } else {
+                $(this).prop("selected", "selected");
+            }
+        }); 
+        
+        $("dt")
+    .css("cursor","pointer")
+    .on("click", function(){
+        var $el = $(this).next();
+        var $checks = $el.find(":checkbox");
+        if($checks.is(":not(:checked)")){
+            $checks.attr("checked",true); 
+        }else{
+            $checks.attr("checked",false); 
+        }
+});
+        
+        $('.allCheckbox').change(function(event) {  
+            var proteins = ["uniprot", "fplx", "PR", "interpro", "pfam"]
+            var chemicals = ["pubchem", "CHEBI"]
+            console.log("checked box")
+            if(this.checked) {
+                if (this.value=="all_prot") {
+                    $(this).siblings('label').html("Deselect all");
+                    $(':checkbox').each(function() {
+                        console.log(this.value)
+                        if (proteins.includes(this.value)) {
+                            this.checked = true;
+                        }            
+                    });
+                } else {
+                    $(this).siblings('label').html("Deselect all");
+                     $(':checkbox').each(function() {
+                        if (chemicals.includes(this.value)) {
+                            this.checked = true;
+                        }            
+                    });
+                }
+                // Iterate each checkbox
+            } else {
+                if (this.value=="all_prot") {
+                    $(this).siblings('label').html("Select all");
+                    $(':checkbox').each(function() {
+                        if (proteins.includes(this.value)) {
+                            this.checked = false;
+                        }            
+                    });
+                } else {
+                    $(this).siblings('label').html("Select all");
+                     $(':checkbox').each(function() {
+                        if (chemicals.includes(this.value)) {
+                            this.checked = false;
+                        }            
+                    });
+                }
+            }
+        }); 
     </script>
     
 
@@ -334,7 +471,7 @@
   <g>
     <circle id="source" cx="150" cy="80" r="90" />
     <text id="source_lab" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
-
+      <text id="source_id" x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
   </g>
 </svg>
                 
@@ -352,6 +489,7 @@
       <g>
         <circle id="target" cx="150" cy="80" r="90" />
         <text id="target_lab" x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+          <text id="target_id" x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
       </g>
     </svg>
             </div>
@@ -418,6 +556,7 @@
                         'background-fit': 'contain',
                         'background-clip': 'none',
                         "display": "data(display)",
+                        "display_id":"data(display_id)"
 
                     },
                     position: {
@@ -465,6 +604,11 @@
                 },
                 {
                     selector: 'node.mouseup',
+                    style: { 'border-width': 10,
+                      'border-color': 'yellow' }
+                },
+                {
+                    selector: 'node.markov',
                     style: { 'background-color': "#26ff12" }
                 },
                 {
@@ -524,7 +668,7 @@
             var ind = findNode(clusters, node)
             var neighbors = clusters[ind]
             console.log("neighbors len"+neighbors.length)
-            neighbors.addClass("mouseup")
+            neighbors.addClass("markov")
             /*
             var new_non_neighbors = cy.elements().filter(function(ele) {
                 if (ele.isNode()) {
@@ -639,31 +783,26 @@
             var line = document.getElementById("line");
             var src_node = document.getElementById("source");
             var source_lab = document.getElementById("source_lab");
+            var source_id_lab = document.getElementById("source_id")
             var tar_node = document.getElementById("target");
             var target_lab = document.getElementById("target_lab");
+            var target_id_lab = document.getElementById("target_id")
             
             var sel_source = sel.source();
             var sel_target = sel.target();
             
             var source = sel_source.data().label;
-            var source_id = sel_source.id();
+            var source_id = sel_source.data().display_id;
             var target = sel_target.data().label;
-            var target_id = sel_target.id();
+            var target_id = sel_target.data().display_id;
             
-            if (sel_source.data().type=="Query") {
-                var src_lab = source
-            } else {
-                var src_lab = source+" ("+source_id+")"
-            }
+            var src_lab = "("+source_id+")"
+            var tar_lab = "("+target_id+")"
             
-            if (sel_target.data().type=="Query") {
-                var tar_lab = target
-            } else {
-                var tar_lab = target+" ("+target_id+")"
-            }
-            
-            source_lab.innerHTML = src_lab
-            target_lab.innerHTML = tar_lab
+            source_lab.innerHTML = source
+            target_lab.innerHTML = target
+            source_id_lab.innerHTML = src_lab
+            target_id_lab.innerHTML = tar_lab
             src_node.style.fill=sel.source().data().color;
             tar_node.style.fill=sel.target().data().color;
             triangle.style.fill = sel.data().color;
@@ -837,6 +976,7 @@
 
           if( evtTarget === cy ){
             cy.nodes().removeClass("mouseup")
+              cy.nodes().removeClass("markov")
           } 
              
              
@@ -855,13 +995,9 @@
          
          function getSelectValues(select) {
               var result = [];
-              var options = select && select.options;
-              var opt;
-
-              for (var i=0, iLen=options.length; i<iLen; i++) {
-                opt = options[i];
-
-                if (opt.selected) {
+              for (var i=0, iLen=select.length; i<iLen; i++) {
+                var opt = select[i];
+                if (opt.checked) {
                   result.push(opt.value);
                 }
               }
@@ -871,10 +1007,12 @@
         var kb_form =  document.getElementById("kb_form");
         var selected_kbs = []
         kb_form.onsubmit = function() {
+            console.log("submitted")
             var slider = document.getElementById("myRange");
             var threshold=slider.value
-            var kb_select = document.getElementById("kb_list");
+            var kb_select = document.getElementsByClassName('messageCheckbox');
             selected_kbs = getSelectValues(kb_select);
+            console.log("selected kbs: "+selected_kbs)
             filterKBs(selected_kbs)
             console.log("KB filter threshold: "+threshold)
             filterEdges(threshold)
@@ -885,9 +1023,19 @@
          kb_reset_button.onclick = function() {
             var slider = document.getElementById("myRange");
             var threshold=slider.value
-            var elements = document.getElementById("kb_list").options;
+            var elements = document.getElementsByClassName('messageCheckbox');
             for(var i = 0; i < elements.length; i++){
-              elements[i].selected = false;
+              elements[i].checked = false;
+            }
+            var elements = document.getElementsByClassName('allCheckbox');
+            for(var i = 0; i < elements.length; i++){
+              var ele=elements[i]
+              ele.checked = false;
+            }
+            var elements = document.getElementsByClassName('allLabel');
+            for(var i = 0; i < elements.length; i++){
+              var ele=elements[i]
+              ele.innerHTML = "Select all";
             }
              console.log("reset selected KBs")
             selected_kbs = []
@@ -1248,7 +1396,7 @@
         function show_direct(show=true) {
             var slider = document.getElementById("myRange");
             var input_qty = document.getElementById("quantity");
-            console.log("direct kb list: "+kb_list);
+            console.log("direct kb list: "+selected_kbs);
             
             if (show) {
                 cy.edges().filter("[display = 'none']").style("display", "element")

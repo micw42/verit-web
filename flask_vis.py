@@ -307,7 +307,7 @@ def go_home():
 def getNodes():
     # with open("outputs/Adjacency.csv") as fp:
     #     csv = fp.read()
-    df = pd.read_csv("query_nodes.csv")
+    df = pd.read_csv("query_nodes_cleaned.csv")
     resp = make_response(df.to_csv())
     resp.headers["Content-Disposition"] = "attachment; filename=query_nodes.csv"
     resp.headers["Content-Type"] = "text/csv"
@@ -317,7 +317,7 @@ def getNodes():
 def getEdges():
     # with open("outputs/Adjacency.csv") as fp:
     #     csv = fp.read()
-    df = pd.read_csv("query_edges.csv")
+    df = pd.read_csv("query_edges_cleaned.csv")
     resp = make_response(df.to_csv())
     resp.headers["Content-Disposition"] = "attachment; filename=query_edges.csv"
     resp.headers["Content-Type"] = "text/csv"

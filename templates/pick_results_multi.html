@@ -240,7 +240,7 @@
                 {% set pr = '%0.4f' | format(id_dict[id][0][1]|float) %}
                 {% set label = id + " (" + pr|string + ")" %}
                 <input type="checkbox" name={{ query }} value={{ id }} /> {{label}}
-                {% if name_list[0][1] < 0 %} <span>&#9888;</span>
+                {% if name_list[0][1] < 0.05 %} <span>&#9888;</span>
                     {% endif %}
                     {% set len = name_list|length %}
 

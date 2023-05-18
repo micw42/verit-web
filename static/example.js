@@ -56,27 +56,7 @@ var cy = cytoscape({
             }
           });
 
-        cy.on('mouseover', 'node', function (evt) {
-            var sel = evt.target;
-            console.log(sel.degree());
-            sel.addClass('large');
-            var neighbors = sel.outgoers().union(sel.incomers());
-            cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
-            cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp");
-        });
-
-        cy.on('mouseout', 'node', function (evt) {
-            var sel = evt.target;
-            sel.removeClass('large');
-            var neighbors = sel.outgoers().union(sel.incomers());
-            cy.nodes().difference(neighbors).not(sel).removeClass('semitransp');
-            cy.edges().difference(sel.edgesWith(neighbors)).removeClass("semitransp");
-        });
-        
-          cy.on('click', 'edge', function (evt) {
-            var sel = evt.target;
-            console.log("clicked " + sel.id());
-          });
+ 
           cy.maxZoom(.1);
           cy.minZoom(0.01);
 
@@ -138,29 +118,7 @@ var cy = cytoscape({
 
             }
           });
-        cy2.on('mouseover', 'node', function (evt) {
-            var sel = evt.target;
-            console.log(sel.degree());
-            sel.addClass('large');
-            var neighbors = sel.outgoers().union(sel.incomers());
-            cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
-            cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp");
-        });
-
-        cy2.on('mouseout', 'node', function (evt) {
-            var sel = evt.target;
-            sel.removeClass('large');
-            var neighbors = sel.outgoers().union(sel.incomers());
-            cy.nodes().difference(neighbors).not(sel).removeClass('semitransp');
-            cy.edges().difference(sel.edgesWith(neighbors)).removeClass("semitransp");
-        });
-        
-          cy2.on('click', 'edge', function (evt) {
-            var sel = evt.target;
-            console.log("clicked " + sel.id());
-              console.log("zoom "+cy2.zoom());
-          });
-
+      
           cy2.maxZoom(.5);
           cy2.minZoom(.01);
 
