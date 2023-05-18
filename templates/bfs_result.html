@@ -38,7 +38,7 @@
         position: absolute;
         top: 0px;
         left: 0px;
-        background: #4a4a4a;
+        background: #a6a6a6;
         z-index: -1;
         }
         .modal {
@@ -182,7 +182,7 @@
                 <h6>Filter by thickness:</h6>
                 <input type="range" min="1" value="1" class="slider" id="myRange" style="width:50%;margin-left:20px">
                 <form action="#" id="input_thickness" style="display:inline;">
-                    <input type="number" id="quantity" min="1" style="width:15%">
+                    <input type="number" id="quantity" min="1" style="width:15%" value="1">
                     <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
                 </form>
 
@@ -230,8 +230,8 @@
             
             <div style="padding-left:20px">
                 <h6>Change Layout:</h6>
-                <select id="layout-button" onchange="run_switch_layout()" class="btn btn-primary"
-                    style="background-color:#4CAF50;margin-left:20px">
+                <select id="layout-button" onchange="run_switch_layout()" class="form-select"
+                    style="margin-left:20px;width:20%;">
                     <option value="CiSE">CiSE</option>
                     <option value="fCose">fCose</option>
                     <option value="Circle">Circle</option>
@@ -275,14 +275,15 @@
             </div>
             
             <div style="padding-left:20px">
-                <h6 style="margin-right:20px;">Direct neighbors:</h6>
-
-                <div class="form-check form-switch" style="margin-left:20px;display:inline;">
-                    <input class="form-check-input" type="checkbox" role="switch" id="direct-button" onchange="run_show_direct()" style="display:inline">
-                    <label class="form-check-label" for="direct-button" style="display:inline">Show direct neighbors with thickness > 20</label>
-                </div>
-                <p style="color:grey;margin-left:20px;">Description: Toggle showing direct neighbors to the query nodes</p>
                 
+                <h6 style="margin-right:5px;display:inline;">Direct neighbors:</h6>
+
+                <div class="form-check form-switch" style="display:inline;">
+                    <input class="form-check-input" type="checkbox" role="switch" id="direct-button" onchange="run_show_direct()" style="display:inline">
+                    <label class="form-check-label" for="direct-button" style="display:inline"></label>
+                </div>
+                <p style="color:grey;">Description: Toggle showing direct neighbors to the query nodes</p>
+
                 <ul class="nav">
                     <li style="display:inline">
                         <div class="loading" id="direct_loading"></div>
@@ -319,7 +320,7 @@
         <div id="myModal" class="modal">
             <div class="modal-content" style="height:90%;">
                 <span class="close">&times;</span>
-                <div class="modal-header text-center" style="background-color:#c7c5c5;height:100px">
+                <div class="modal-header text-center" style="background-color:#a6a6a6;height:100px">
                     
                     <svg  xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
                         <g>
@@ -1241,14 +1242,10 @@
                     cy.nodes().filter("[display = 'none']").style("display", "none")
                     slider.max = queryMax
                     input_qty.max = queryMax
-                }  
+                }
                 threshold = output.innerHTML
-                console.log("Edge filter threshold: "+threshold)
-                filterEdges(threshold);
-                filterKBs(selected_kbs)
-                output.innerHTML = threshold;
-                slider.value=threshold;
-                input_qty.value=threshold;
+                console.log("Edge filter threshold: " + threshold)
+
                 rerun_layout();
                             
                 //rerun_layout();
