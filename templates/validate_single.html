@@ -1,10 +1,6 @@
 {% extends "validate.html" %}
 {% block type %}Single Query
-<h4>Directions:</h4>
-        <ol>
-          <li>Enter a single gene symbol</li>
-          <li>Specify depth: 1 for query's direct neighbors. >1 for recursion (Neighbor's neighbors, etc.).</li>
-        </ol>{% endblock %}
+{% endblock %}
 
 {% block instructions %}
 Enter query:
@@ -13,4 +9,11 @@ Enter query:
 {% endblock %}
 
 {% block field %}<input type="text" name="query" style="width:670px;height:30px;font-size:20px"/>
+<select name="queryType" id="cars" style="width:180px;height:30px;font-size:15px" onchange="showPR()">
+          <option value="starts_with">Name starts with</option>
+          <option value="ends_with">Name ends with</option>
+          <option value="contains">Name contains</option>
+          <option value="id">ID</option>
+          <option value="gene" selected="selected">Official gene symbol</option>
+        </select>
 {% endblock %}

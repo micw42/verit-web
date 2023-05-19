@@ -1,53 +1,49 @@
 <!doctype html>
-
 <html lang="en">
 
-<head>
-    <meta charset="utf-8">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-    <script type=text/javascript>
-      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js"></script>
-    <script src="https://unpkg.com/layout-base@1.0.2/layout-base.js"></script>
-    <script src="https://unpkg.com/avsdf-base/avsdf-base.js"></script>
-    <script src="https://unpkg.com/cose-base@1.0.3/cose-base.js"></script>
-    <script src="https://unpkg.com/cytoscape-graphml/cytoscape-graphml.js"></script>
-    <script src="https://raw.githack.com/iVis-at-Bilkent/cytoscape.js-layvo/unstable/cytoscape-layvo.js"></script>
-    <script src="{{url_for('static', filename='cytoscape.js-cise/cytoscape-cise.js')}}"></script>
-    <script src="{{url_for('static', filename='cytoscape-no-overlap/cytoscape-no-overlap.js')}}"></script>
-
-    <script src="https://unpkg.com/layout-base/layout-base.js"></script>
-    <script src="https://unpkg.com/cose-base/cose-base.js"></script>
-    <script src="https://unpkg.com/cytoscape-fcose/cytoscape-fcose.js"></script>
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <!-- CSS only -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
-    <!-- JavaScript Bundle with Popper -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
-     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
-    <script src="https://unpkg.com/layout-base/layout-base.js"></script>
-<script src="https://unpkg.com/cose-base/cose-base.js"></script>
-    <title>Result</title>
-</head>
     
-
-<style>
-    #cy {
+    <head>
+        <meta charset="utf-8">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script type=text/javascript>
+            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js"></script>
+        <script src="https://unpkg.com/layout-base@1.0.2/layout-base.js"></script>
+        <script src="https://unpkg.com/avsdf-base/avsdf-base.js"></script>
+        <script src="https://unpkg.com/cose-base@1.0.3/cose-base.js"></script>
+        <script src="https://unpkg.com/cytoscape-graphml/cytoscape-graphml.js"></script>
+        <script src="https://raw.githack.com/iVis-at-Bilkent/cytoscape.js-layvo/unstable/cytoscape-layvo.js"></script>
+        <script src="{{url_for('static', filename='cytoscape.js-cise/cytoscape-cise.js')}}"></script>
+        <script src="{{url_for('static', filename='cytoscape-no-overlap/cytoscape-no-overlap.js')}}"></script>
+        <script src="https://unpkg.com/layout-base/layout-base.js"></script>
+        <script src="https://unpkg.com/cose-base/cose-base.js"></script>
+        <script src="https://unpkg.com/cytoscape-fcose/cytoscape-fcose.js"></script>
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+            integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <!-- CSS only -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+        <!-- JavaScript Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+        <script src="https://unpkg.com/layout-base/layout-base.js"></script>
+        <script src="https://unpkg.com/cose-base/cose-base.js"></script>
+        <title>Result</title>
+    </head>
+    <style>
+        #cy {
         width: 100%;
         height: 100%;
         position: absolute;
         top: 0px;
         left: 0px;
-        background: #4a4a4a;
+        background: #a6a6a6;
         z-index: -1;
-    }
-
-    .modal {
+        }
+        .modal {
         display: none;
         /* Hidden by default */
         position: fixed;
@@ -68,357 +64,329 @@
         /* Fallback color */
         background-color: rgba(0, 0, 0, 0.4);
         /* Black w/ opacity */
-    }
-
-    /* Modal Content */
-    .modal-content {
+        }
+        /* Modal Content */
+        .modal-content {
         background-color: #fefefe;
         margin: auto;
         padding: 20px;
         border: 1px solid #888;
         width: 80%;
         font-family: Arial, Helvetica, sans-serif;
-    }
-
-    .modal-body {
+        }
+        .modal-body {
         max-height: calc(100vh - 210px);
         overflow-y: auto;
-    }
-    
-    .circle {
-    width: 300px;
-    height: 200px;
-    line-height: 200px;
-    border-radius: 50%;
-    font-size: 12px;
-    color: #000;
-    text-align: top;
-    background: #000
-    }
-    
+        }
+        .circle {
+        width: 300px;
+        height: 200px;
+        line-height: 200px;
+        border-radius: 50%;
+        font-size: 12px;
+        color: #000;
+        text-align: top;
+        background: #000
+        }
         .loader {
-  border: 5px solid #f3f3f3;
-  border-radius: 50%;
-  border-top: 5px solid #4CAF50;
-  width: 25px;
-  height: 25px;
-  animation: spin 2s linear infinite;
-  opacity: 0;
-    }
-    
-    .loading {
+        border: 5px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 5px solid #4CAF50;
+        width: 25px;
+        height: 25px;
+        animation: spin 2s linear infinite;
+        opacity: 0;
+        }
+        .loading {
         color:#4CAF50
-    }
-
-    .loader.show {
-      opacity: 1;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* The Close Button */
-    .close {
+        }
+        .loader.show {
+        opacity: 1;
+        }
+        @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+        }
+        /* The Close Button */
+        .close {
         color: #aaaaaa;
         float: right;
         font-size: 28px;
         font-weight: bold;
-    }
-
-    .close:hover,
-    .close:focus {
+        }
+        .close:hover,
+        .close:focus {
         color: #000;
         text-decoration: none;
         cursor: pointer;
-    }
-
-    #menuDiv {
+        }
+        #menuDiv {
         padding: 0px 20px 20px 0px
-    }
-
-    #posEv {
+        }
+        #posEv {
         float: left;
         padding-right: 20px;
         width: 33%;
         font-size: large;
-    }
-
-    #negEv {
+        }
+        #negEv {
         float: left;
         width: 33%;
         padding-right: 20px;
         font-size: large;
-    }
-
-    #incEv {
+        }
+        #incEv {
         float: right;
         width: 33%;
         font-size: large;
-    }
-
-    #posThickness {
+        }
+        #posThickness {
         float: left;
         width: 33%;
-    }
-
-    #negThickness {
+        padding-bottom: 10px;
+        }
+        #negThickness {
         float: left;
         width: 33%;
-    }
-
-    #incThickness {
+        padding-bottom: 10px;
+        }
+        #incThickness {
         float: right;
         width: 33%;
-    }
-    dl{height:200px;}
-    dl{overflow:hidden; overflow-y:scroll;}
-    ul {
-  list-style: none;
-}
+        padding-bottom: 10px;
+        }
+        dl{height:200px;}
+        dl{overflow:hidden; overflow-y:scroll;}
+        ul {
+        list-style: none;
+        }
+
 </style>
 
 
-<body>
-    <div id="floatParent">
-    <div id="cy"></div>
 
-    <div class="w3-sidebar w3-bar-block w3-border-right" style="width:15%;float:left;" id="mySidebar">
-    <button onclick="w3_close()" class="w3-bar-item w3-large">Close &times;</button>
-        <form id="queryForm" method="POST" action="{{ url_for('go_home') }}">
-            <h6><input class="w3-bar-item w3-button" style="color:#4CAF50" type="submit" value="Return to Homepage" />
-            </h6>
-        </form>
-        
-                <div>
-        <h6 style="padding-left:10px">Click on connections between nodes to see the evidence for that connection.</h6><br>
-        <h6 style="padding-left:10px">Mouseover nodes to see only the nodes that the node directly targets.</h6><br>
-        <h6 style="padding-left:10px"> Red represents down regulation, blue represents up regulation, and white represents inconclusive
-            interactions. For more information on the color-coding, see the README. </h6><br>
-        <h6 style="padding-left:10px">
-        Note: The NLP algorithm does not detect interaction type with perfect accuracy.
-                    </h6>
-                    
-        </div><br>
-        <div style="padding-left:10px">
-            <a href="/getNodes">Export nodes table</a>
-            <br>
-            <a href="/getEdges">Export edges table</a>
-        </div>
+    <body>
 
-        <br>
-        <h6 style="padding-left:10px">Filter by thickness:</h6>
-
-        <div style="padding-left:10px" class="slidecontainer">
-            <input type="range" min="1" value="1" class="slider" id="myRange">
-            <form action="#" id="input_thickness">
-                Enter thickness threshold: <input type="number" id="quantity" min="1">
-                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
+        <div id="floatParent">
+        <div id="cy"></div>
+        <div class="w3-sidebar w3-bar-block w3-border-right" style="display:block;width:30%" id="mySidebar">
+            <button onclick="w3_close()" class="w3-bar-item w3-large">Close &times;</button>
+            <form id="queryForm" method="POST" action="{{ url_for('go_home') }}">
+                <p><input class="w3-bar-item w3-button w3-border-bottom" style="color:#4CAF50;" type="submit" value="Return to Homepage" /></p>
             </form>
-            <p>Minimum edge thickness: <span id="demo" value=1>1</span></p>
-            <ul class="nav">
-                <li style="display:inline">
-                    <div class="loading" id="filter_loading"></div>
-                </li>
-                <li style="display:inline">
-                    <div id="filter_loader" class="loader"></div>
-                </li>
-            </ul>
-        </div>
-        
-        <div style="padding-left:10px;" class="slidecontainer">
-        <form  id="kb_form" action="#">
-                    <h6>Filter by knowledge base:</h6>
-            <dl style="border:1px solid black;width: fit-content;">
-    <dt>Genes/proteins</dt>
-    <dd>
-        <ul style="padding-left:0;padding-bottom:0;margin-bottom:0">
-            <li >
-                <input class="allCheckbox" id="all_prot" value="all_prot" type="checkbox" />
-                <label class="allLabel" for="all_prot">Select all</label>
-            </li>   
-        </ul>
-        <ul style="padding-top:0;margin-top:0">
-            <li>
-                <input class="messageCheckbox" id="uniprot" value="uniprot" type="checkbox"/>
-                <label for="uniprot">Uniprot</label>
-            </li>    
-            <li>
-                <input class="messageCheckbox" id="fplx" value="fplx" type="checkbox" />
-                <label for="fplx">FamPlex</label>
-            </li>  
-            <li>
-                <input class="messageCheckbox" id="PR" value="PR" type="checkbox" />
-                <label for="PR">PR</label>
-            </li>  
-            <li>
-                <input class="messageCheckbox" id="interpro" value="interpro" type="checkbox" />
-                <label for="interpro">Interpro</label>
-            </li>  
-            <li>
-                <input class="messageCheckbox" id="pfam" value="pfam" type="checkbox" />
-                <label for="pfam">Protein Families</label>
-            </li>  
-        </ul>
-    </dd>
-    <dt>Chemicals</dt>
-    <dd>
-                <ul style="padding-left:0;padding-bottom:0;margin-bottom:0">
-            <li >
-                <input class="allCheckbox" id="all_chem" value="all_chem" type="checkbox" />
-                <label class="allLabel" for="all_prot">Select all</label>
-            </li>   
-        </ul>
-        <ul style="padding-top:0;margin-top:0">
-             <li>
-                <input class="messageCheckbox" id="CHEBI" value="CHEBI" type="checkbox" />
-                <label for="CHEBI">CHEBI</label>
-            </li>    
-            <li>
-                <input class="messageCheckbox" id="pubchem" value="pubchem" type="checkbox" />
-                <label for="pubchem">PubChem</label>
-            </li>  
-        </ul>
-    </dd>
-    <dt>Cellular events</dt>
-    <dd>
-        <ul>
-             <li>
-                <input class="messageCheckbox" id="GO" value="GO" type="checkbox" />
-                <label for="GO">Gene Ontology</label>
-            </li>    
-        </ul>
-    </dd>
-    <dt>Diseases</dt>
-    <dd>
-        <ul>
-             <li>
-                <input class="messageCheckbox" id="mesh" value="mesh" type="checkbox" />
-                <label for="mesh">Mesh</label>
-            </li>    
-        </ul>
-    </dd>
-</dl>
-        
-            <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
-        </form>
-                    <button id="kb_reset_button" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Reset</button>
-        </div>
-
-        <br>
-        
-    
-        
-        <div style="padding-left:10px">
-            <h6>Change Layout.</h6>
-            <select id="layout-button" onchange="run_switch_layout()" class="btn btn-primary"
-                style="background-color:#4CAF50;padding-left:10px">
-                <option value="CiSE">CiSE</option>
-                <option value="fCose">fCose</option>
-                <option value="Circle">Circle</option>
-                <option value="Grid">Grid</option>
-                
-            </select>
-                                    <ul class="nav">
-                <li style="display:inline">
-                    <div class="loading" id="layout_loading"></div>
-                </li>
-                <li style="display:inline">
-                    <div id="layout_loader" class="loader"></div>
-                </li>
-            </ul>
-            
-            <div style="padding-left:10px;display:none" class="slidecontainer" id="fCose_settings">
-                Adjust node repulsion: <input type="range" min="3" max="18" value="9" class="slider" id="nr_slider">
-                 <p>Current node repulsion: <span id="cur_nr"></span></p>
-            <ul class="nav">
-                <li style="display:inline">
-                    <div class="loading" id="nr_loading"></div>
-                </li>
-                <li style="display:inline">
-                    <div id="nr_loader" class="loader"></div>
-                </li>
-            </ul>
-        </div> <br>
-            <div style="padding-left:10px" class="slidecontainer" id="cise_settings">
-                Adjust node repulsion: <input type="range" min="3" max="18" value="3" class="slider" id="cise_nr_slider">
-                 <p>Current node repulsion: <span id="cise_cur_nr"></span></p>
-            <ul class="nav">
-                <li style="display:inline">
-                    <div class="loading" id="nr_loading"></div>
-                </li>
-                <li style="display:inline">
-                    <div id="nr_loader" class="loader"></div>
-                </li>
-            </ul>
-        </div>
-            
-         <h6>Toggle between showing and hiding direct neighbors.</h6>
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" role="switch" id="direct-button" onchange="run_show_direct()">
-              <label class="form-check-label" for="direct-button">Show direct neighbors with thickness > 20</label>&nbsp;<i class="fa fa-question-circle" aria-hidden="true" title="Direct neighbors are nodes directly connected to a node by 1 edge." style="cursor:pointer"></i>
+            <div style="padding:20px;padding-top:0px">
+                <h2 style="padding-bottom:10px;">Details</h2>
+                <h6>
+                    Click on connections between nodes to see the evidence for that connection. <br> <br>
+                    Mouseover nodes to see only the nodes that the node directly targets. <br> <br>
+                    Red, blue, and white edges indicate down, up, and inconclusive relationships, respectively.
+                    Details found in README. <br> <br>
+                    Click the <span class=".reload;">&#x21bb;</span> icon to reload the visualization after making
+                    adjustments.
+                </h6>
             </div>
-             <ul class="nav">
-                <li style="display:inline">
-                    <div class="loading" id="direct_loading"></div>
-                </li>
-                <li style="display:inline">
-                    <div id="direct_loader" class="loader"></div>
-                </li>
-            </ul>
-        
-       <div style="padding-left:10px">
-            <h6>Search for a node.</h6>
-            <form action="#" id="node_search">
-                Enter name: <input type="text" id="node_name">
-                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Submit</button>
-            </form>
-           <p>Current query: <span id="current_query">None</span></p>
-           <button id="reset" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;padding-left:10px">Reset graph</button>
+            
+            <hr>
+            
+            <div style="padding-left:20px;padding-bottom:20px" class="slidecontainer">
+                <h2 style="padding-bottom:10px;">Parameters</h2>
+                <h6>Filter by thickness:</h6>
+                <input type="range" min="1" value="1" class="slider" id="myRange" style="width:50%;margin-left:20px">
+                <form action="#" id="input_thickness" style="display:inline;">
+                    <input type="number" id="quantity" min="1" style="width:15%" value="1">
+                    <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
+                </form>
+
+                <ul class="nav">
+                    <li style="display:inline">
+                        <div class="loading" id="filter_loading"></div>
+                    </li>
+                    <li style="display:inline">
+                        <div id="filter_loader" class="loader"></div>
+                    </li>
+                </ul>
+            </div>
+            
+            
+            <div style="padding-left:20px;padding-bottom:20px">
+                <h6>Search for a node:</h6>
+                <form action="#" id="node_search" style="display:inline;">
+                    <input type="text" id="node_name" style="width:66%;margin-left:20px;">
+                    <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
+                </form>
+                <button id="reset" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;"><span class=reload>&#171;</span></button>
+                <p style="color:grey;margin-left:20px;">(Current search: <span id="current_query">None</span>)</p>
+            </div>
+
+            
+            <div style="padding-left:10px;" class="slidecontainer">
+                <form  id="kb_form" action="#" >
+                    <h6>Filter by knowledge base:</h6>
+                    <div style="width:75%;margin-left:20px;display: flex;align-items: flex-end;justify-content: space-between;gap:5px">
+                        <dl style="border:1px solid black;width:98%;padding-right:100px">
+                            <dt>Genes/proteins</dt>
+                        <dd>
+                            <ul style="padding-left:0;padding-bottom:0;margin-bottom:0">
+                                <li >
+                                    <input class="allCheckbox" id="all_prot" value="all_prot" type="checkbox" />
+                                    <label class="allLabel" for="all_prot">Select all</label>
+                                </li>   
+                            </ul>
+                            <ul style="padding-left:2;padding-top:0;margin-top:0;padding-bottom:0">
+                                <li>
+                                    <input class="messageCheckbox" id="uniprot" value="uniprot" type="checkbox" style="float: left;"/>
+                                    <label for="uniprot">Uniprot</label>
+                                </li>    
+                                <li>
+                                    <input class="messageCheckbox" id="fplx" value="fplx" type="checkbox" />
+                                    <label for="fplx">FamPlex</label>
+                                </li>  
+                                <li>
+                                    <input class="messageCheckbox" id="PR" value="PR" type="checkbox" />
+                                    <label for="PR">PR</label>
+                                </li>  
+                                <li>
+                                    <input class="messageCheckbox" id="interpro" value="interpro" type="checkbox" />
+                                    <label for="interpro">Interpro</label>
+                                </li>  
+                                <li>
+                                    <input class="messageCheckbox" id="pfam" value="pfam" type="checkbox" />
+                                    <label for="pfam">Pfam</label>
+                                </li>  
+                            </ul>
+                        </dd>
+                        <dt>Chemicals</dt>
+                            <dd>
+                                <ul style="padding-left:0;padding-bottom:0;margin-bottom:0;padding-top:0">
+                                    <li >
+                                        <input class="allCheckbox" id="all_chem" value="all_chem" type="checkbox" />
+                                        <label class="allLabel" for="all_prot">Select all</label>
+                                    </li>   
+                                </ul>
+                                <ul style="padding-top:0;margin-top:0;margin-bottom:0;">
+                                    <li>
+                                        <input class="messageCheckbox" id="CHEBI" value="CHEBI" type="checkbox" />
+                                        <label for="CHEBI">CHEBI</label>
+                                    </li>    
+                                    <li>
+                                        <input class="messageCheckbox" id="pubchem" value="pubchem" type="checkbox" />
+                                        <label for="pubchem">PubChem</label>
+                                    </li>  
+                                </ul>
+                            </dd>
+                        <dt>Cellular events</dt>
+                            <dd>
+                                <ul style="padding-bottom:0;margin-bottom:0;padding-top:0">
+                                    <li>
+                                        <input class="messageCheckbox" id="GO" value="GO" type="checkbox" />
+                                        <label for="GO">GO</label>
+                                    </li>    
+                                </ul>
+                            </dd>
+                        <dt>Diseases</dt>
+                            <dd>
+                                <ul style="padding-bottom:0;margin-bottom:0;padding-top:0">
+                                    <li>
+                                        <input class="messageCheckbox" id="mesh" value="mesh" type="checkbox" />
+                                        <label for="mesh">Mesh</label>
+                                    </li>    
+                                </ul>
+                            </dd>
+                        </dl>
+                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px"><span class=reload>&#x21bb;</span></button>
+                </div>
+</form>
         </div>
-    </div>
-    </div>
+            
+            
+            <div style="padding-left:20px">
+                <h6>Change Layout:</h6>
+                <select id="layout-button" onchange="run_switch_layout()" class="form-select"
+                    style="margin-left:20px;width:20%;">
+                    <option value="CiSE">CiSE</option>
+                    <option value="fCose">fCose</option>
+                    <option value="Circle">Circle</option>
+                    <option value="Grid">Grid</option>
+                </select>
+                <ul class="nav">
+                    <li style="display:inline">
+                        <div class="loading" id="layout_loading"></div>
+                    </li>
+                    <li style="display:inline">
+                        <div id="layout_loader" class="loader"></div>
+                    </li>
+                </ul>
+                
+                <div style="padding-left:20px;display:none" class="slidecontainer" id="fCose_settings">
+                    Adjust node repulsion: <input type="range" min="3" max="18" value="9" class="slider" id="nr_slider">
+                    <p>Current node repulsion: <span id="cur_nr"></span></p>
+                    <ul class="nav">
+                        <li style="display:inline">
+                            <div class="loading" id="nr_loading"></div>
+                        </li>
+                        <li style="display:inline">
+                            <div id="nr_loader" class="loader"></div>
+                        </li>
+                    </ul>
+                </div>
+                                
+                <div style="padding-left:20px" class="slidecontainer" id="cise_settings">
+                    Node repulsion: <input type="range" min="3" max="18" value="3" class="slider" id="cise_nr_slider" style="display:inline;">
+                    <p style="display:inline;"><span id="cise_cur_nr"></span></p>
+                    <p style="color:grey;margin-right:20px">Description: parameter for adjusting internodal distance.</p>
+                    <ul class="nav">
+                        <li style="display:inline">
+                            <div class="loading" id="nr_loading"></div>
+                        </li>
+                        <li style="display:inline">
+                            <div id="nr_loader" class="loader"></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="padding-left:20px">
+                
+                <h6 style="margin-right:5px;display:inline;">Direct neighbors:</h6>
 
-    <script>
-        function w3_open() {
-            document.getElementById("mySidebar").style.display = "block";
-        }
+                <div class="form-check form-switch" style="display:inline;">
+                    <input class="form-check-input" type="checkbox" role="switch" id="direct-button" onchange="run_show_direct()" style="display:inline">
+                    <label class="form-check-label" for="direct-button" style="display:inline"></label>
+                </div>
+                <p style="color:grey;">Description: Toggle showing direct neighbors to the query nodes</p>
 
-        function w3_close() {
-            document.getElementById("mySidebar").style.display = "none";
-        }
-        
-$("optgroup").on("click", function() {
-    if($(this).children("option").is(':selected')) {
-        $(this).children("option").prop("selected", false);
-    } else {
-        $(this).children("option").prop("selected", "selected");
-    } 
-});
-        
-        
-        $("option").on("click", function() {
-            if($(this).is(':selected')) {
-                $(this).prop("selected", false);
-            } else {
-                $(this).prop("selected", "selected");
+                <ul class="nav">
+                    <li style="display:inline">
+                        <div class="loading" id="direct_loading"></div>
+                    </li>
+                    <li style="display:inline">
+                        <div id="direct_loader" class="loader"></div>
+                    </li>
+                </ul>
+            </div>
+            
+            <hr>
+            
+            <div style="padding:20px;padding-top:0px;text-align:center">
+                <h6>
+                    Note: Inaccuracies should be expected due to errors in the NLP.
+                </h6> <br>
+
+                <a href="/getNodes" style="padding-right:20px;">Export nodes (.tsv)</a>
+                <a href="/getEdges">Export edges (.tsv)</a>
+            </div>
+            
+        </div>
+        <script>
+            function w3_open() {
+                document.getElementById("mySidebar").style.display = "block";
             }
-        }); 
-        
-        $("dt")
-    .css("cursor","pointer")
-    .on("click", function(){
-        var $el = $(this).next();
-        var $checks = $el.find(":checkbox");
-        if($checks.is(":not(:checked)")){
-            $checks.attr("checked",true); 
-        }else{
-            $checks.attr("checked",false); 
-        }
-});
-        
-        $('.allCheckbox').change(function(event) {  
+            
+            function w3_close() {
+                document.getElementById("mySidebar").style.display = "none";
+            }
+            
+                    $('.allCheckbox').change(function(event) {  
             var proteins = ["uniprot", "fplx", "PR", "interpro", "pfam"]
             var chemicals = ["pubchem", "CHEBI"]
             console.log("checked box")
@@ -458,540 +426,517 @@ $("optgroup").on("click", function() {
                 }
             }
         }); 
-    </script>
-    
+        </script>
+        <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
 
-    <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
-    <div id="myModal" class="modal">
+        <div id="myModal" class="modal">
+            <div class="modal-content" style="height:90%;">
+                <span class="close">&times;</span>
+                <div class="modal-header text-center" style="background-color:#a6a6a6;height:150px">
+                    
+                    <svg  xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+                        <g>
+                            <circle id="source" cx="230" cy="80" r="30" />
+                            <text id="source_lab" x="230" y="80" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <text id="source_id" x="230" y="120" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                        </g>
+                    </svg>
+                                        
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 100">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                                refX="0" refY="3.5" orient="auto">
+                                <polygon id="triangle" points="0 2, 8 3.5, 0 5" />
+                            </marker>
+                        </defs>
+                        
+                        <text id="line_lab" dominant-baseline="central" text-anchor="middle" x="138" y="40" font-family="Verdana" font-size="12" fill="black"></text>
+                        
+                        <line id="line" x1="10" y1="60" x2="270" y2="60" stroke="#000" 
+                            stroke-width="8" marker-end="url(#arrowhead)" />
+                    </svg>
+                    
+                    
+                    <svg  xmlns="http://www.w3.org/2000/svg" style="overflow: visible">
+                        <g>
+                            <circle id="target" cx="70" cy="80" r="30" />
+                            <text id="target_lab" x="70" y="80" dominant-baseline="central" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <text id="target_id" x="70" y="120" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                        </g>
+                    </svg>
 
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <div class="modal-header text-center" style="background-color: #c7c5c5;">
-                <svg  xmlns="http://www.w3.org/2000/svg" style="overflow: visible">
-  <g>
-    <circle id="source" cx="150" cy="80" r="90" />
-    <text id="source_lab" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
-      <text id="source_id" x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
-  </g>
-</svg>
-                
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 100">
-  <defs>
-    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-    refX="0" refY="3.5" orient="auto">
-      <polygon id="triangle" points="0 2, 8 3.5, 0 5" />
-    </marker>
-  </defs>
-  <line id="line" x1="10" y1="50" x2="270" y2="50" stroke="#000" 
-  stroke-width="8" marker-end="url(#arrowhead)" />
-</svg>
-    <svg  xmlns="http://www.w3.org/2000/svg" style="overflow: visible">
-      <g>
-        <circle id="target" cx="150" cy="80" r="90" />
-        <text id="target_lab" x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
-          <text id="target_id" x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
-      </g>
-    </svg>
+                    
+                </div>
+                <div id="modalBody" class="modal-body">
+                    <h1 id="thickness" style="font-family: Arial, Helvetica, sans-serif"></h1>
+                    <h2 id="posThickness"></h2>
+                    <h2 id="negThickness"></h2>
+                    <h2 id="incThickness"></h2>
+                    <div id="posEv"></div>
+                    <div id="negEv"></div>
+                    <div id="incEv"></div>
+                </div>
             </div>
+        </div>
+
+        <div id="synModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div class="modal-header">
+                    <h1 id="synLabel" style="font-family: Arial, Helvetica, sans-serif">Synonyms:</h1>
+                    <button id="markovButton" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Get Markov neighbors</button>
+                </div>
+                <div id="modalBody" class="modal-body">
+                    <h2 id="synList"></h2>
+                </div>
+            </div>
+        </div>
+        <div id="warnModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="modalBody" class="modal-body">
+                    <h2>Your query generated a large graph, so only edges with thickness > 20 are included</h2>
+                </div>
+            </div>
+        </div>
+
+
+        <script src="{{url_for('static', filename='bfs_vis_functions.js')}}"></script>
+        <script>
+            const data = {{ elements | tojson }};
+            var cy = cytoscape({
+                wheelSensitivity: 0.1,
+                container: document.getElementById('cy'),
+                elements: data,
+                boxSelectionEnabled:true,
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'label': 'data(label)',
+                            "text-valign": "center",
+                            "text-halign": "center",
+                            "background-color": "data(color)",
+                            "text-outline-color": "#555",
+                            "text-outline-width": "2px",
+                            "color": "#080707",
+                            width: function (ele) { return Math.min((Math.max(80, ele.degree() + 2) * 2), 500); },
+                            height: function (ele) { return Math.min((Math.max(80, ele.degree() + 2) * 2), 500); },
+                            "font-size": function (ele) { return Math.min((Math.log2(ele.degree() + 2) * 25), 350); },
+                            'background-fit': 'contain',
+                            'background-clip': 'none',
+                            "display": "data(display)",
+                            "display_id":"data(display_id)"
             
-            <div id="modalBody" class="modal-body">
-                <h1 id="thickness" style="font-family: Arial, Helvetica, sans-serif"></h1>
-                <h2 id="posThickness"></h2>
-                <h2 id="negThickness"></h2>
-                <h2 id="incThickness"></h2>
-                <div id="posEv"></div>
-                <div id="negEv"></div>
-                <div id="incEv"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="synModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <div class="modal-header">
-                <h1 id="synLabel" style="font-family: Arial, Helvetica, sans-serif">Synonyms:</h1>
-                <button id="markovButton" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Get Markov neighbors</button>
-            </div>
-            <div id="modalBody" class="modal-body">
-                <h2 id="synList"></h2>
-            </div>
-        </div>
-    </div>
-    
-   <div id="warnModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <div id="modalBody" class="modal-body">
-                <h2>Your query generated a large graph, so only edges with thickness > 20 are included</h2>
-            </div>
-        </div>
-    </div>
-
-
-    <script src="{{url_for('static', filename='bfs_vis_functions.js')}}"></script>
-
-    <script>
-
-        const data = {{ elements | tojson }};
-        var cy = cytoscape({
-            wheelSensitivity: 0.1,
-            container: document.getElementById('cy'),
-            elements: data,
-            boxSelectionEnabled:true,
-            style: [
-                {
-                    selector: 'node',
-                    style: {
-                        'label': 'data(label)',
-                        "text-valign": "center",
-                        "text-halign": "center",
-                        "background-color": "data(color)",
-                        "text-outline-color": "#555",
-                        "text-outline-width": "2px",
-                        "color": "#080707",
-                        width: function (ele) { return Math.min((Math.max(80, ele.degree() + 2) * 2), 500); },
-                        height: function (ele) { return Math.min((Math.max(80, ele.degree() + 2) * 2), 500); },
-                        "font-size": function (ele) { return Math.min((Math.log2(ele.degree() + 2) * 25), 350); },
-                        'background-fit': 'contain',
-                        'background-clip': 'none',
-                        "display": "data(display)",
-                        "display_id":"data(display_id)"
-
+                        },
+                        position: {
+                            x: "data(position)",
+                            y: "data(position)"
+                        }
+                    }, {
+                        selector: 'edge',
+                        style: {
+            
+                            'text-background-color': 'yellow',
+                            'text-background-opacity': 0.4,
+                            'target-arrow-shape': 'triangle',
+                            'control-point-step-size': '140px',
+                            'curve-style': 'bezier',
+                            'control-point-step-size': 300,
+                            'line-color': "#fcfafa",
+                            'target-arrow-color': '#fcfafa',
+                            "overlay-opacity": "0.1",
+                            "display": "data(display)",
+                            'width': 'data(weight)',
+                            'line-color': "data(color)",
+                            'target-arrow-color': "data(color)"
+                        }
                     },
-                    position: {
-                        x: "data(position)",
-                        y: "data(position)"
-                    }
-                }, {
-                    selector: 'edge',
-                    style: {
-
-                        'text-background-color': 'yellow',
-                        'text-background-opacity': 0.4,
-                        'target-arrow-shape': 'triangle',
-                        'control-point-step-size': '140px',
-                        'curve-style': 'bezier',
-                        'control-point-step-size': 300,
-                        'line-color': "#fcfafa",
-                        'target-arrow-color': '#fcfafa',
-                        "overlay-opacity": "0.1",
-                        "display": "data(display)",
-                        'width': 'data(weight)',
-                        'line-color': "data(color)",
-                        'target-arrow-color': "data(color)"
-                    }
-                },
-                
-                 {
-                    selector: 'node.semitransp',
-                    style: { 'opacity': '.1' }
-                },
-                {
-                    selector: 'edge.semitransp',
-                    style: { 'opacity': '.1' }
-                },
-                {
-                    selector: 'node.transp',
-                    style: {
-                        'opacity': '0',
-                        'events': 'no'
-                    }
-                },
-                {
-                    selector: 'edge.transp',
-                    style: { 'opacity': '0' }
-                },
-                {
+                    
+                     {
+                        selector: 'node.semitransp',
+                        style: { 'opacity': '.1' }
+                    },
+                    {
+                        selector: 'edge.semitransp',
+                        style: { 'opacity': '.1' }
+                    },
+                    {
+                        selector: 'node.transp',
+                        style: {
+                            'opacity': '0',
+                            'events': 'no'
+                        }
+                    },
+                    {
+                        selector: 'edge.transp',
+                        style: { 'opacity': '0',
+                               'events': 'no'}
+                    },
+                    {
+                        selector: 'node.markov',
+                        style: { 'background-color': "#26ff12" }
+                    },
+                    {
+                        selector: 'node.large',
+                        style: {
+                            'font-size': 200
+                        }
+                    },
+                    {
+                        selector: 'node.searched',
+                        style: {
+                            'background-color': "#26ff12"
+                        }
+                    },
+                    {
+                        selector: 'edge.mouseover',
+                        style: {
+                            'line-color': "#26ff12",
+                            'target-arrow-color':"#26ff12"
+                        }
+                    },
+                    {
+                        selector: 'edge.colors',
+                        style: {
+                            'line-color': "data(color)",
+                            'target-arrow-color': "data(color)"
+                        }
+                    },
+                    {
                     selector: 'node.mouseup',
                     style: { 'border-width': 10,
                       'border-color': 'yellow' }
-                },
-                {
-                    selector: 'node.markov',
-                    style: { 'background-color': "#26ff12" }
-                },
-                {
-                    selector: 'node.large',
-                    style: {
-                        'font-size': 200
-                    }
-                },
-                {
-                    selector: 'node.searched',
-                    style: {
-                        'background-color': "#26ff12"
-                    }
-                },
-                {
-                    selector: 'edge.mouseover',
-                    style: {
-                        'line-color': "#26ff12",
-                        'target-arrow-color':"#26ff12"
-                    }
-                },
-                {
-                    selector: 'edge.colors',
-                    style: {
-                        'line-color': "data(color)",
-                        'target-arrow-color': "data(color)"
-                    }
                 }
-
-            ]
-        })
             
-        run_cise()
-        
-        
-        findNode = function(arr, node) {
-            for (var i=0; i<arr.length; i++) {
-                var eles = arr[i] 
-                console.log("eles length: "+eles.length)
-                if (eles.contains(node)) {
-                    return i
-                }
-            }
-        };
-        
-        var in_clust=false
-        var non_neighbors = []
-        markov_clust = function(node) {
-            var clusters = cy.elements().filter(function(ele) {
-                return ((ele.style()["display"] != "none") && 
-                        (ele.style()["opacity"] != "0")) }).markovClustering({
-                inflateFactor:5,
-              attributes: [
-                function( edge ){ return edge.data('thickness'); }
-              ]
-            });
-            var ind = findNode(clusters, node)
-            var neighbors = clusters[ind]
-            console.log("neighbors len"+neighbors.length)
-            neighbors.addClass("markov")
-            /*
-            var new_non_neighbors = cy.elements().filter(function(ele) {
-                if (ele.isNode()) {
-                    return !(neighbors.contains(ele)) && (ele.style()["display"] != "none") && (ele.style()["opacity"] != "0")
-                } else {
-                    return !(neighbors.contains(ele.source()) & neighbors.contains(ele.target()))
-                }
+                ]
             })
-            if (non_neighbors.length==0) {
-                non_neighbors = new_non_neighbors
-            } else {
-                non_neighbors = non_neighbors.concat(new_non_neighbors)
-            }
-            if (non_neighbors.length!=0) {
-                non_neighbors.addClass("transp")
-            }
-            rerun_layout() */
-        }
-        
-        {% if filtered %}
-            const filtered = true
-        {% else %}
-            const filtered = false
-        {% endif %}
-        console.log("filtered: "+filtered)
-        if (filtered) {
-            var modal = document.getElementById("warnModal");
-            var span = document.getElementsByClassName("close")[2];
-            modal.style.display = "block";
+                
 
-            window.onclick = function (event) {
-                if (event.target == modal) {
+            run_cise()
+            
+            
+            findNode = function(arr, node) {
+                for (var i=0; i<arr.length; i++) {
+                    var eles = arr[i] 
+                    console.log("eles length: "+eles.length)
+                    if (eles.contains(node)) {
+                        return i
+                    }
+                }
+            };
+            
+            var in_clust=false
+            var non_neighbors = []
+            markov_clust = function(node) {
+                var clusters = cy.elements().filter(function(ele) {
+                    return ((ele.style()["display"] != "none") && 
+                            (ele.style()["opacity"] != "0")) }).markovClustering({
+                    inflateFactor:5,
+                  attributes: [
+                    function( edge ){ return edge.data('thickness'); }
+                  ]
+                });
+                var ind = findNode(clusters, node)
+                var neighbors = clusters[ind]
+                console.log("neighbors len"+neighbors.length)
+                neighbors.addClass("mouseup")
+            }
+            
+            {% if filtered %}
+                const filtered = true
+            {% else %}
+                const filtered = false
+            {% endif %}
+            console.log("filtered: "+filtered)
+            if (filtered) {
+                var modal = document.getElementById("warnModal");
+                var span = document.getElementsByClassName("close")[2];
+                modal.style.display = "block";
+            
+                window.onclick = function (event) {
+                    if (event.target == modal) {
+                        var modalBody = document.getElementById("modalBody");
+                        modalBody.scrollTop = 0;
+                        modal.style.display = "none";
+                    }
+                }
+            
+                span.onclick = function () {
                     var modalBody = document.getElementById("modalBody");
                     modalBody.scrollTop = 0;
                     modal.style.display = "none";
                 }
-            }
-
-            span.onclick = function () {
-                var modalBody = document.getElementById("modalBody");
-                modalBody.scrollTop = 0;
-                modal.style.display = "none";
-            }
-        } 
-        
-        var currently_querying = false
-        
-        cy.on('mouseover', 'node', function (evt) {
-            if (!currently_querying) {
-               var sel = evt.target;
-                console.log(sel.degree());
-                console.log(sel.data("KB"));
-                sel.addClass('large');
-                var neighbors = sel.outgoers().union(sel.incomers());
-                cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
-                cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp"); 
-            }
-            console.log(sel.indegree())
-        });
-        
-        cy.on('mouseover', 'edge', function (evt) {
-               var sel = evt.target;
-                if (sel.style()["opacity"] != "0") {
-                    sel.addClass('mouseover');
+            } 
+            
+            var currently_querying = false
+            
+            cy.on('mouseover', 'node', function (evt) {
+                if (!currently_querying) {
+                   var sel = evt.target;
+                    console.log(sel.degree());
+                    console.log(sel.data("KB"));
+                    sel.addClass('large');
+                    var neighbors = sel.outgoers().union(sel.incomers());
+                    cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
+                    cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp"); 
                 }
-        });
+                console.log(sel.indegree())
+            });
+            
+            cy.on('mouseover', 'edge', function (evt) {
+                   var sel = evt.target;
+                    if (sel.style()["opacity"] != "0") {
+                        sel.addClass('mouseover');
+                    }
+            });
+            
+            cy.on('mouseout', 'node', function (evt) {
+                if (!currently_querying) {
+                    var sel = evt.target;
+                    sel.removeClass('large');
+                    var neighbors = sel.outgoers().union(sel.incomers());
+                    cy.nodes().difference(neighbors).not(sel).removeClass('semitransp');
+                    cy.edges().difference(sel.edgesWith(neighbors)).removeClass("semitransp");
+                }
+            
+            });
+            
+            cy.on('mouseout', 'edge', function (evt) {
+                   var sel = evt.target;
+                    sel.removeClass('mouseover');
+            });
 
-        cy.on('mouseout', 'node', function (evt) {
-            if (!currently_querying) {
+
+                   cy.on('click', 'edge', function (evt) {
                 var sel = evt.target;
-                sel.removeClass('large');
-                var neighbors = sel.outgoers().union(sel.incomers());
-                cy.nodes().difference(neighbors).not(sel).removeClass('semitransp');
-                cy.edges().difference(sel.edgesWith(neighbors)).removeClass("semitransp");
-            }
-
-        });
-        
-       cy.on('mouseout', 'edge', function (evt) {
-               var sel = evt.target;
-                sel.removeClass('mouseover');
-        });
-
-
-        cy.on('click', 'edge', function (evt) {
-            var sel = evt.target;
-            console.log(sel.data().files);
-
-            function getEvidence() {
-                var retval;
-                $.ajaxSetup({
-                    async: false
-                });
-                $(function() {
-                  $.getJSON($SCRIPT_ROOT + '/_get_evidence', {
-                    files:sel.data().files
-                  }, function(data) {
-                      console.log(data.result);
-                      retval = data.result;
-                      return false;
-                  });
-                });
-                console.log(retval);
-                return retval;
-            }
-
-            var ev = getEvidence();
-            console.log(ev);
-
-            var modal = document.getElementById("myModal");
-            var triangle = document.getElementById("triangle");
-            var line = document.getElementById("line");
-            var src_node = document.getElementById("source");
-            var source_lab = document.getElementById("source_lab");
-            var source_id_lab = document.getElementById("source_id")
-            var tar_node = document.getElementById("target");
-            var target_lab = document.getElementById("target_lab");
-            var target_id_lab = document.getElementById("target_id")
+                console.log(sel.data().files);
             
-            var sel_source = sel.source();
-            var sel_target = sel.target();
-            
-            var source = sel_source.data().label;
-            var source_id = sel_source.data().display_id;
-            var target = sel_target.data().label;
-            var target_id = sel_target.data().display_id;
-            
-            var src_lab = "("+source_id+")"
-            var tar_lab = "("+target_id+")"
-            
-            source_lab.innerHTML = source
-            target_lab.innerHTML = target
-            source_id_lab.innerHTML = src_lab
-            target_id_lab.innerHTML = tar_lab
-            src_node.style.fill=sel.source().data().color;
-            tar_node.style.fill=sel.target().data().color;
-            triangle.style.fill = sel.data().color;
-            line.style.stroke = sel.data().color;
-            var span = document.getElementsByClassName("close")[0];
-            var thickness = document.getElementById("thickness");
-            var ev_split = ev.split("%%");
-            var ev_length = ev_split.length;
-            thickness.innerHTML = "Total mentions: " + ev_length;
-            var ul_pos = document.createElement("ul");
-            var ul_neg = document.createElement("ul");
-            var ul_inc = document.createElement("ul");
-            var negCount = 0;
-            var posCount = 0;
-            var incCount = 0;
-            for (var i = 0; i < ev_split.length; i++) {
-                // Create the list item:
-                var item = document.createElement('li');
-                var cont = document.createElement("div");
-
-                var parts = ev_split[i].split("|");
-                var text = parts[0];
-                var act = parts[1];
-
-
-                // Set its contents:
-                item.appendChild(document.createTextNode(text));
-                cont.appendChild(item)
-                if (act === "Activation (Negative)") {
-                    cont.style.color = "red";
-                    negCount = negCount += 1;
-                } else if (act === "Activation (Positive)") {
-                    cont.style.color = "blue";
-                    posCount = posCount += 1;
+                function getEvidence() {
+                    var retval;
+                    $.ajaxSetup({
+                        async: false
+                    });
+                    $(function() {
+                      $.getJSON($SCRIPT_ROOT + '/_get_evidence', {
+                        files:sel.data().files
+                      }, function(data) {
+                          console.log(data.result);
+                          retval = data.result;
+                          return false;
+                      });
+                    });
+                    console.log(retval);
+                    return retval;
                 }
-                else {
-                    cont.style.color = "black";
-                    incCount = incCount += 1;
-                }
+            
+                var ev = getEvidence();
+                console.log(ev);
+            
+                var modal = document.getElementById("myModal");
+                var triangle = document.getElementById("triangle");
+                var line = document.getElementById("line");
+                var src_node = document.getElementById("source");
+                var source_lab = document.getElementById("source_lab");
+                var tar_node = document.getElementById("target");
+                var target_lab = document.getElementById("target_lab");
+                var line_lab = document.getElementById("line_lab");
+                var source_id_lab = document.getElementById("source_id")
+                var target_id_lab = document.getElementById("target_id")
+                
+                var sel_source = sel.source();
+                var sel_target = sel.target();
+                       
+                var source = sel_source.data().label;
+                var source_id = sel_source.data().display_id;
+                var target = sel_target.data().label;
+                var target_id = sel_target.data().display_id;
 
-                cont.style.padding = "0px 0px 20px 0px";
+                var src_lab = "("+source_id+")"
+                var tar_lab = "("+target_id+")"
+
+                source_lab.innerHTML = source
+                target_lab.innerHTML = target
+                source_id_lab.innerHTML = src_lab
+                target_id_lab.innerHTML = tar_lab
+                       
+                src_node.parentNode.appendChild(source_id_lab);
+
+                <!-- Visualize clicked edge/nodes -->                
 
 
-                // Add it to the list:
-                if (act === "Activation (Positive)") {
-                    ul_pos.appendChild(cont);
-                } else if (act === "Activation (Negative)") {
-                    ul_neg.appendChild(cont);
-                } else {
-                    ul_inc.appendChild(cont);
+                src_node.style.fill = sel.source().data().color;
+
+                tar_node.style.fill = sel.target().data().color;
+                
+                triangle.style.fill = sel.data().color;
+                line.style.stroke = sel.data().color;
+
+                var span = document.getElementsByClassName("close")[0];
+                var thickness = document.getElementById("thickness");
+                var ev_split = ev.split("%%");
+                var ev_length = ev_split.length;
+                line_lab.innerHTML = "Total mentions: " + ev_length;
+
+                var ul_pos = document.createElement("ul");
+                var ul_neg = document.createElement("ul");
+                var ul_inc = document.createElement("ul");
+                var negCount = 0;
+                var posCount = 0;
+                var incCount = 0;
+                for (var i = 0; i < ev_split.length; i++) {
+                    // Create the list item:
+                    var item = document.createElement('li');
+                    var cont = document.createElement("div");
+            
+                    var parts = ev_split[i].split("|");
+                    var text = parts[0];
+                    var act = parts[1];
+            
+            
+                    // Set its contents:
+                    item.appendChild(document.createTextNode(text));
+                    cont.appendChild(item)
+                    if (act === "Activation (Negative)") {
+                        cont.style.color = "red";
+                        negCount = negCount += 1;
+                    } else if (act === "Activation (Positive)") {
+                        cont.style.color = "blue";
+                        posCount = posCount += 1;
+                    }
+                    else {
+                        cont.style.color = "black";
+                        incCount = incCount += 1;
+                    }
+            
+                    cont.style.padding = "0px 0px 20px 0px";
+
+                    // Add it to the list:
+                    if (act === "Activation (Positive)") {
+                        ul_pos.appendChild(cont);
+                    } else if (act === "Activation (Negative)") {
+                        ul_neg.appendChild(cont);
+                    } else {
+                        ul_inc.appendChild(cont);
+                    }
+            
                 }
 
-            }
+                function createFiller() {
             
-
+                    var fillerText = document.createElement("li");
+                    var fillerCont = document.createElement("div");
             
-            function createFiller() {
-                var fillerText = document.createElement("li");
-                var fillerCont = document.createElement("div");
-
-                fillerText.appendChild(document.createTextNode("This is filler text"));
-                fillerCont.appendChild(fillerText);
-                fillerCont.style.padding = "0px 0px 20px 0px";
-                fillerCont.style.color = "blue";
-
-                var fillerText = document.createElement("li");
-                var fillerCont = document.createElement("div");
-
-                fillerText.appendChild(document.createTextNode("This is filler text"));
-                fillerCont.appendChild(fillerText);
-                fillerCont.style.padding = "0px 0px 20px 0px";
-                fillerCont.style.color = "white";
-                return fillerCont;
-            }
-
-            var fillerPos = createFiller();
-            var fillerNeg = createFiller();
-            var fillerInc = createFiller();
-            ul_pos.appendChild(fillerPos);
-            ul_neg.appendChild(fillerNeg);
-            ul_inc.appendChild(fillerInc);
-
-            document.getElementById("posThickness").innerHTML = "Positive: " + posCount;
-            document.getElementById("negThickness").innerHTML = "Negative: " + negCount;
-            document.getElementById("incThickness").innerHTML = "Inconclusive: " + incCount;
-            document.getElementById("posEv").innerHTML = ul_pos.innerHTML;
-            document.getElementById("negEv").innerHTML = ul_neg.innerHTML;
-            document.getElementById("incEv").innerHTML = ul_inc.innerHTML;
-            modal.style.display = "block";
-
-            window.onclick = function (event) {
-                if (event.target == modal) {
+                    fillerText.appendChild(document.createTextNode("This is filler text"));
+                    fillerCont.appendChild(fillerText);
+                    fillerCont.style.padding = "0px 20px 0px 0px";
+                    fillerCont.style.color = "white";
+                    return fillerCont;
+                }
+            
+                var fillerPos = createFiller();
+                var fillerNeg = createFiller();
+                var fillerInc = createFiller();
+                ul_pos.appendChild(fillerPos);
+                ul_neg.appendChild(fillerNeg);
+                ul_inc.appendChild(fillerInc);
+            
+                document.getElementById("posThickness").innerHTML = "Positive: " + posCount;
+                document.getElementById("negThickness").innerHTML = "Negative: " + negCount;
+                document.getElementById("incThickness").innerHTML = "Inconclusive: " + incCount;
+                document.getElementById("posEv").innerHTML = ul_pos.innerHTML;
+                document.getElementById("negEv").innerHTML = ul_neg.innerHTML;
+                document.getElementById("incEv").innerHTML = ul_inc.innerHTML;
+                modal.style.display = "block";
+            
+                window.onclick = function (event) {
+                    if (event.target == modal) {
+                        var modalBody = document.getElementById("modalBody");
+                        modalBody.scrollTop = 0;
+                        modal.style.display = "none";
+                    }
+                }
+            
+                span.onclick = function () {
                     var modalBody = document.getElementById("modalBody");
                     modalBody.scrollTop = 0;
                     modal.style.display = "none";
                 }
-            }
-
-            span.onclick = function () {
-                var modalBody = document.getElementById("modalBody");
-                modalBody.scrollTop = 0;
-                modal.style.display = "none";
-            }
-        });
-
-        cy.on('click', 'node', function (evt) {
-            var sel = evt.target;
-            console.log("selectable: "+sel.selectable())
-            var modal = document.getElementById("synModal");
-            var synLabel = document.getElementById("synLabel");
-            synLabel.innerHTML = "Synonyms for "+sel.data("label")+":"
-            var span = document.getElementsByClassName("close")[1];
-            var syn = sel.data().syn;
-            var syn_split = syn.split("%%");
-            syn_split = [...new Set(syn_split)];
-            var syn_list = document.createElement("ul")
-            for (var i = 0; i < syn_split.length; i++) {
-                // Create the list item:
-                var item = document.createElement('li');
-                var cont = document.createElement("div");
-
-                var text = syn_split[i];
-
-                // Set its contents:
-                item.appendChild(document.createTextNode(text));
-                cont.appendChild(item)
-                cont.style.padding = "0px 0px 20px 0px";
-
-                // Add it to the list:
-                syn_list.appendChild(cont);
-            }
-
-            document.getElementById("synList").innerHTML = syn_list.innerHTML;
-            modal.style.display = "block";
-
-            window.onclick = function (event) {
-                if (event.target == modal) {
+            });
+            
+            cy.on('click', 'node', function (evt) {
+                var sel = evt.target;
+                console.log("selectable: "+sel.selectable())
+                var modal = document.getElementById("synModal");
+                var synLabel = document.getElementById("synLabel");
+                synLabel.innerHTML = "Synonyms for "+sel.data("label")+":"
+                var span = document.getElementsByClassName("close")[1];
+                var syn = sel.data().syn;
+                var syn_split = syn.split("%%");
+                syn_split = [...new Set(syn_split)];
+                var syn_list = document.createElement("ul")
+                for (var i = 0; i < syn_split.length; i++) {
+                    // Create the list item:
+                    var item = document.createElement('li');
+                    var cont = document.createElement("div");
+            
+                    var text = syn_split[i];
+            
+                    // Set its contents:
+                    item.appendChild(document.createTextNode(text));
+                    cont.appendChild(item)
+                    cont.style.padding = "0px 0px 20px 0px";
+            
+                    // Add it to the list:
+                    syn_list.appendChild(cont);
+                }
+            
+                document.getElementById("synList").innerHTML = syn_list.innerHTML;
+                modal.style.display = "block";
+            
+                window.onclick = function (event) {
+                    if (event.target == modal) {
+                        var modalBody = document.getElementById("modalBody");
+                        modalBody.scrollTop = 0;
+                        modal.style.display = "none";
+                    }
+                }
+            
+                span.onclick = function () {
                     var modalBody = document.getElementById("modalBody");
                     modalBody.scrollTop = 0;
                     modal.style.display = "none";
                 }
-            }
-
-            span.onclick = function () {
-                var modalBody = document.getElementById("modalBody");
-                modalBody.scrollTop = 0;
-                modal.style.display = "none";
-            }
+                
+                var markovButton = document.getElementById("markovButton");
+                markovButton.onclick = function() {
+                    in_clust = true
+                    markov_clust(sel)
+                    modalBody.scrollTop = 0;
+                    modal.style.display="none"
+                }
+            });
+             
             
-            var markovButton = document.getElementById("markovButton");
-            markovButton.onclick = function() {
-                in_clust = true
-                markov_clust(sel)
-                modalBody.scrollTop = 0;
-                modal.style.display="none"
-            }
-        });
-         
-        
-        cy.on('box', function (evt) {
-             var sel = evt.target
-             console.log(sel.length)
-             sel.filter(function(ele) {return((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"))}).addClass("mouseup")
-        }); 
-         
- 
-         cy.on('tap', function(event){
-          // target holds a reference to the originator
-          // of the event (core or element)
-          var evtTarget = event.target;
-
-          if( evtTarget === cy ){
-            cy.nodes().removeClass("mouseup")
-              cy.nodes().removeClass("markov")
-          } 
+            cy.on('box', function (evt) {
+                 var sel = evt.target
+                 console.log(sel.length)
+                 sel.filter(function(ele) {return((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"))}).addClass("mouseup")
+            }); 
              
-             
-        }); 
-         
-         reset_neighbors = function() {
-              if (non_neighbors.length!=0) {
-                 non_neighbors.removeClass("transp")
-                 rerun_layout()
-                 non_neighbors = []
-             }
-         }
+            
+             cy.on('tap', function(event){
+              // target holds a reference to the originator
+              // of the event (core or element)
+              var evtTarget = event.target;
+            
+              if( evtTarget === cy ){
+                cy.nodes().removeClass("mouseup")
+              } 
+                 
+                 
+            }); 
 
-         
-         //document.body.addEventListener('click', reset_neighbors, true); 
          
          function getSelectValues(select) {
               var result = [];
@@ -1019,609 +964,569 @@ $("optgroup").on("click", function() {
             return false
         } 
          
-        var kb_reset_button =  document.getElementById("kb_reset_button"); 
-         kb_reset_button.onclick = function() {
-            var slider = document.getElementById("myRange");
-            var threshold=slider.value
-            var elements = document.getElementsByClassName('messageCheckbox');
-            for(var i = 0; i < elements.length; i++){
-              elements[i].checked = false;
+             
+             
+            function getMaxWeight(allEdges) {
+                var weight_arr = []
+                for (var i = 0; i < allEdges.length; i++) {
+                    var edgeData = (allEdges[i]).data()
+                    var weight = edgeData.thickness
+                    weight_arr.push(weight)
+                }
+                Array.prototype.max = function() {
+                  return Math.max.apply(null, this);
+                };
+                var maxWeight = weight_arr.max()
+                return(maxWeight)
             }
-            var elements = document.getElementsByClassName('allCheckbox');
-            for(var i = 0; i < elements.length; i++){
-              var ele=elements[i]
-              ele.checked = false;
-            }
-            var elements = document.getElementsByClassName('allLabel');
-            for(var i = 0; i < elements.length; i++){
-              var ele=elements[i]
-              ele.innerHTML = "Select all";
-            }
-             console.log("reset selected KBs")
-            selected_kbs = []
-            resetKBs()
-            filterEdges(threshold)
-            return false
-         }
-         
-         
-        function getMaxWeight(allEdges) {
-            var weight_arr = []
-            for (var i = 0; i < allEdges.length; i++) {
-                var edgeData = (allEdges[i]).data()
-                var weight = edgeData.thickness
-                weight_arr.push(weight)
-            }
-            Array.prototype.max = function() {
-              return Math.max.apply(null, this);
-            };
-            var maxWeight = weight_arr.max()
-            return(maxWeight)
-        }
-
-
-        
-        var filteredEdges = cy.edges().filter('[thickness < 0]');
-        var filteredNodes = cy.nodes().filter(function (ele) {
-            return ele.degree() == -2;
-        });
-        filteredEdges = cy.remove(filteredEdges);
-        filteredNodes = cy.remove(filteredNodes);
-
-        var slider = document.getElementById("myRange");
-        var queryEdges = cy.edges().filter(function (ele) {
-            return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
-        });
-        var allEdges = cy.edges()    
-        var queryMax = Math.ceil(getMaxWeight(queryEdges))
-        var allMax = Math.ceil(getMaxWeight(allEdges))
-        slider.max = queryMax
-        var input_qty = document.getElementById("quantity");
-        input_qty.max = queryMax
-        var output = document.getElementById("demo");
-        output.innerHTML = slider.value;
-        var input_thickness = document.getElementById("input_thickness") 
-        slider.oninput = function () {
-            threshold = this.value;
-            run_filter_edges(threshold)
-            console.log("slider selected kbs: "+selected_kbs)
-            filterKBs(selected_kbs)
-            output.innerHTML = this.value;
-            input_qty.value = this.value
-        }
-        input_thickness.onsubmit = async function () {          
-            var thickness_val = document.getElementById("quantity");
-            var threshold = thickness_val.value;
-            run_filter_edges(threshold)
-            filterKBs(selected_kbs)
-            output.innerHTML = threshold
-            slider.value=threshold
-        }
-        
-        var node_search = document.getElementById("node_search");
-        var current_query = document.getElementById("current_query");
-        var reset_button = document.getElementById("reset");
-        node_search.onsubmit = function () {
-            currently_querying = true;
-            reset_button.style.display="block"
-            //cy.nodes().removeClass("transp");
-            cy.edges().removeClass("transp");
-            cy.nodes().removeClass("searched");
-            var node_name = document.getElementById("node_name");
-            current_query.innerHTML = node_name.value; 
-            var results_nodes = cy.nodes().filter(function(ele) {
-                return ((ele.style()["display"] != "none") && 
-                        (ele.style()["opacity"] != "0") &&
-                       (ele.data("label").toLowerCase() === node_name.value.toLowerCase()));})
-            results_nodes.addClass('searched')
-            console.log("Result nodes: "+results_nodes.length)
-            var neighbors = results_nodes.outgoers().union(results_nodes.incomers());
-            var results_edges = results_nodes.connectedEdges()
-            var results_nodes = results_nodes.union(neighbors)           
-            cy.nodes().difference(results_nodes).addClass('transp');
-            cy.edges().difference(results_edges).addClass('transp');
-        }
-        
-        /*
-        cy.on('click', (event) => {
-            currently_querying = false;
-            cy.nodes().removeClass("transp");
-            cy.edges().removeClass("transp");
-            cy.nodes().removeClass("searched");
-            current_query.innerHTML = "None"; 
-        }); */
-        
-        function reset_query() {
-            currently_querying = false;
-            cy.nodes().removeClass("transp");
-            cy.edges().removeClass("transp");
-            cy.nodes().removeClass("searched");
-            var slider = document.getElementById("myRange");
-            var threshold=slider.value
-            filterEdges(threshold)
-            filterKBs(selected_kbs)
-            current_query.innerHTML = "None"; 
-            reset_button.style.display = "None"
-        }
-        
-        display_loading = async function(elem_id) {
-            var elem = document.getElementById(elem_id)
-            elem.style.display = "block"
-            elem.innerHTML = "Loading"
-            return("Promise 1")
-        }
-        
-        hide_loading = async function(elem_id) {
-            var elem = document.getElementById(elem_id)
-            elem.style.display = "none"
-            return("Promise 2")
-        }
-        
-        filterEdges = function(threshold) {
-            filteredNodes.removeClass("transp");
-            filteredEdges.restore();
-
-            filteredEdges = cy.edges().filter('[thickness < ' + threshold + ']');
+            
+            
+            
+            var filteredEdges = cy.edges().filter('[thickness < 0]');
+            var filteredNodes = cy.nodes().filter(function (ele) {
+                return ele.degree() == -2;
+            });
             filteredEdges = cy.remove(filteredEdges);
-            filteredNodes = cy.nodes().filter(function (ele) {
-                return ((ele.degree() == 0) && (ele.data("type") != "Query"));
-            });
-            filteredNodes.addClass("transp");
-            rerun_layout();
-        }
-        
-        var excludedEdges = cy.edges().filter('[thickness < 0]');
-        var excludedNodes = cy.nodes().filter(function (ele) {
-            return ele.degree() == -2;
-        });
-        excludedEdges = cy.remove(excludedEdges);
-        excludedNodes = cy.remove(excludedNodes);
-        filterKBs = function(kb_list) {
-            resetKBs()
-            if (kb_list.length!=0) {
-                excludedNodes = cy.nodes().filter(function(ele) {
-                    return (!((kb_list.includes(ele.data("KB")) && ele.degree()!=0) | ele.data("type")=="Query"))
-                });
-                excludedNodes.addClass("transp");
-                excludedEdges = cy.edges().filter(function(ele) {
-                    return ((excludedNodes.includes(ele.source()) | excludedNodes.includes(ele.target())))
-                })
-                excludedEdges = cy.remove(excludedEdges)
-                rerun_layout();                
-            }
-        } 
-        
-        resetKBs = function() {
-            excludedEdges.restore()
-            excludedEdges.style("display", "element")
-            excludedNodes.removeClass("transp")
-            rerun_layout();
-        } 
-         
-        function run_filter_edges(threshold) {
-            const status = document.querySelector('#filter_loading');
-            const loader = document.querySelector('#filter_loader');
-            const wait = (ms = 5000) => {
-                return new Promise((resolve) => {
-                setTimeout(() => {
-                    filterEdges(threshold)
-                    resolve();
-                },ms)
-              })
-            }
-            status.innerHTML = "Filtering edges...&nbsp;";
-            loader.classList.toggle('show', true);
-            wait(500)
-            .then(() => {
-                status.innerHTML = "";
-                loader.classList.toggle('show', false);
-            })
-        }
-
-        function switch_layout() {
-            var layout = document.getElementById("layout-button");
-            if (layout.value === "Circle") {
-                run_circle();
-                document.getElementById("fCose_settings").style.display = "none";
-                document.getElementById("cise_settings").style.display = "none";
-            } else if (layout.value === "fCose") {
-                run_fCose(idealEL=iel, nodeRep=nr);
-                document.getElementById("fCose_settings").style.display = "block";
-                document.getElementById("cise_settings").style.display = "none";
-            } else if (layout.value=="Grid") {
-                run_grid();
-                document.getElementById("fCose_settings").style.display = "none";
-                document.getElementById("cise_settings").style.display = "none";
-            } else {
-                run_cise(nodeRep=cise_nr)
-                document.getElementById("fCose_settings").style.display = "none";
-                document.getElementById("cise_settings").style.display = "block";
-            }
-        }
-        
-        function run_run_fcose(idealEL, nodeRep, layout) {
-            const status = document.querySelector('#nr_loading');
-            const loader = document.querySelector('#nr_loader');
-            const wait = (ms = 5000) => {
-                return new Promise((resolve) => {
-                setTimeout(() => {
-                    if (layout=="fCose") {
-                        run_fCose(idealEL, nodeRep)
-                    } else {
-                        run_cise(nodeRep)
-                    }
-                    resolve();
-                },ms)
-              })
-            }
-            loader.classList.toggle('show', true);
-            status.innerHTML = "Adjusting node repulsion...";
-            wait(500)
-            .then(() => {
-                status.innerHTML = "";
-                loader.classList.toggle('show', false);
-            })
-        } 
-        
-        var nr_slider = document.getElementById("nr_slider")
-        var cur_nr = document.getElementById("cur_nr")
-        var nr = 1e9
-        if (cy.nodes().filter('[type="Linker"]').length==0) {
-            var iel = (cy.nodes().filter('[type="Query"]').length)*10+100
-        } else {
-            var iel = (cy.nodes().filter('[type="Linker"]').length)/2+100
-        }
-        cur_nr.innerHTML="1e9"
-        nr_slider.value=9
-        nr_slider.oninput = function () {
-            cur_nr.innerHTML = "1e"+this.value;
-            var nr = 10**(this.value);
-            var cur_layout = document.getElementById("layout-button").value
-            run_run_fcose(idealEL=iel, nodeRep=nr, layout=cur_layout)
-        }
-         
-        var cise_nr_slider = document.getElementById("cise_nr_slider")
-        var cise_cur_nr = document.getElementById("cise_cur_nr")
-        cise_cur_nr.innerHTML="1e4"
-        cise_nr_slider.value=4
-         var cise_nr = 1e4
-        cise_nr_slider.oninput = function () {
-            cise_cur_nr.innerHTML = "1e"+this.value;
-            cise_nr = 10**(this.value);
-            var cur_layout = document.getElementById("layout-button").value
-            run_run_fcose(idealEL=iel, nodeRep=cise_nr, layout=cur_layout)
-        }
- 
-        
-        function reset_slider() {
-            var cur_layout = document.getElementById("layout-button").value
-            if (cur_layout=="fCose") {
-                nr_slider.value=9
-                cur_nr.innerHTML="1e9"
-            } else {
-                cise_nr_slider.value=4
-                cise_cur_nr.innerHTML="1e4"
-            }
-
-        }
-        
-        function rerun_layout() {
-            var layout = document.getElementById("layout-button");
-            if (layout.value === "Grid") {
-                run_grid();
-            } else if (layout.value === "Circle") {
-                run_circle();
-            } else if (layout.value=="fCose") {
-                run_fCose(idealEL=iel, nodeRep=nr);
-            } else {
-                run_cise(nodeRep=cise_nr)
-            }
-        }
-        
-        function run_switch_layout() {
-            const status = document.querySelector('#layout_loading');
-            const loader = document.querySelector('#layout_loader');
-            const wait = (ms = 5000) => {
-                return new Promise((resolve) => {
-                setTimeout(() => {
-                    switch_layout();
-                    resolve();
-                },ms)
-              })
-            }
-            status.innerHTML = "Rerunning layout...";
-            loader.classList.toggle('show', true);
-            wait()
-            .then(() => {
-                status.innerHTML = "";
-                loader.classList.toggle('show', false);
-            })
-        }
-         
-        function getRndInteger(min, max) {
-          return Math.floor(Math.random() * (max - min) ) + min;
-        } 
-         
-         
-        function make_clust(eles) {
-            nodes = eles.nodes().filter("[type='Query']")
-            clusters = []
-            for (var i=0; i<nodes.length; i++) {
-                node = nodes[i]
-                targets = node.neighborhood('node')
-                clust = [node.id()]
-                for (var j=0; j<targets.length; j++) {
-                    t = targets[j]
-                    if (t.neighborhood("node").length==1) {
-                       clust.push(t.id()) 
-                    } else {
-                        var max = t.connectedEdges().max(function(ele){
-                          return(ele.data("thickness"));
-                        });
-                        if (node.neighborhood("edge").includes(max.ele)) {
-                            clust.push(t.id()) 
-                        }
-                    }
-                    
-                }
-                clusters.push(clust)
-            }
-            return(clusters)
-        } 
-         
-         function get_weights(edge) {
-             return(edge.data("thickness"))
-         }
-         
-         function run_cise(nodeRep=1e9) {
-           /*
-             var eles = cy.elements().filter(function (ele) {
-                return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
-            });*/ 
-             var newclusters = make_clust(cy.elements())
-             var layout = cy.layout({
-                name: 'cise',               
-                animate:true,
-                        animationEasing: 1,
-                        animationDuration: 1,
-                        clusters:newclusters,
-                        allowNodesInsideCircle: true,
-                        nodeRepulsion: nodeRep 
-         
-                });
-            layout.run();
-            setTimeout(() => {  layout.stop(); }, 500);         
-        }
-         
-        function show_direct(show=true) {
+            filteredNodes = cy.remove(filteredNodes);
+            
             var slider = document.getElementById("myRange");
+            var queryEdges = cy.edges().filter(function (ele) {
+                return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
+            });
+            var allEdges = cy.edges()    
+            var queryMax = Math.ceil(getMaxWeight(queryEdges))
+            var allMax = Math.ceil(getMaxWeight(allEdges))
+            slider.max = queryMax
             var input_qty = document.getElementById("quantity");
-            console.log("direct kb list: "+selected_kbs);
+            input_qty.max = queryMax
+            var output = document.getElementById("quantity");
+            output.innerHTML = slider.value;
+            var input_thickness = document.getElementById("input_thickness") 
+            slider.oninput = function () {
+                threshold = this.value;
+                run_filter_edges(threshold)
+                console.log("slider selected kbs: "+selected_kbs)
+                filterKBs(selected_kbs)
+                output.innerHTML = this.value;
+                input_qty.value = this.value
+            }
+            input_thickness.onsubmit = async function () {          
+                var thickness_val = document.getElementById("quantity");
+                var threshold = thickness_val.value;
+                run_filter_edges(threshold)
+                filterKBs(selected_kbs)
+                output.innerHTML = threshold
+                slider.value=threshold
+            }
             
-            if (show) {
-                cy.edges().filter("[display = 'none']").style("display", "element")
-                cy.nodes().filter("[display = 'none']").style("display", "element")  
-                slider.max = allMax
-                input_qty.max = allMax
+            var node_search = document.getElementById("node_search");
+            var current_query = document.getElementById("current_query");
+            var reset_button = document.getElementById("reset");
+            node_search.onsubmit = function () {
+                reset_button.style="background-color:#4CAF50;"
+                //cy.nodes().removeClass("transp");
+                cy.edges().removeClass("transp");
+                cy.nodes().removeClass("searched");
+                var node_name = document.getElementById("node_name");
+                current_query.innerHTML = node_name.value; 
+                var results_nodes = cy.nodes().filter(function(ele) {
+                    return ((ele.style()["display"] != "none") && 
+                            (ele.style()["opacity"] != "0") &&
+                           (ele.data("label").toLowerCase() === node_name.value.toLowerCase()));})
+                results_nodes.addClass('searched')
+                var neighbors = results_nodes.outgoers().union(results_nodes.incomers());
+                var results_edges = results_nodes.connectedEdges()
+                var results_nodes = results_nodes.union(neighbors)
+                cy.nodes().difference(results_nodes).addClass('transp');
+                cy.edges().difference(results_edges).addClass('transp');
+            }
+            
+            
+            function reset_query() {
+                var node_name = document.getElementById("node_name");
+                currently_querying = false;
+                cy.nodes().removeClass("transp");
+                cy.edges().removeClass("transp");
+                cy.nodes().removeClass("searched");
+                var slider = document.getElementById("myRange");
+                var threshold=slider.value
+                filterEdges(threshold)
+                filterKBs(selected_kbs)
+                current_query.innerHTML = "None"; 
+                node_name.value=""
+                reset_button.style.display = "None"
+            }
+            
+            display_loading = async function(elem_id) {
+                var elem = document.getElementById(elem_id)
+                elem.style.display = "block"
+                elem.innerHTML = "Loading"
+                return("Promise 1")
+            }
+            
+            hide_loading = async function(elem_id) {
+                var elem = document.getElementById(elem_id)
+                elem.style.display = "none"
+                return("Promise 2")
+            }
+            
+            filterEdges = function(threshold) {
+                filteredNodes.removeClass("transp");
+                filteredEdges.restore();
+            
+                filteredEdges = cy.edges().filter('[thickness < ' + threshold + ']');
+                filteredEdges = cy.remove(filteredEdges);
+                filteredNodes = cy.nodes().filter(function (ele) {
+                    return ((ele.degree() == 0) && (ele.data("type") != "Query"));
+                });
+                filteredNodes.addClass("transp");
+                rerun_layout();
+            }
+            
+            var excludedEdges = cy.edges().filter('[thickness < 0]');
+            var excludedNodes = cy.nodes().filter(function (ele) {
+                return ele.degree() == -2;
+            });
+            excludedEdges = cy.remove(excludedEdges);
+            excludedNodes = cy.remove(excludedNodes);
+            filterKBs = function(kb_list) {
+                resetKBs()
+                if (kb_list.length!=0) {
+                    excludedNodes = cy.nodes().filter(function(ele) {
+                        return (!((kb_list.includes(ele.data("KB")) && ele.degree()!=0) | ele.data("type")=="Query"))
+                    });
+                    excludedNodes.addClass("transp");
+                    excludedEdges = cy.edges().filter(function(ele) {
+                        return ((excludedNodes.includes(ele.source()) | excludedNodes.includes(ele.target())))
+                    })
+                    excludedEdges = cy.remove(excludedEdges)
+                    rerun_layout();                
+                }
+            } 
+            
+            resetKBs = function() {
+                excludedEdges.restore()
+                excludedEdges.style("display", "element")
+                excludedNodes.removeClass("transp")
+                rerun_layout();
+            } 
+             
+            function run_filter_edges(threshold) {
+                const status = document.querySelector('#filter_loading');
+                const loader = document.querySelector('#filter_loader');
+                const wait = (ms = 5000) => {
+                    return new Promise((resolve) => {
+                    setTimeout(() => {
+                        filterEdges(threshold)
+                        resolve();
+                    },ms)
+                  })
+                }
+                status.innerHTML = "Filtering edges...&nbsp;";
+                loader.classList.toggle('show', true);
+                wait(500)
+                .then(() => {
+                    status.innerHTML = "";
+                    loader.classList.toggle('show', false);
+                })
+            }
+            
+            function switch_layout() {
+                var layout = document.getElementById("layout-button");
+                if (layout.value === "Circle") {
+                    run_circle();
+                    document.getElementById("fCose_settings").style.display = "none";
+                    document.getElementById("cise_settings").style.display = "none";
+                } else if (layout.value === "fCose") {
+                    run_fCose(idealEL=iel, nodeRep=nr);
+                    document.getElementById("fCose_settings").style.display = "block";
+                    document.getElementById("cise_settings").style.display = "none";
+                } else if (layout.value=="Grid") {
+                    run_grid();
+                    document.getElementById("fCose_settings").style.display = "none";
+                    document.getElementById("cise_settings").style.display = "none";
+                } else {
+                    run_cise(nodeRep=cise_nr)
+                    document.getElementById("fCose_settings").style.display = "none";
+                    document.getElementById("cise_settings").style.display = "block";
+                }
+            }
+            
+            function run_run_fcose(idealEL, nodeRep, layout) {
+                const status = document.querySelector('#nr_loading');
+                const loader = document.querySelector('#nr_loader');
+                const wait = (ms = 5000) => {
+                    return new Promise((resolve) => {
+                    setTimeout(() => {
+                        if (layout=="fCose") {
+                            run_fCose(idealEL, nodeRep)
+                        } else {
+                            run_cise(nodeRep)
+                        }
+                        resolve();
+                    },ms)
+                  })
+                }
+                loader.classList.toggle('show', true);
+                status.innerHTML = "Adjusting node repulsion...";
+                wait(500)
+                .then(() => {
+                    status.innerHTML = "";
+                    loader.classList.toggle('show', false);
+                })
+            } 
+            
+            var nr_slider = document.getElementById("nr_slider")
+            var cur_nr = document.getElementById("cur_nr")
+            var nr = 1e9
+            if (cy.nodes().filter('[type="Linker"]').length==0) {
+                var iel = (cy.nodes().filter('[type="Query"]').length)*10+100
             } else {
-                cy.edges().filter("[display = 'none']").style("display", "none")
-                cy.nodes().filter("[display = 'none']").style("display", "none")
-                slider.max = queryMax
-                input_qty.max = queryMax
-            }  
-            threshold = output.innerHTML
-            console.log("Edge filter threshold: "+threshold)
-            filterEdges(threshold);
-            filterKBs(selected_kbs)
-            output.innerHTML = threshold;
-            slider.value=threshold;
-            input_qty.value=threshold;
-            rerun_layout();
+                var iel = (cy.nodes().filter('[type="Linker"]').length)/2+100
+            }
+            cur_nr.innerHTML="1e9"
+            nr_slider.value=9
+            nr_slider.oninput = function () {
+                cur_nr.innerHTML = "1e"+this.value;
+                var nr = 10**(this.value);
+                var cur_layout = document.getElementById("layout-button").value
+                run_run_fcose(idealEL=iel, nodeRep=nr, layout=cur_layout)
+            }
+             
+            var cise_nr_slider = document.getElementById("cise_nr_slider")
+            var cise_cur_nr = document.getElementById("cise_cur_nr")
+            cise_cur_nr.innerHTML="1e4"
+            cise_nr_slider.value=4
+             var cise_nr = 1e4
+            cise_nr_slider.oninput = function () {
+                cise_cur_nr.innerHTML = "1e"+this.value;
+                cise_nr = 10**(this.value);
+                var cur_layout = document.getElementById("layout-button").value
+                run_run_fcose(idealEL=iel, nodeRep=cise_nr, layout=cur_layout)
+            }
+            
+            
+            function reset_slider() {
+                var cur_layout = document.getElementById("layout-button").value
+                if (cur_layout=="fCose") {
+                    nr_slider.value=9
+                    cur_nr.innerHTML="1e9"
+                } else {
+                    cise_nr_slider.value=4
+                    cise_cur_nr.innerHTML="1e4"
+                }
+            
+            }
+            
+            function rerun_layout() {
+                var layout = document.getElementById("layout-button");
+                if (layout.value === "Grid") {
+                    run_grid();
+                } else if (layout.value === "Circle") {
+                    run_circle();
+                } else if (layout.value=="fCose") {
+                    run_fCose(idealEL=iel, nodeRep=nr);
+                } else {
+                    run_cise(nodeRep=cise_nr)
+                }
+            }
+            
+            function run_switch_layout() {
+                const status = document.querySelector('#layout_loading');
+                const loader = document.querySelector('#layout_loader');
+                const wait = (ms = 5000) => {
+                    return new Promise((resolve) => {
+                    setTimeout(() => {
+                        switch_layout();
+                        resolve();
+                    },ms)
+                  })
+                }
+                status.innerHTML = "Rerunning layout...";
+                loader.classList.toggle('show', true);
+                wait()
+                .then(() => {
+                    status.innerHTML = "";
+                    loader.classList.toggle('show', false);
+                })
+            }
+             
+            function getRndInteger(min, max) {
+              return Math.floor(Math.random() * (max - min) ) + min;
+            } 
+             
+             
+            function make_clust(eles) {
+                nodes = eles.nodes().filter("[type='Query']")
+                clusters = []
+                for (var i=0; i<nodes.length; i++) {
+                    node = nodes[i]
+                    targets = node.neighborhood('node')
+                    clust = [node.id()]
+                    for (var j=0; j<targets.length; j++) {
+                        t = targets[j]
+                        if (t.neighborhood("node").length==1) {
+                           clust.push(t.id()) 
+                        } else {
+                            var max = t.connectedEdges().max(function(ele){
+                              return(ele.data("thickness"));
+                            });
+                            if (node.neighborhood("edge").includes(max.ele)) {
+                                clust.push(t.id()) 
+                            }
+                        }
                         
-            //rerun_layout();
-        } 
-        
-        let show = true
-        function run_show_direct() {
-            const status = document.querySelector('#direct_loading');
-            const loader = document.querySelector('#direct_loader');
-            const wait = (ms = 5000) => {
-                return new Promise((resolve) => {
-                setTimeout(() => {
-                    show_direct(show);
-                    if (show) {
-                        show = false
-                    } else {
-                        show=true
                     }
-                    resolve();
-                },ms)
-              })
+                    clusters.push(clust)
+                }
+                return(clusters)
+            } 
+             
+             function get_weights(edge) {
+                 return(edge.data("thickness"))
+             }
+             
+             function run_cise(nodeRep=1e9) {
+               /*
+                 var eles = cy.elements().filter(function (ele) {
+                    return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
+                });*/ 
+                 var newclusters = make_clust(cy.elements())
+                 var layout = cy.layout({
+                    name: 'cise',               
+                    animate:true,
+                            animationEasing: 1,
+                            animationDuration: 1,
+                            clusters:newclusters,
+                            allowNodesInsideCircle: true,
+                            nodeRepulsion: nodeRep 
+             
+                    });
+                layout.run();
+                setTimeout(() => {  layout.stop(); }, 500);         
             }
-            if (show) {
-                status.innerHTML = "Loading direct neighbors...";
-            } else {
-                status.innerHTML = "Hiding direct neighbors...";
-            }
-            loader.classList.toggle('show', true);
-            wait(500)
-            .then(() => {
-                status.innerHTML = "";
-                loader.classList.toggle('show', false);
-            })
-        }
 
-        function add_colors() {
-            var x = document.getElementById("color-button");
-            if (x.innerHTML === "Show Color") {
-                x.innerHTML = "Hide Color";
-                cy.edges().addClass("colors");
-            } else {
-                x.innerHTML = "Show Color";
-                cy.edges().removeClass("colors");
-            }
-        }
-
-        function switch_color() {
-            var x = document.getElementById("current-color");
-            if (x.innerHTML === "Current: Positive interactions") {
-                x.innerHTML = "Current: Negative interactions";
-                cy.edges().removeClass("pos_colors");
-                cy.edges().addClass("neg_colors");
-            } else if (x.innerHTML == "Current: Negative interactions") {
-                x.innerHTML = "Current: Inconclusive interactions";
-                cy.edges().removeClass("neg_colors");
-                cy.edges().addClass("inc_colors");
-            } else if (x.innerHTML == "Current: Inconclusive interactions") {
-                x.innerHTML = "Current: None";
-                cy.edges().removeClass("inc_colors");
-            } else {
-                x.innerHTML = "Current: Positive interactions";
-                cy.edges().addClass("pos_colors");
-            }
-        }
-        
-        
-       function run_fCose(idealEL, nodeRep=1e9) {
-           var eles = cy.elements().filter(function (ele) {
-                return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
-            }); 
-            var layout = eles.layout({
-                name: 'fcose',
+            function show_direct(show=true) {
+                var slider = document.getElementById("myRange");
+                var input_qty = document.getElementById("quantity");
                 
-                nodeRepulsion: node => nodeRep,
-                idealEdgeLength: edge => idealEL,
-                gravity: 1e-5,
-                  gravityRangeCompound: 1e-5,
-                  gravityCompound: 1e-5,
-                  gravityRange: 1e-5
-            }) 
-            layout.run();
-        }
-        
-        //run_fCose(idealEL=iel)
-        
-         
-
-       
-        const orig_zoom = cy.zoom()
-        function run_circle() {
-            var query_orphs = cy.nodes().filter(function (ele) {
-                var neighbors = ele.outgoers().union(ele.incomers());
-                var query_neighbors = neighbors.filter('[type="Query"]')
-                console.log(ele.id()+"query_neighbors")
-                console.log(query_neighbors.length)
-                return ((query_neighbors.length==0) && (ele.data("classes")=="level3"));
-            });
-            var eles = cy.elements().difference(query_orphs).filter(function (ele) {
-                return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
-            });
-            var layout = eles.layout({
-                     name: 'breadthfirst',
-                     grid:true,
-                     roots:'node[classes @*="level3"]',
-                     maximal:true,
-                     circle:true,               spacingFactor:10+eles.nodes().filter('[type="Query"]').length/10+eles.nodes().filter('[type="Linker"]').length/100,
-                });
-            layout.run();
-            var box = eles.boundingBox();
-            query_orphs.positions(function( node, i ){
-              return {
-                x: box.x2+100+500*(i%4),
-                y: box.y1+500*(Math.floor(i/4))
-              };
-            });
-           
-        }
-        
-
-        function run_grid() {
-            var is_query = cy.nodes().filter('[type="Query"]');
-            var is_connected = is_query.filter(function(ele) {return((ele.degree()!=0));});  //Connected query nodes
-            var query_orphans = is_query.filter(function(ele) {return((ele.degree()==0));}); // Non-connected query nodes
-            var linkers = cy.nodes().filter('[type="Linker"]').not(':transparent');
-            var direct = cy.nodes().filter('[type="Direct"]').not(':transparent');
-            var edgeLen = Math.floor(Math.sqrt(linkers.length));
-            var orphLen = Math.floor(Math.sqrt(query_orphans.length));
-
-            if (linkers.length == 0) {
-                is_connected.positions(function( node, i ){
-                  return {
-                    x: 1000*(i%2),
-                    y: 1000*Math.floor(i/2)
-                  };
-                });
-                for (var i=0; i<is_connected.length; i++) {
-                    ele = is_connected[i];
-                    var box = ele.position();
-                    var direct_conn = ele.outgoers().union(ele.incomers()).filter('[type="Direct"]').not(':transparent');
-                    direct_conn.positions(function( node, i ){
-                        if (box.x==1000) {
-                          return {
-                            x: box.x+3000+500*(i%4),
-                            y: box.y+500*(Math.floor(i/10))
-                          };
-                        } else {
-                           return {
-                            x: box.x-3000-500*(i%4),
-                            y: box.y-500*(Math.floor(i/10))
-                          };
-                        }
-
-                    });
+                if (show) {
+                    cy.edges().filter("[display = 'none']").style("display", "element")
+                    cy.nodes().filter("[display = 'none']").style("display", "element")  
+                    slider.max = allMax
+                    input_qty.max = allMax
+                } else {
+                    cy.edges().filter("[display = 'none']").style("display", "none")
+                    cy.nodes().filter("[display = 'none']").style("display", "none")
+                    slider.max = queryMax
+                    input_qty.max = queryMax
                 }
+                threshold = output.innerHTML
+                console.log("Edge filter threshold: " + threshold)
 
-            } else {
-                is_connected.positions(function( node, i ){
-                  return {
-                    x: (edgeLen*500+5000)*(i%2),
-                    y: 1000*Math.floor(i/2)
-                  };
-                });
-                linkers.positions(function( node, i ){
-                  return {
-                    x: 2500+(i%edgeLen)*500,
-                    y: 500*Math.floor(i/edgeLen)
-                  };
-                });
-                for (var i=0; i<is_connected.length; i++) {
-                    ele = is_connected[i];
-                    var box = ele.position();
-                    var direct_conn = ele.outgoers().union(ele.incomers()).filter('[type="Direct"]').not(':transparent');
-                    direct_conn.positions(function( node, i ){
-                        if (box.x==edgeLen*500+5000) {
-                          return {
-                            x: box.x+edgeLen*100+1000+500*(i%4),
-                            y: box.y+500*(Math.floor(i/10))
-                          };
-                        } else {
-                           return {
-                            x: box.x-edgeLen*100-1000-500*(i%4),
-                            y: box.y-500*(Math.floor(i/10))
-                          };
-                        }
-
-                    });
-                }
-
-            }
-
-            query_orphans.positions(function( node, i ){
-                return {
-                    x: -500-500*(i%orphLen),
-                    y: -500-500*(Math.floor(i/orphLen))
-                  };
-                });
+                rerun_layout();
+                            
+                //rerun_layout();
+            } 
             
-            cy.zoom(orig_zoom/2)               
-            cy.center();
-
-        }
-
-
-    </script>
-
-
-</body>
-
+            let show = true
+            function run_show_direct() {
+                const status = document.querySelector('#direct_loading');
+                const loader = document.querySelector('#direct_loader');
+                const wait = (ms = 5000) => {
+                    return new Promise((resolve) => {
+                    setTimeout(() => {
+                        show_direct(show);
+                        if (show) {
+                            show = false
+                        } else {
+                            show=true
+                        }
+                        resolve();
+                    },ms)
+                  })
+                }
+                if (show) {
+                    status.innerHTML = "Loading direct neighbors...";
+                } else {
+                    status.innerHTML = "Hiding direct neighbors...";
+                }
+                loader.classList.toggle('show', true);
+                wait(500)
+                .then(() => {
+                    status.innerHTML = "";
+                    loader.classList.toggle('show', false);
+                })
+            }
+            
+            function add_colors() {
+                var x = document.getElementById("color-button");
+                if (x.innerHTML === "Show Color") {
+                    x.innerHTML = "Hide Color";
+                    cy.edges().addClass("colors");
+                } else {
+                    x.innerHTML = "Show Color";
+                    cy.edges().removeClass("colors");
+                }
+            }
+            
+            function switch_color() {
+                var x = document.getElementById("current-color");
+                if (x.innerHTML === "Current: Positive interactions") {
+                    x.innerHTML = "Current: Negative interactions";
+                    cy.edges().removeClass("pos_colors");
+                    cy.edges().addClass("neg_colors");
+                } else if (x.innerHTML == "Current: Negative interactions") {
+                    x.innerHTML = "Current: Inconclusive interactions";
+                    cy.edges().removeClass("neg_colors");
+                    cy.edges().addClass("inc_colors");
+                } else if (x.innerHTML == "Current: Inconclusive interactions") {
+                    x.innerHTML = "Current: None";
+                    cy.edges().removeClass("inc_colors");
+                } else {
+                    x.innerHTML = "Current: Positive interactions";
+                    cy.edges().addClass("pos_colors");
+                }
+            }
+            
+            
+            function run_fCose(idealEL, nodeRep=1e9) {
+               var eles = cy.elements().filter(function (ele) {
+                    return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
+                }); 
+                var layout = eles.layout({
+                    name: 'fcose',
+                    
+                    nodeRepulsion: node => nodeRep,
+                    idealEdgeLength: edge => idealEL,
+                    gravity: 1e-5,
+                      gravityRangeCompound: 1e-5,
+                      gravityCompound: 1e-5,
+                      gravityRange: 1e-5
+                }) 
+                layout.run();
+            }
+            
+            //run_fCose(idealEL=iel)
+            
+             
+            
+            
+            const orig_zoom = cy.zoom()
+            function run_circle() {
+                var query_orphs = cy.nodes().filter(function (ele) {
+                    var neighbors = ele.outgoers().union(ele.incomers());
+                    var query_neighbors = neighbors.filter('[type="Query"]')
+                    console.log(ele.id()+"query_neighbors")
+                    console.log(query_neighbors.length)
+                    return ((query_neighbors.length==0) && (ele.data("classes")=="level3"));
+                });
+                var eles = cy.elements().difference(query_orphs).filter(function (ele) {
+                    return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
+                });
+                var layout = eles.layout({
+                         name: 'breadthfirst',
+                         grid:true,
+                         roots:'node[classes @*="level3"]',
+                         maximal:true,
+                         circle:true,               spacingFactor:10+eles.nodes().filter('[type="Query"]').length/10+eles.nodes().filter('[type="Linker"]').length/100,
+                    });
+                layout.run();
+                var box = eles.boundingBox();
+                query_orphs.positions(function( node, i ){
+                  return {
+                    x: box.x2+100+500*(i%4),
+                    y: box.y1+500*(Math.floor(i/4))
+                  };
+                });
+               
+            }
+            
+            
+            function run_grid() {
+                var is_query = cy.nodes().filter('[type="Query"]');
+                var is_connected = is_query.filter(function(ele) {return((ele.degree()!=0));});  //Connected query nodes
+                var query_orphans = is_query.filter(function(ele) {return((ele.degree()==0));}); // Non-connected query nodes
+                var linkers = cy.nodes().filter('[type="Linker"]').not(':transparent');
+                var direct = cy.nodes().filter('[type="Direct"]').not(':transparent');
+                var edgeLen = Math.floor(Math.sqrt(linkers.length));
+                var orphLen = Math.floor(Math.sqrt(query_orphans.length));
+            
+                if (linkers.length == 0) {
+                    is_connected.positions(function( node, i ){
+                      return {
+                        x: 1000*(i%2),
+                        y: 1000*Math.floor(i/2)
+                      };
+                    });
+                    for (var i=0; i<is_connected.length; i++) {
+                        ele = is_connected[i];
+                        var box = ele.position();
+                        var direct_conn = ele.outgoers().union(ele.incomers()).filter('[type="Direct"]').not(':transparent');
+                        direct_conn.positions(function( node, i ){
+                            if (box.x==1000) {
+                              return {
+                                x: box.x+3000+500*(i%4),
+                                y: box.y+500*(Math.floor(i/10))
+                              };
+                            } else {
+                               return {
+                                x: box.x-3000-500*(i%4),
+                                y: box.y-500*(Math.floor(i/10))
+                              };
+                            }
+            
+                        });
+                    }
+            
+                } else {
+                    is_connected.positions(function( node, i ){
+                      return {
+                        x: (edgeLen*500+5000)*(i%2),
+                        y: 1000*Math.floor(i/2)
+                      };
+                    });
+                    linkers.positions(function( node, i ){
+                      return {
+                        x: 2500+(i%edgeLen)*500,
+                        y: 500*Math.floor(i/edgeLen)
+                      };
+                    });
+                    for (var i=0; i<is_connected.length; i++) {
+                        ele = is_connected[i];
+                        var box = ele.position();
+                        var direct_conn = ele.outgoers().union(ele.incomers()).filter('[type="Direct"]').not(':transparent');
+                        direct_conn.positions(function( node, i ){
+                            if (box.x==edgeLen*500+5000) {
+                              return {
+                                x: box.x+edgeLen*100+1000+500*(i%4),
+                                y: box.y+500*(Math.floor(i/10))
+                              };
+                            } else {
+                               return {
+                                x: box.x-edgeLen*100-1000-500*(i%4),
+                                y: box.y-500*(Math.floor(i/10))
+                              };
+                            }
+            
+                        });
+                    }
+            
+                }
+            
+                query_orphans.positions(function( node, i ){
+                    return {
+                        x: -500-500*(i%orphLen),
+                        y: -500-500*(Math.floor(i/orphLen))
+                      };
+                    });
+                
+                cy.zoom(orig_zoom/2)               
+                cy.center();
+            
+            }
+            
+            
+        </script>
+    </body>
 </html>

@@ -1,137 +1,141 @@
 <!doctype html>
-
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
-  <title>VERIT</title>
-</head>
-
-<style>
-    body {
+    <head>
+        <meta charset="utf-8">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
+        <script type=text/javascript>
+            $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        </script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js"></script>
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+            integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+        <title>README</title>
+    </head>
+    
+    <style>
+        body {
         font-family: Arial, Helvetica, sans-serif;
-        font-size:20px;
-    }
-    
-    th, td {
-        padding: 20px;
-    }
-    
-    table, th, td {
-      border: 1px solid black;
-      border-collapse: collapse;
-    }
+        font-size: 20px;
+        }
 
-    .carousel .carousel-indicators li {background-color: black; height:8px;width:50px;}
-    .carousel .carousel-indicators li.active {background-color: white;height:8px;width:50px;}
-    
-    .carousel-caption p{
+      a {
+        text-decoration: none;
+        display: inline-block;
+        padding: 8px 16px;
+      }
+
+      a:hover {
+        background-color: #ddd;
+        color: black;
+      }
+        th, td {
+        padding: 20px;
+        }
+        table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        }
+        .carousel .carousel-indicators li {background-color: black; height:8px;width:50px;}
+        .carousel .carousel-indicators li.active {background-color: white;height:8px;width:50px;}
+        .carousel-caption p{
         color:white;
-    }
-    .carousel-caption {
+        }
+        .carousel-caption {
         position: relative;
         left: 0;
         top: 0;
         height:80px;
         background:#4CAF50;
-    }
-</style>
-
-<body>
-
-    <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="{{ url_for('home')}}">VERIT</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('select_query')}}">Query</a>
-          </li>
-         <li class="nav-item active">
-            <a class="nav-link" href="#">README<span class="sr-only">(current)</span></a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-
-<div style="padding-top:65px;" class="container">
-        <h1 style="padding-bottom:25px;">README</h1>
-    <h2>PageRank Scoring of IDs</h2>
-    <p>To help the user choose an effective query, we rank the ID results of name queries using the PageRank algorithm. The number in parentheses next to each ID is the normalized PageRank score. Please note that this value is calculated from the global graph, not the subset graph found by the query algorithm. IDs with high PageRank scores are well-connected to other entities and likely to yield an informative network visualization. IDs with PageRank scores less than 0.05 have a hazard icon next to them. They are poorly connected to other entities and unlikely to yield an informative network visualization. We suggest not querying with these IDs.</p>
-    <figure>
-  <img class="d-block w-100" src="{{url_for('static', filename='pr_example.png')}}" style="width:100%; height: 460px;" alt="PageRank Example">
-  <figcaption>For a query of E2F, we recommend selecting uniprot:Q01094 because it has the highest PageRank value, instead of the other IDs, which have negative PageRanks values.</figcaption>
-</figure>
+        }
+    </style>
     
-                <h2 style="padding-top:15px;">Selecting Multiple IDs</h2>
-    <p>There is the option to select multiple IDs that correspond to one query.</p>
-        <figure>
-  <img class="d-block w-100" src="{{url_for('static', filename='sen_example.png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
-  <figcaption>Example of selecting two IDs that correspond to "senescence".</figcaption>
-</figure>
-    <p>If multiple IDs are selected for one query, the algorithm is first run on each ID separately. Then, the results are combined into one node in the visualization.</p>
+    <body>
+          <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="{{ url_for('home')}}">VERIT</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+              aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+              <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                  <a class="nav-link" href="{{ url_for('select_query')}}">Query</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('readme')}}">README</a>
+                </li>
+              </ul>
+            </div>
+          </nav>
+        
+        <div style="padding-top:80px;padding-bottom:30px;" class="container">
+            <h1 style="padding-bottom:25px;">README</h1>
+            <h2>PageRank Scoring of IDs</h2>
+            <p>To help the user choose an effective query, we rank the ID results of name queries using the PageRank algorithm. The number in parentheses next to each ID is the normalized PageRank score. Please note that this value is calculated from the global graph, not the subset graph found by the query algorithm. IDs with high PageRank scores are well-connected to other entities and likely to yield an informative network visualization. IDs with PageRank scores less than 0.05 have a hazard icon next to them. They are poorly connected to other entities and unlikely to yield an informative network visualization. We suggest not querying with these IDs.</p>
             <figure>
-  <img class="d-block w-100" src="{{url_for('static', filename='mult_select.png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
-  <figcaption>Query process when multiple IDs are selected</figcaption>
-</figure>
-    
-                    <h2 style="padding-top:15px;">MultiQuery Algorithm Options</h2>
-    <p>There are two algorithms for the MultiQuery Algorithm:</p>
-<ol>
-                  <li>All Simple Paths: Finds all simple paths between all combinations of query species that have less than or equal to the maximum number of edges specified by the user
-                    <figure>
-  <img class="d-block w-100" src="{{url_for('static', filename='allsimple.png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
-  <figcaption>The paths found between Query 1 and Query 2 with All Simple Paths and maximum edges value of 2. Found paths are in red.</figcaption>
-</figure></li>
-
-                                    <br>
-                  <li>All Shortest Paths: Finds all shortest paths between all combinations of query species.
-                    <figure>
-  <img class="d-block w-100" src="{{url_for('static', filename='allsimple (1).png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
-  <figcaption>The paths found between Query 1 and Query 2 with All Shortest Paths. Found paths are in red.</figcaption>
-</figure></li>
-                                    <br>
-                                    
-                            
-                </ol>
-    
-    
-               <h2 style="padding-top:15px;">Interpreting the Visualization</h2>
-    <p>The arrow colors represent the nature of the relationship between two species. If a high percentage of the total evidence for the relationship between node 1 and node 2 supports up regulation, the arrow pointing from node 1 to node 2 is blue. If a low percentage of the total evidence for a relationship between node 1 and node 2 supports up regulation, the arrow pointing from node 1 to node 2 is red. If there is some controversy (i.e. around half of the evidence for the relationship indicates upregulation), the arrow is either light blue (more evidence supports upregulation), light red (more evidence supports downregulation), or white (half of the evidence supports upregulation and half supports downregulation).</p>
+                <img class="d-block w-100" src="{{url_for('static', filename='pr_example.png')}}" style="width:100%; height: 460px;" alt="PageRank Example">
+                <figcaption>For a query of E2F, we recommend selecting uniprot:Q01094 because it has the highest PageRank value, instead of the other IDs, which have negative PageRanks values.</figcaption>
+            </figure>
+            <h2 style="padding-top:15px;">Selecting Multiple IDs</h2>
+            <p>There is the option to select multiple IDs that correspond to one query.</p>
             <figure>
-  <img class="d-block w-100" src="{{url_for('static', filename='thickness (1).png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
-</figure> 
-    <br>
-    <p>The thickness of the arrows represent the amount of evidence that supports the connection. The thicker the arrow, the more evidence that supports the connection.</p>
-        <figure>
-  <img class="d-block w-100" src="{{url_for('static', filename='thickness.png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
-</figure> 
-    
-        <h2 style="padding-top:15px;">Species Context Limitations</h2>
-    <p>REACH does not always ground entities to the correct species context. For example, it could read a sentence talking about a mouse protein but output the Uniprot ID for the human version of that protein. Thus, a node labeled “[PROTEIN_NAME]_HUMAN” may not just be referring to the human version of that protein. We recommend looking at the evidence for more accurate information on the species context of a read.</p>
-        <figure>
-  <img class="d-block w-100" src="{{url_for('static', filename='human_nodes.png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
-  <figcaption>Examples of nodes with [PROTEIN_NAME]_HUMAN labels.</figcaption>
-</figure>
+                <img class="d-block w-100" src="{{url_for('static', filename='sen_example.png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
+                <figcaption>Example of selecting two IDs that correspond to "senescence".</figcaption>
+            </figure>
+            <p>If multiple IDs are selected for one query, the algorithm is first run on each ID separately. Then, the results are combined into one node in the visualization.</p>
+            <figure>
+                <img class="d-block w-100" src="{{url_for('static', filename='mult_select.png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
+                <figcaption>Query process when multiple IDs are selected</figcaption>
+            </figure>
+            <h2 style="padding-top:15px;">MultiQuery Algorithm Options</h2>
+            <p>There are two algorithms for the MultiQuery Algorithm:</p>
+            <ol>
+                <li>
+                    All Simple Paths: Finds all simple paths between all combinations of query species that have less than or equal to the maximum number of edges specified by the user
+                    <figure>
+                        <img class="d-block w-100" src="{{url_for('static', filename='allsimple.png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
+                        <figcaption>The paths found between Query 1 and Query 2 with All Simple Paths and maximum edges value of 2. Found paths are in red.</figcaption>
+                    </figure>
+                </li>
+                <br>
+                <li>
+                    All Shortest Paths: Finds all shortest paths between all combinations of query species.
+                    <figure>
+                        <img class="d-block w-100" src="{{url_for('static', filename='allsimple (1).png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
+                        <figcaption>The paths found between Query 1 and Query 2 with All Shortest Paths. Found paths are in red.</figcaption>
+                    </figure>
+                </li>
+                <br>
+            </ol>
+            <h2 style="padding-top:15px;">Interpreting the Visualization</h2>
+            <p>The arrow colors represent the nature of the relationship between two species. If a high percentage of the total evidence for the relationship between node 1 and node 2 supports up regulation, the arrow pointing from node 1 to node 2 is blue. If a low percentage of the total evidence for a relationship between node 1 and node 2 supports up regulation, the arrow pointing from node 1 to node 2 is red. If there is some controversy (i.e. around half of the evidence for the relationship indicates upregulation), the arrow is either light blue (more evidence supports upregulation), light red (more evidence supports downregulation), or white (half of the evidence supports upregulation and half supports downregulation).</p>
+            <figure>
+                <img class="d-block w-100" src="{{url_for('static', filename='thickness (1).png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
+            </figure>
+            <br>
+            <p>The thickness of the arrows represent the amount of evidence that supports the connection. The thicker the arrow, the more evidence that supports the connection.</p>
+            <figure>
+                <img class="d-block w-100" src="{{url_for('static', filename='thickness.png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
+            </figure>
+            <h2 style="padding-top:15px;">Species Context Limitations</h2>
+            <p>REACH does not always ground entities to the correct species context. For example, it could read a sentence talking about a mouse protein but output the Uniprot ID for the human version of that protein. Thus, a node labeled “[PROTEIN_NAME]_HUMAN” may not just be referring to the human version of that protein. We recommend looking at the evidence for more accurate information on the species context of a read.</p>
+            <figure>
+                <img class="d-block w-100" src="{{url_for('static', filename='human_nodes.png')}}" style="width:40%; height: 40%;" alt="Human Nodes Example">
+                <figcaption>Examples of nodes with [PROTEIN_NAME]_HUMAN labels.</figcaption>
+            </figure>
             <h2 style="padding-top:15px;">Large Single Queries</h2>
-    <p>Single Queries with depth > 1 tend to return a large graph, which is uninformative and can cause the page to crash. To prevent this, only the top 10% highest thickness connections are kept in each layer for Single Queries of depth > 1. All connections are kept for Single Queries of depth 1.</p>
-    <figure>
-      <img class="d-block w-100" src="{{url_for('static', filename='largeSingleQuery.png')}}" style="width:40%; height: 40%;" alt="Large Single Query Example">
-  <figcaption>Examples of a very large graph.</figcaption>
-</figure>
-    
-
-
-    
-    </div>
-
-
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-</body>
+            <p>Single Queries with depth > 1 tend to return a large graph, which is uninformative and can cause the page to crash. To prevent this, only the top 10% highest thickness connections are kept in each layer for Single Queries of depth > 1. All connections are kept for Single Queries of depth 1.</p>
+            <figure>
+                <img class="d-block w-100" src="{{url_for('static', filename='largeSingleQuery.png')}}" style="width:40%; height: 40%;" alt="Large Single Query Example">
+                <figcaption>Example of a very large graph.</figcaption>
+            </figure>
+        </div>
+    </body>
 </html>

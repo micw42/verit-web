@@ -59,6 +59,8 @@ def query(G, edges_df, nodes_df, query, depth):
     
     # If the user selected multiple IDs, merge them all into one node
     if user_query != "QUERY_ID":
+        nodes.loc[(nodes.Id.isin(query_list)),'display_id'] = ", ".join(query_list)
+        nodes["display_id"] = nodes["display_id"].fillna(nodes["Id"])
         nodes.loc[(nodes.Id.isin(query_list)),'Label']=user_query
         nodes.loc[(nodes.Id.isin(query_list)),'Id']=user_query
         nodes = nodes.drop_duplicates(subset="Id")
@@ -67,6 +69,7 @@ def query(G, edges_df, nodes_df, query, depth):
         full_df.loc[(full_df.source.isin(query_list)),'source']=user_query
         full_df.loc[(full_df.target.isin(query_list)),'target']=user_query
     else:
+        nodes["display_id"] = nodes["Id"]
         full_df["orig_source"] = full_df["source"]
         full_df["orig_target"] = full_df["target"]
         
@@ -84,7 +87,7 @@ def query(G, edges_df, nodes_df, query, depth):
         return files
     full_df["files"] = full_df.apply(lambda x: formatter(x.orig_source, x.orig_target), axis=1)
     
-    nodes = nodes[["Id", "Label", "depth", "KB"]]
+    nodes = nodes[["Id", "Label", "depth", "KB", "display_id"]]
     full_df = full_df[["color", "thickness", 
                      "files", "source", "target"]]
     
