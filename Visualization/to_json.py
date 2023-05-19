@@ -46,7 +46,7 @@ def clean_nodes():
 def clean_edges():
 
     edges_df=pd.read_csv("query_edges.csv",header = 0)
- 
+
     def get_width(x):
         if x<50:
             return x+10
@@ -77,7 +77,7 @@ def clean_edges():
         elif float(color_val)< 0.8:
             return palette[8]
         return palette[9]
-    
+
     pal = list(sns.color_palette("RdBu", 10).as_hex())
     edges_df["color"]=edges_df["color"].apply(convert_col, args=(pal,))
 
@@ -93,7 +93,6 @@ def convert(nodes_df, edges_df):
 
     elements=[]
     for node in nodes:
-        print(node)
         node_dict={"data":{"id":node[0], "label":node[1], "color":node[2], "KB":node[3], "display_id":node[4], "rank":int(node[5])}}
         elements.append(node_dict)
 
@@ -104,8 +103,8 @@ def convert(nodes_df, edges_df):
 
     for edge in edges:
         edge_id=edge[3]+edge[4]
-        edge_dict={"data":{"id":edge_id, "source":edge[3], "target":edge[4], 
-                           "weight":edge[5], "color":edge[0], 
+        edge_dict={"data":{"id":edge_id, "source":edge[3], "target":edge[4],
+                           "weight":edge[5], "color":edge[0],
                            "files":edge[2], "thickness":edge[1]}}
         elements.append(edge_dict)
 
