@@ -1,6 +1,6 @@
 from flask import Flask, render_template, url_for, request, redirect, jsonify, Response, make_response
 from Query import DictChecker, SingleQuery, SingleSearcher, MultiSearcher, ConvertSearch, MultiQuery, GeneConvert, GetEv
-from Visualization import to_json, to_json_netx
+from Visualization import to_json, to_json_netx, layeredConcentric
 import pandas as pd
 import colorama as clr
 import networkx as nx
@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename
 from os.path import expanduser
 import random
 
-with open("/home/veritvisualization/verit-web/settings.txt") as file:
+with open("./settings.txt") as file:
     settings = [x.strip("\n") for x in file.readlines()]
 print(settings)
 
@@ -61,13 +61,16 @@ def get_evidence():
     ev = "%%".join(ev)
     return jsonify(result=ev)
 
+
 @app.route('/')
 def home():
     return render_template("home.html")
 
+
 @app.route('/readme')
 def readme():
     return render_template("README.html")
+
 
 @app.route("/selectQuery", methods=["POST","GET"])
 def select_query():
@@ -82,6 +85,7 @@ def select_query():
     else:
         return render_template("select_query.html")
 
+    
 @app.route('/validate/<query_type>', methods=["POST","GET"])
 def validate(query_type):
     global edges_df
@@ -157,6 +161,7 @@ def validate(query_type):
         else:
             return render_template("validate_bfs.html")
 
+
 @app.route('/pick_query/<query>/<query_type>', methods=["POST","GET"])
 def pick_query(query, query_type):
     global nodes_df
@@ -218,6 +223,7 @@ def display_options(query_type, string_type):
     else:
         return render_template("validate_result.html", not_in=not_in, query_type=query_type, present=present)
 
+
 @app.route('/bfs/<query_type>', methods=["POST","GET"])
 def make_bfs_query(query_type):
     with open('query_dict.json') as json_file:
@@ -231,6 +237,7 @@ def make_bfs_query(query_type):
         return redirect(url_for("bfs_query_result", max_linkers=max_linkers, qtype = qtype, query_type = query_type, get_direct_linkers = True))
     else:
         return render_template("bfs_search.html")
+
 
 @app.route('/single_query', methods=["POST","GET"])
 @app.route('/single_query/<query_type>', methods=["POST","GET"])
@@ -273,7 +280,6 @@ def bfs_query_result(max_linkers, qtype, query_type, get_direct_linkers):
     return render_template("bfs_result.html", elements = elements, filtered=filtered)
 
 
-
 @app.route('/singleresult/<depth>/<query_type>')
 def single_query_result(depth, query_type, methods=["GET"]):
     global edges_df
@@ -285,8 +291,9 @@ def single_query_result(depth, query_type, methods=["GET"]):
     depth=int(depth)
 
     SingleQuery.query(G, edges_df, nodes_df, query, depth)
-    elements=to_json.clean()
+    elements=to_json.clean(sq=True)
     return render_template("single_query_result.html", elements=elements)
+
 
 @app.route("/process", methods=["POST"])
 def process_data():
@@ -295,9 +302,11 @@ def process_data():
     query_dict = json.dumps(query_dict)
     return redirect(url_for("make_single_query", query=query_dict, query_type = "id"))
 
+
 @app.route("/go_home", methods=["POST"])
 def go_home():
     return redirect(url_for("home"))
+
 
 @app.route("/getNodes")
 def getNodes():
@@ -309,6 +318,7 @@ def getNodes():
     resp.headers["Content-Type"] = "text/csv"
     return resp
 
+
 @app.route("/getEdges")
 def getEdges():
     # with open("outputs/Adjacency.csv") as fp:
@@ -318,6 +328,7 @@ def getEdges():
     resp.headers["Content-Disposition"] = "attachment; filename=query_edges.csv"
     resp.headers["Content-Type"] = "text/csv"
     return resp
+
 
 if __name__=="__main__":
     print(f'\n{clr.Fore.BLUE}*****  IGNORE ADDRESS GIVEN BELOW. RUN USING localhost:5001  *****\n')

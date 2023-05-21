@@ -69,7 +69,7 @@
         background: lightgray;
         border-radius: 50%;
         margin: 0 auto 10px auto;
-        padding: 2px
+        padding: 2px;
     }
 
     #progressbar li:after {
@@ -80,7 +80,7 @@
         position: absolute;
         left: 0;
         top: 25px;
-        z-index: -1
+        z-index: -1;
     }
 
     #progressbar li.active:before,
@@ -187,10 +187,10 @@
             step2 = document.getElementById("step2");
             step3 = document.getElementById("step3");
             step1.onclick = function () {
-                window.history.go(-3);
+                location.href = "/selectQuery";
             };
             step2.onclick = function () {
-                window.history.go(-2);
+                window.history.back();
             };
             step3.onclick = function () {
                 window.history.back();

@@ -190,16 +190,15 @@
             step2 = document.getElementById("step2");
             step3 = document.getElementById("step3");
             step1.onclick = function () {
-                window.history.go(-3);
+                location.href = "/selectQuery"
             };
             step2.onclick = function () {
-                window.history.go(-2);
+                window.history.back();
             };
             step3.onclick = function () {
                 window.history.back();
             };
         </script>
-
 
         <form id="myForm" method="POST" action="#">
             <h2> Additional Parameters </h2> <hr/>

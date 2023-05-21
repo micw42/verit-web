@@ -72,7 +72,7 @@ def query(G, edges_df, nodes_df, query, depth):
         nodes["display_id"] = nodes["Id"]
         full_df["orig_source"] = full_df["source"]
         full_df["orig_target"] = full_df["target"]
-        
+
     full_df = full_df[["color", "thickness", "source", "target", "orig_source", "orig_target"]]
     full_df["color2"] = full_df["color"] * full_df["thickness"]
     id_concat = lambda x: "%%".join(x) # Concat all source and target IDs of merged nodes

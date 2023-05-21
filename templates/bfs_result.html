@@ -1406,6 +1406,24 @@
                 }) 
                 layout.run();
             }
+             
+             
+             function run_fCose(idealEL, nodeRep=1e9) {
+               var eles = cy.elements().filter(function (ele) {
+                    return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
+                }); 
+                var layout = eles.layout({
+                    name: 'fcose',
+                    
+                    nodeRepulsion: node => nodeRep,
+                    idealEdgeLength: edge => idealEL,
+                    gravity: 1e-5,
+                      gravityRangeCompound: 1e-5,
+                      gravityCompound: 1e-5,
+                      gravityRange: 1e-5
+                }) 
+                layout.run();
+            }
             
             //run_fCose(idealEL=iel)
             

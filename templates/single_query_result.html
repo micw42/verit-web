@@ -128,7 +128,9 @@
                adjustments.
             </h6>
          </div>
+          
          <hr>
+          
          <div style="padding-left:20px;padding-bottom:20px" class="slidecontainer">
             <h2 style="padding-bottom:10px;">Parameters</h2>
             <h6>Filter by thickness:</h6>
@@ -139,6 +141,7 @@
             </form>
             <br>
          </div>
+          
          <div style="padding-left:20px;padding-bottom:20px">
             <h6>Search for a node:</h6>
             <form action="#" id="node_search" style="display:inline;">
@@ -148,21 +151,21 @@
             <button id="reset" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;"><span class=reload>&#171;</span></button>
             <p style="color:grey;margin-left:20px;">(Current search: <span id="current_query">None</span>)</p>
          </div>
-         <hr>
-         <div style="padding-left:10px;" class="slidecontainer">
+          
+          <div style="padding-left:10px;padding-bottom:20px" class="slidecontainer">
             <form  id="kb_form" action="#" >
                <h6>Filter by knowledge base:</h6>
                <div style="width:75%;margin-left:20px;display: flex;align-items: flex-end;justify-content: space-between;gap:5px">
                   <dl style="border:1px solid black;width:98%;padding-right:100px">
-                     <dt>Genes/proteins</dt>
+                     <dt style="margin-left:10px">Genes/proteins</dt>
                      <dd>
-                        <ul style="padding-left:0;padding-bottom:0;margin-bottom:0">
+                        <ul style="padding-left:0;padding-bottom:0;margin-bottom:0;margin-left:10px">
                            <li >
                               <input class="allCheckbox" id="all_prot" value="all_prot" type="checkbox" />
                               <label class="allLabel" for="all_prot">Select all</label>
                            </li>
                         </ul>
-                        <ul style="padding-left:2;padding-top:0;margin-top:0;padding-bottom:0">
+                        <ul style="padding-left:2;padding-top:0;margin-top:0;padding-bottom:0;margin-left:10px">
                            <li>
                               <input class="messageCheckbox" id="uniprot" value="uniprot" type="checkbox" style="float: left;"/>
                               <label for="uniprot">Uniprot</label>
@@ -227,6 +230,9 @@
                </div>
             </form>
          </div>
+          
+         <hr>
+                    
          <div style="padding:20px;padding-top:0px;text-align:center">
             <h6>
                Note: Inaccuracies should be expected due to errors in the NLP.
@@ -294,8 +300,8 @@
                  <svg  xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
                         <g>
                             <circle id="source" cx="230" cy="80" r="30" />
-                            <text id="source_lab" x="230" y="80" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
-                            <text id="source_id" x="230" y="120" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <text id="source_lab" x="230" y="75" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <text id="source_id" x="230" y="90" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
                         </g>
                     </svg>
                                         
@@ -348,7 +354,9 @@
       </div>
       <div id="cy"></div>
       <script>
+          
          const data = {{ elements | tojson }};
+          
          var cy = cytoscape({
            wheelSensitivity: 0.1,
            container: document.getElementById('cy'),
@@ -370,8 +378,9 @@
                  "overlay-padding": "6px",
                  "z-index": "10",
                  'background-fit': 'contain',
-                   'display_id':'data(display_id)'
-         
+                 'display_id':'data(display_id)',
+                 'x': 'data(x)',
+                 'y': 'data(y)'
                }
              }, {
                selector: 'edge',
@@ -427,18 +436,11 @@
                  style: { 'background-color': "#26ff12" }
                      }
          ],
-         layout: {
-         name: 'concentric',
-         concentric: function (node) {
-         return node.data("rank");
-         }
+             
+        layout:{
+             name: "preset"
          }
          });
-         
-         
-         
-         
-           
            
          var currently_querying = false
          
@@ -656,8 +658,6 @@
                   console.log(sel.length)
                   sel.filter(function(ele) {return((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"))}).addClass("mouseup")
              }); 
-              
-         
          
               cy.on('tap', function(event){
                // target holds a reference to the originator
@@ -668,20 +668,14 @@
                  cy.nodes().removeClass("mouseup")
                } 
              }); 
-           
           
-           
+           <!-- Need to recalculate positions for new eles -->
            rerun_layout = function() {
-                 var eles = cy.elements().filter(function (ele) {
-                     return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
-                 });
-                 var layout = eles.layout({
-                 name: 'concentric',
-                 concentric: function (node) {
-                   return node.data("rank");
-                 }
-               });
-               layout.run();
+             var eles = cy.elements().filter(function (ele) {
+                 return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
+             });
+             var layout = eles.layout({name: 'preset'});
+             layout.run();
            }
          
            function getSelectValues(select) {
@@ -709,9 +703,7 @@
              filterEdges(threshold)
              return false
          } 
-         
-           
-           
+          
              function getMaxWeight(allEdges) {
                  var weight_arr = []
                  for (var i = 0; i < allEdges.length; i++) {
@@ -733,6 +725,7 @@
              });
              filteredEdges = cy.remove(filteredEdges);
              filteredNodes = cy.remove(filteredNodes);
+          
              filterEdges = function(threshold) { 
                filteredNodes.removeClass("transp");
                filteredEdges.restore();
@@ -743,7 +736,7 @@
                  return ele.degree() == 0;
                });
                filteredNodes.addClass("transp");
-                 rerun_layout();
+               rerun_layout();
              }
          
              var allEdges = cy.edges()  
@@ -871,6 +864,7 @@
              cy.edges().addClass("pos_colors");
            }
          }
+          
       </script>
       <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
    </body>
