@@ -134,103 +134,109 @@
          <div style="padding-left:20px;padding-bottom:20px" class="slidecontainer">
             <h2 style="padding-bottom:10px;">Parameters</h2>
             <h6>Filter by thickness:</h6>
-            <input type="range" min="1" value="1" class="slider" id="myRange" style="width:50%;margin-left:20px">
+            <input type="range" min="1" value="2" class="slider" id="myRange" style="width:50%;margin-left:20px">
             <form action="#" id="input_thickness" style="display:inline;">
-               <input type="number" id="quantity" min="1" style="width:15%">
+               <input type="number" id="quantity" min="2" style="width:15%">
                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
             </form>
             <br>
          </div>
           
+          
          <div style="padding-left:20px;padding-bottom:20px">
             <h6>Search for a node:</h6>
+             
             <form action="#" id="node_search" style="display:inline;">
                <input type="text" id="node_name" style="width:66%;margin-left:20px;">
                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
             </form>
+             
             <button id="reset" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;"><span class=reload>&#171;</span></button>
             <p style="color:grey;margin-left:20px;">(Current search: <span id="current_query">None</span>)</p>
          </div>
-          
-          <div style="padding-left:10px;padding-bottom:20px" class="slidecontainer">
-            <form  id="kb_form" action="#" >
-               <h6>Filter by knowledge base:</h6>
-               <div style="width:75%;margin-left:20px;display: flex;align-items: flex-end;justify-content: space-between;gap:5px">
-                  <dl style="border:1px solid black;width:98%;padding-right:100px">
-                     <dt style="margin-left:10px">Genes/proteins</dt>
+
+          <div style="padding-left:20px;" class="slidecontainer">
+              <h6>Filter by knowledge base:</h6>
+              
+                <form id="kb_form" action="#" style="width:72%">
+                  <dl style="border:1px solid lightgrey;margin-left:20px">
+
+                     <dt style="margin-left:10px;padding-top:10px">
+                          <input class="allCheckbox" id="all_prot" value="all_prot" type="checkbox" />
+                          <label class="allLabel" for="all_prot" style="margin-left:5px">Genes/proteins</label>
+                      </dt>
+
                      <dd>
-                        <ul style="padding-left:0;padding-bottom:0;margin-bottom:0;margin-left:10px">
-                           <li >
-                              <input class="allCheckbox" id="all_prot" value="all_prot" type="checkbox" />
-                              <label class="allLabel" for="all_prot">Select all</label>
-                           </li>
-                        </ul>
-                        <ul style="padding-left:2;padding-top:0;margin-top:0;padding-bottom:0;margin-left:10px">
+                        <ul>
                            <li>
-                              <input class="messageCheckbox" id="uniprot" value="uniprot" type="checkbox" style="float: left;"/>
-                              <label for="uniprot">Uniprot</label>
+                              <input class="messageCheckbox" id="uniprot" value="uniprot" type="checkbox"/>
+                              <label for="uniprot" style="margin-left:5px">Uniprot</label>
                            </li>
                            <li>
                               <input class="messageCheckbox" id="fplx" value="fplx" type="checkbox" />
-                              <label for="fplx">FamPlex</label>
+                              <label for="fplx" style="margin-left:5px">FamPlex</label>
                            </li>
                            <li>
                               <input class="messageCheckbox" id="PR" value="PR" type="checkbox" />
-                              <label for="PR">PR</label>
+                              <label for="PR" style="margin-left:5px">PR</label>
                            </li>
                            <li>
                               <input class="messageCheckbox" id="interpro" value="interpro" type="checkbox" />
-                              <label for="interpro">Interpro</label>
+                              <label for="interpro" style="margin-left:5px">Interpro</label>
                            </li>
                            <li>
                               <input class="messageCheckbox" id="pfam" value="pfam" type="checkbox" />
-                              <label for="pfam">Pfam</label>
+                              <label for="pfam" style="margin-left:5px">Pfam</label>
                            </li>
                         </ul>
                      </dd>
-                     <dt>Chemicals</dt>
+
+                     <dt style="margin-left:10px">
+                          <input class="allCheckbox" id="all_chem" value="all_chem" type="checkbox" />
+                          <label class="allLabel" for="all_prot" style="margin-left:5px">Chemicals</label>
+                     </dt>
+
                      <dd>
-                        <ul style="padding-left:0;padding-bottom:0;margin-bottom:0;padding-top:0">
-                           <li >
-                              <input class="allCheckbox" id="all_chem" value="all_chem" type="checkbox" />
-                              <label class="allLabel" for="all_prot">Select all</label>
-                           </li>
-                        </ul>
-                        <ul style="padding-top:0;margin-top:0;margin-bottom:0;">
+                        <ul>
                            <li>
                               <input class="messageCheckbox" id="CHEBI" value="CHEBI" type="checkbox" />
-                              <label for="CHEBI">CHEBI</label>
+                              <label for="CHEBI" style="margin-left:5px">CHEBI</label>
                            </li>
                            <li>
                               <input class="messageCheckbox" id="pubchem" value="pubchem" type="checkbox" />
-                              <label for="pubchem">PubChem</label>
+                              <label for="pubchem" style="margin-left:5px">PubChem</label>
                            </li>
                         </ul>
                      </dd>
-                     <dt>Cellular events</dt>
+
+                     <dt style="margin-left:10px">Cellular events</dt>
+
                      <dd>
-                        <ul style="padding-bottom:0;margin-bottom:0;padding-top:0">
+                        <ul>
                            <li>
                               <input class="messageCheckbox" id="GO" value="GO" type="checkbox" />
-                              <label for="GO">GO</label>
+                              <label for="GO" style="margin-left:5px">GO</label>
                            </li>
                         </ul>
                      </dd>
-                     <dt>Diseases</dt>
+
+                     <dt style="margin-left:10px" style="margin-left:5px">Diseases</dt>
+
                      <dd>
-                        <ul style="padding-bottom:0;margin-bottom:0;padding-top:0">
+                        <ul>
                            <li>
                               <input class="messageCheckbox" id="mesh" value="mesh" type="checkbox" />
-                              <label for="mesh">Mesh</label>
+                              <label for="mesh" style="margin-left:5px">Mesh</label>
                            </li>
                         </ul>
                      </dd>
                   </dl>
-                  <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px"><span class=reload>&#x21bb;</span></button>
-               </div>
+
+                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;transform:translateX(750%) translateY(-150%)"><span class=reload>&#x21bb;</span></button>                    
             </form>
-         </div>
-          
+            
+          </div>
+
          <hr>
                     
          <div style="padding:20px;padding-top:0px;text-align:center">
@@ -258,7 +264,6 @@
          console.log("checked box")
          if(this.checked) {
              if (this.value=="all_prot") {
-                 $(this).siblings('label').html("Deselect all");
                  $(':checkbox').each(function() {
                      console.log(this.value)
                      if (proteins.includes(this.value)) {
@@ -266,7 +271,6 @@
                      }            
                  });
              } else {
-                 $(this).siblings('label').html("Deselect all");
                   $(':checkbox').each(function() {
                      if (chemicals.includes(this.value)) {
                          this.checked = true;
@@ -276,14 +280,12 @@
              // Iterate each checkbox
          } else {
              if (this.value=="all_prot") {
-                 $(this).siblings('label').html("Select all");
                  $(':checkbox').each(function() {
                      if (proteins.includes(this.value)) {
                          this.checked = false;
                      }            
                  });
              } else {
-                 $(this).siblings('label').html("Select all");
                   $(':checkbox').each(function() {
                      if (chemicals.includes(this.value)) {
                          this.checked = false;

@@ -219,84 +219,87 @@
             </div>
 
             
-            <div style="padding-left:10px;" class="slidecontainer">
-                <form  id="kb_form" action="#" >
-                    <h6>Filter by knowledge base:</h6>
-                    <div style="width:75%;margin-left:20px;display: flex;align-items: flex-end;justify-content: space-between;gap:5px">
-                        <dl style="border:1px solid black;width:98%;padding-right:100px">
-                            <dt>Genes/proteins</dt>
-                        <dd>
-                            <ul style="padding-left:0;padding-bottom:0;margin-bottom:0">
-                                <li >
-                                    <input class="allCheckbox" id="all_prot" value="all_prot" type="checkbox" />
-                                    <label class="allLabel" for="all_prot">Select all</label>
-                                </li>   
-                            </ul>
-                            <ul style="padding-left:2;padding-top:0;margin-top:0;padding-bottom:0">
-                                <li>
-                                    <input class="messageCheckbox" id="uniprot" value="uniprot" type="checkbox" style="float: left;"/>
-                                    <label for="uniprot">Uniprot</label>
-                                </li>    
-                                <li>
-                                    <input class="messageCheckbox" id="fplx" value="fplx" type="checkbox" />
-                                    <label for="fplx">FamPlex</label>
-                                </li>  
-                                <li>
-                                    <input class="messageCheckbox" id="PR" value="PR" type="checkbox" />
-                                    <label for="PR">PR</label>
-                                </li>  
-                                <li>
-                                    <input class="messageCheckbox" id="interpro" value="interpro" type="checkbox" />
-                                    <label for="interpro">Interpro</label>
-                                </li>  
-                                <li>
-                                    <input class="messageCheckbox" id="pfam" value="pfam" type="checkbox" />
-                                    <label for="pfam">Pfam</label>
-                                </li>  
-                            </ul>
-                        </dd>
-                        <dt>Chemicals</dt>
-                            <dd>
-                                <ul style="padding-left:0;padding-bottom:0;margin-bottom:0;padding-top:0">
-                                    <li >
-                                        <input class="allCheckbox" id="all_chem" value="all_chem" type="checkbox" />
-                                        <label class="allLabel" for="all_prot">Select all</label>
-                                    </li>   
-                                </ul>
-                                <ul style="padding-top:0;margin-top:0;margin-bottom:0;">
-                                    <li>
-                                        <input class="messageCheckbox" id="CHEBI" value="CHEBI" type="checkbox" />
-                                        <label for="CHEBI">CHEBI</label>
-                                    </li>    
-                                    <li>
-                                        <input class="messageCheckbox" id="pubchem" value="pubchem" type="checkbox" />
-                                        <label for="pubchem">PubChem</label>
-                                    </li>  
-                                </ul>
-                            </dd>
-                        <dt>Cellular events</dt>
-                            <dd>
-                                <ul style="padding-bottom:0;margin-bottom:0;padding-top:0">
-                                    <li>
-                                        <input class="messageCheckbox" id="GO" value="GO" type="checkbox" />
-                                        <label for="GO">GO</label>
-                                    </li>    
-                                </ul>
-                            </dd>
-                        <dt>Diseases</dt>
-                            <dd>
-                                <ul style="padding-bottom:0;margin-bottom:0;padding-top:0">
-                                    <li>
-                                        <input class="messageCheckbox" id="mesh" value="mesh" type="checkbox" />
-                                        <label for="mesh">Mesh</label>
-                                    </li>    
-                                </ul>
-                            </dd>
-                        </dl>
-                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px"><span class=reload>&#x21bb;</span></button>
-                </div>
-</form>
-        </div>
+          <div style="padding-left:20px;" class="slidecontainer">
+              <h6>Filter by knowledge base:</h6>
+              
+                <form id="kb_form" action="#" style="width:72%">
+                  <dl style="border:1px solid lightgrey;margin-left:20px">
+
+                     <dt style="margin-left:10px;padding-top:10px">
+                          <input class="allCheckbox" id="all_prot" value="all_prot" type="checkbox" />
+                          <label class="allLabel" for="all_prot" style="margin-left:5px">Genes/proteins</label>
+                      </dt>
+
+                     <dd>
+                        <ul>
+                           <li>
+                              <input class="messageCheckbox" id="uniprot" value="uniprot" type="checkbox"/>
+                              <label for="uniprot" style="margin-left:5px">Uniprot</label>
+                           </li>
+                           <li>
+                              <input class="messageCheckbox" id="fplx" value="fplx" type="checkbox" />
+                              <label for="fplx" style="margin-left:5px">FamPlex</label>
+                           </li>
+                           <li>
+                              <input class="messageCheckbox" id="PR" value="PR" type="checkbox" />
+                              <label for="PR" style="margin-left:5px">PR</label>
+                           </li>
+                           <li>
+                              <input class="messageCheckbox" id="interpro" value="interpro" type="checkbox" />
+                              <label for="interpro" style="margin-left:5px">Interpro</label>
+                           </li>
+                           <li>
+                              <input class="messageCheckbox" id="pfam" value="pfam" type="checkbox" />
+                              <label for="pfam" style="margin-left:5px">Pfam</label>
+                           </li>
+                        </ul>
+                     </dd>
+
+                     <dt style="margin-left:10px">
+                          <input class="allCheckbox" id="all_chem" value="all_chem" type="checkbox" />
+                          <label class="allLabel" for="all_prot" style="margin-left:5px">Chemicals</label>
+                     </dt>
+
+                     <dd>
+                        <ul>
+                           <li>
+                              <input class="messageCheckbox" id="CHEBI" value="CHEBI" type="checkbox" />
+                              <label for="CHEBI" style="margin-left:5px">CHEBI</label>
+                           </li>
+                           <li>
+                              <input class="messageCheckbox" id="pubchem" value="pubchem" type="checkbox" />
+                              <label for="pubchem" style="margin-left:5px">PubChem</label>
+                           </li>
+                        </ul>
+                     </dd>
+
+                     <dt style="margin-left:10px">Cellular events</dt>
+
+                     <dd>
+                        <ul>
+                           <li>
+                              <input class="messageCheckbox" id="GO" value="GO" type="checkbox" />
+                              <label for="GO" style="margin-left:5px">GO</label>
+                           </li>
+                        </ul>
+                     </dd>
+
+                     <dt style="margin-left:10px" style="margin-left:5px">Diseases</dt>
+
+                     <dd>
+                        <ul>
+                           <li>
+                              <input class="messageCheckbox" id="mesh" value="mesh" type="checkbox" />
+                              <label for="mesh" style="margin-left:5px">Mesh</label>
+                           </li>
+                        </ul>
+                     </dd>
+                  </dl>
+
+                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;transform:translateX(750%) translateY(-150%)"><span class=reload>&#x21bb;</span></button>                    
+            </form>
+            
+          </div>
             
             
             <div style="padding-left:20px">
@@ -353,7 +356,7 @@
                     <input class="form-check-input" type="checkbox" role="switch" id="direct-button" onchange="run_show_direct()" style="display:inline">
                     <label class="form-check-label" for="direct-button" style="display:inline"></label>
                 </div>
-                <p style="color:grey;">Description: Toggle showing direct neighbors to the query nodes</p>
+                <p style="color:grey;margin-right:20px;">Description: Toggle showing direct neighbors to the query nodes. Only edges with >20 thickness are retrieved to limit network size.</p>
 
                 <ul class="nav">
                     <li style="display:inline">
@@ -392,7 +395,6 @@
             console.log("checked box")
             if(this.checked) {
                 if (this.value=="all_prot") {
-                    $(this).siblings('label').html("Deselect all");
                     $(':checkbox').each(function() {
                         console.log(this.value)
                         if (proteins.includes(this.value)) {
@@ -400,7 +402,6 @@
                         }            
                     });
                 } else {
-                    $(this).siblings('label').html("Deselect all");
                      $(':checkbox').each(function() {
                         if (chemicals.includes(this.value)) {
                             this.checked = true;
@@ -410,14 +411,12 @@
                 // Iterate each checkbox
             } else {
                 if (this.value=="all_prot") {
-                    $(this).siblings('label').html("Select all");
                     $(':checkbox').each(function() {
                         if (proteins.includes(this.value)) {
                             this.checked = false;
                         }            
                     });
                 } else {
-                    $(this).siblings('label').html("Select all");
                      $(':checkbox').each(function() {
                         if (chemicals.includes(this.value)) {
                             this.checked = false;
@@ -1195,9 +1194,9 @@
              
             var cise_nr_slider = document.getElementById("cise_nr_slider")
             var cise_cur_nr = document.getElementById("cise_cur_nr")
-            cise_cur_nr.innerHTML="1e4"
-            cise_nr_slider.value=4
-             var cise_nr = 1e4
+            cise_cur_nr.innerHTML="1e9"
+            cise_nr_slider.value=9
+             var cise_nr = 1e9
             cise_nr_slider.oninput = function () {
                 cise_cur_nr.innerHTML = "1e"+this.value;
                 cise_nr = 10**(this.value);
@@ -1212,8 +1211,8 @@
                     nr_slider.value=9
                     cur_nr.innerHTML="1e9"
                 } else {
-                    cise_nr_slider.value=4
-                    cise_cur_nr.innerHTML="1e4"
+                    cise_nr_slider.value=9
+                    cise_cur_nr.innerHTML="1e9"
                 }
             
             }
