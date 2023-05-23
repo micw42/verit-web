@@ -158,8 +158,8 @@
           <div style="padding-left:20px;" class="slidecontainer">
               <h6>Filter by knowledge base:</h6>
               
-                <form id="kb_form" action="#" style="width:72%">
-                  <dl style="border:1px solid lightgrey;margin-left:20px">
+                <form id="kb_form" action="#" style="width:82%;">
+                  <dl style="border:1px solid lightgrey;margin-left:20px;margin-bottom:5px;">
 
                      <dt style="margin-left:10px;padding-top:10px">
                           <input class="allCheckbox" id="all_prot" value="all_prot" type="checkbox" />
@@ -232,9 +232,9 @@
                      </dd>
                   </dl>
 
-                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;transform:translateX(750%) translateY(-150%)"><span class=reload>&#x21bb;</span></button>                    
+                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;float:right;margin-bottom:20px;"><span class=reload>&#x21bb;</span></button>
             </form>
-            
+          <br><br>
           </div>
 
          <hr>
@@ -298,12 +298,13 @@
       <div id="myModal" class="modal">
          <div class="modal-content" style="height:90%;">
             <span class="close" id="closeEv">&times;</span>
-            <div class="modal-header text-center" style="background-color:#a6a6a6;height:150px">
+            
+            <div class="modal-header text-center" style="background-color:#a6a6a6;height:120px">
                  <svg  xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
                         <g>
-                            <circle id="source" cx="230" cy="80" r="30" />
-                            <text id="source_lab" x="230" y="75" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
-                            <text id="source_id" x="230" y="90" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <circle id="source" cx="230" cy="45" r="30" />
+                            <text id="source_lab" x="230" y="40" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <text id="source_id" x="230" y="55" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
                         </g>
                     </svg>
                                         
@@ -315,21 +316,22 @@
                             </marker>
                         </defs>
                         
-                        <text id="line_lab" dominant-baseline="central" text-anchor="middle" x="138" y="20" font-family="Verdana" font-size="12" fill="black"></text>
+                        <text id="line_lab" dominant-baseline="central" text-anchor="middle" x="138" y="25" font-family="Verdana" font-size="12" fill="black"></text>
                         
-                        <line id="line" x1="10" y1="30" x2="270" y2="30" stroke="#000" 
+                        <line id="line" x1="10" y1="35" x2="270" y2="35" stroke="#000" 
                             stroke-width="8" marker-end="url(#arrowhead)" />
                     </svg>
                     
                     
                     <svg  xmlns="http://www.w3.org/2000/svg" style="overflow: visible">
                         <g>
-                            <circle id="target" cx="70" cy="80" r="30" />
-                            <text id="target_lab" x="70" y="80" dominant-baseline="central" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
-                            <text id="target_id" x="70" y="120" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <circle id="target" cx="70" cy="45" r="30" />
+                            <text id="target_lab" x="70" y="40" dominant-baseline="central" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <text id="target_id" x="70" y="55" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
                         </g>
                     </svg>
             </div>
+             
             <div id="modalBody" class="modal-body">
                <h2 id="posThicknessVal"></h2>
                <h2 id="negThicknessVal"></h2>
@@ -338,6 +340,7 @@
                <div id="negEv"></div>
                <div id="incEv"></div>
             </div>
+             
          </div>
       </div>
       <div id="querier" class="modal">
