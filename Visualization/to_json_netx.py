@@ -5,6 +5,9 @@ import seaborn as sns
 from operator import itemgetter
 import networkx as nx
 
+from .layeredConcentric import get_xy
+
+
 def filter_graph():
     nodes_df=pd.read_csv("query_nodes.csv",header = 0)
     edges_df = pd.read_csv("query_edges.csv",header = 0)
@@ -42,7 +45,6 @@ def clean_nodes():
     nodes_df["display"] = nodes_df["Type"].apply(get_display)
 
     return nodes_df
-
 
 
 def clean_edges():
@@ -93,6 +95,7 @@ def clean_edges():
     edges_df['display'] = edges_df.apply(lambda x: get_display(x.source, x.target, direct_nodes=direct_nodes), axis=1)
 
     return edges_df
+
 
 def get_square_clusters():
     nodes_df=pd.read_csv("query_nodes.csv",header = 0)
@@ -154,47 +157,58 @@ def get_orig_clusters():
     else:
         align = [{"nodeId": query_conn[i], "position": {"x": 10000*(i%2), "y": 10000*(i//2)}} for i in range(len(query_conn))]
 
-    orph_align = [{"nodeId": query_orphans[i], "position": {"x": (-500-500*(i%2)), "y": -500*(i//2)}} for i in range(len(query_orphans))]
+    orph_align = [{"nodeId": query_orphans[i],
+                   "position": {"x": (-500-500*(i%2)), "y": -500*(i//2)}} for i in range(len(query_orphans))]
     align.extend(orph_align)
+    
     align_linkers_n1 = [{"left": query_conn[0], "right": x, "gap": 2500} for x in linkers]
     align_linkers_n2 = [{"left": x, "right": query_conn[1], "gap": 2500} for x in linkers]
     align_linkers = align_linkers_n1 + align_linkers_n2
+    
     return (align, align_linkers)
+
 
 #Convert nodes and edges tables into one json-style list
 def convert(nodes_df, edges_df):
+    nodes_df = nodes_df.sort_values("Type", ascending=False)
 
-    nodes=[]
-    for _, row in nodes_df.iterrows():
-        parts=row.values.tolist()
-        nodes.append(parts)
+    n_query = len(nodes_df[nodes_df.Type == "Query"])
+    n_direct = len(nodes_df[nodes_df.Type == "Direct"])
 
     elements=[]
-    for node in nodes:
-        node_dict={"data":{"id":node[0], "label":node[1], "KB":node[2], "type":node[4], "syn":node[3],
-                           "color":node[6], "classes":node[7], "display":node[8], "orig_display":node[8],
-                          "display_id":node[5]}}
+
+    # Construct nodes datatable
+    for i in range(len(nodes_df)):
+        ndrow = nodes_df.iloc[i]
+        node_dict={"data":{"id":ndrow["Id"], "label":ndrow.Label, "KB":ndrow.KB, "type":ndrow["Type"],
+                           "syn":ndrow["name"], "color":ndrow.Color, "classes":ndrow["class"],
+                           "display":ndrow.display, "orig_display":ndrow.display, "display_id":ndrow.display_id}}
+
         elements.append(node_dict)
 
-    edges=[]
-    for _, row in edges_df.iterrows():
-        parts=row.values.tolist()
-        edges.append(parts)
-
-    for edge in edges:
-        edge_id=edge[3]+edge[4]
-        edge_dict={"data":{"id":edge_id, "source":edge[3], "target":edge[4],
-                           "weight":edge[5], "color":edge[0],
-                           "display":edge[6], "orig_display":edge[6],
-                          "thickness":edge[1], "files":edge[2]}}
+    # Construct edges datatable
+    # Does the order of edges and nodes have to be the same?
+    edges_df["edge_id"] = edges_df.source.str.cat(edges_df.target)
+    for i in range(len(edges_df)):
+        erow = edges_df.iloc[i]
+        edge_dict = {"data": {"id": erow.edge_id,
+                              "source": erow.source, "target": erow.target,
+                              "weight": float(erow.edge_width),
+                              "color": erow.color,
+                              "files": erow.files,
+                              "thickness": int(erow.thickness)}}
         elements.append(edge_dict)
 
-    return elements
+    return elements, n_query, n_direct
+
 
 def clean():
     nodes_df=clean_nodes()
     edges_df=clean_edges()
-    return convert(nodes_df, edges_df)
+    elements, n_query, n_direct = convert(nodes_df, edges_df)
+
+    return elements, n_query, n_direct
+
 
 def get_mc_clust():
     nodes_df = pd.read_csv("query_nodes.csv")
@@ -215,7 +229,3 @@ def get_mc_clust():
     clust_list = list(filter(lambda x: len(x) >= 5, clust_list))
     clust_list.append(small)
     return clust_list
-
-
-
-

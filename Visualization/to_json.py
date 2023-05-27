@@ -85,9 +85,8 @@ def clean_edges():
 
     return edges_df
 
+
 # Convert nodes and edges tables into one json-style list
-
-
 def convert(nodes_df, edges_df, sq=False):
     elements = []
 
@@ -117,7 +116,7 @@ def convert(nodes_df, edges_df, sq=False):
 
 
         # Calculate x, y coordinates for each node
-        Xs, Ys = get_xy(len(nodes_df), 20, 1050)
+        Xs, Ys, _, __ = get_xy(len(nodes_df)-1, n_fl_co=20, r=1050)
         Xs = [0] + list(Xs)    # First index is 0 because it's the query node
         Ys = [0] + list(Ys)
 

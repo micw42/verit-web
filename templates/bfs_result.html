@@ -305,11 +305,12 @@
             <div style="padding-left:20px">
                 <h6>Change Layout:</h6>
                 <select id="layout-button" onchange="run_switch_layout()" class="form-select"
-                    style="margin-left:20px;width:20%;">
+                    style="margin-left:20px;width:50%;">
                     <option value="CiSE">CiSE</option>
                     <option value="fCose">fCose</option>
                     <option value="Circle">Circle</option>
                     <option value="Grid">Grid</option>
+                    <option value="preset">Layered Concentric</option>
                 </select>
                 <ul class="nav">
                     <li style="display:inline">
@@ -611,7 +612,6 @@
                 ]
             })
                 
-
             run_cise()
             
             
@@ -1144,6 +1144,10 @@
                     run_grid();
                     document.getElementById("fCose_settings").style.display = "none";
                     document.getElementById("cise_settings").style.display = "none";
+                } else if (layout.value == "preset") {
+                    run_preset();
+                    document.getElementById("fCose_settings").style.display = "none";
+                    document.getElementById("cise_settings").style.display = "none";
                 } else {
                     run_cise(nodeRep=cise_nr)
                     document.getElementById("fCose_settings").style.display = "none";
@@ -1225,6 +1229,8 @@
                     run_circle();
                 } else if (layout.value=="fCose") {
                     run_fCose(idealEL=iel, nodeRep=nr);
+                } else if (layout.value == "preset"){
+                    run_preset()
                 } else {
                     run_cise(nodeRep=cise_nr)
                 }
@@ -1423,13 +1429,9 @@
                 }) 
                 layout.run();
             }
-            
-            //run_fCose(idealEL=iel)
-            
-             
-            
-            
+
             const orig_zoom = cy.zoom()
+            
             function run_circle() {
                 var query_orphs = cy.nodes().filter(function (ele) {
                     var neighbors = ele.outgoers().union(ele.incomers());
@@ -1476,6 +1478,7 @@
                         y: 1000*Math.floor(i/2)
                       };
                     });
+                    
                     for (var i=0; i<is_connected.length; i++) {
                         ele = is_connected[i];
                         var box = ele.position();
@@ -1543,6 +1546,30 @@
             
             }
             
+            // Doesn't work because other layouts overwrite the positions
+             function run_preset(){                 
+                 var all_nodes = cy.nodes();
+                 var eles = cy.elements();
+                 
+                 var Xs = {{ Xs }};
+                 var Ys = {{ Ys }};
+             
+                 console.log(Ys);
+                 console.log(Ys[3]);
+                 console.log(cy.nodes().length);
+                 
+                 for (var i=0; i<all_nodes.length; i++) {
+                     var curr_node = all_nodes[i]
+                     console.log(Xs[i])
+                     curr_node.positions({
+                         x: Xs[i],
+                         y: Ys[i]
+                     });
+                 }
+             
+                 var layout = eles.layout({name: "preset"});
+                 layout.run();
+             }
             
         </script>
     </body>

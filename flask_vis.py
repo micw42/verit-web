@@ -8,6 +8,7 @@ import time
 import copy
 import json
 import os
+import numpy as np
 from werkzeug.utils import secure_filename
 from os.path import expanduser
 import random
@@ -276,8 +277,28 @@ def bfs_query_result(max_linkers, qtype, query_type, get_direct_linkers):
     if n_edges > 5000:
         to_json_netx.filter_graph()
         filtered = True
-    elements = to_json_netx.clean()
-    return render_template("bfs_result.html", elements = elements, filtered=filtered)
+        
+    elements, n_query, n_direct = to_json_netx.clean()
+
+    # Compute X and Y for concentric layout
+    r1 = 500
+
+    Xs = []; Ys = []
+    Xs_q, Ys_q, R_arr_q, n_arr_q = layeredConcentric.get_xy(n_query, r=r1)
+    Xs.extend(Xs_q); Ys.extend(Ys_q)
+
+    r2 = 100
+    n_fl_co_d = 2 * np.pi * (R_arr_q[-1] + 3*r1) / (2 * r2)
+    Xs_d, Ys_d, R_arr_d, n_arr_d = layeredConcentric.get_xy(n_direct, n_fl_co_d, r=r2)
+    Xs.extend(Xs_d); Ys.extend(Ys_d)
+
+    return render_template(
+        "bfs_result.html",
+        elements = elements,
+        filtered=filtered,
+        Xs=Xs,
+        Ys=Ys
+    )
 
 
 @app.route('/singleresult/<depth>/<query_type>')
