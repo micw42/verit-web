@@ -198,7 +198,7 @@
                 </form>
 
                 <ul class="nav">
-                    <li style="display:inline">
+                    <li style="display:inline;margin-left:20px;">
                         <div class="loading" id="filter_loading"></div>
                     </li>
                     <li style="display:inline">
@@ -313,10 +313,10 @@
                     <option value="preset">Layered Concentric</option>
                 </select>
                 <ul class="nav">
-                    <li style="display:inline">
+                    <li style="display:inline;margin-left:20px;margin-top:10px;">
                         <div class="loading" id="layout_loading"></div>
                     </li>
-                    <li style="display:inline">
+                    <li style="display:inline;margin-top:10px;">
                         <div id="layout_loader" class="loader"></div>
                     </li>
                 </ul>
@@ -430,7 +430,7 @@
         <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
 
         <div id="myModal" class="modal">
-            <div class="modal-content" style="height:90%;">
+            <div class="modal-content" style="height:90%">
                 <span class="close">&times;</span>
                 
                 <div class="modal-header text-center" style="background-color:#a6a6a6;height:120px">
@@ -480,17 +480,18 @@
         </div>
 
         <div id="synModal" class="modal">
-            <div class="modal-content">
+            <div class="modal-content" style="height:90%;width:75%;">
                 <span class="close">&times;</span>
                 <div class="modal-header">
-                    <h1 id="synLabel" style="font-family: Arial, Helvetica, sans-serif">Synonyms:</h1>
-                    <button id="markovButton" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Get Markov neighbors</button>
+                    <h2 id="synLabel" style="font-family: Arial, Helvetica, sans-serif;margin-left:5%;margin-right:5%;">Synonyms:</h2>
+                    <button id="markovButton" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;margin-right:5%">Get Markov neighbors</button>
                 </div>
                 <div id="modalBody" class="modal-body">
-                    <h2 id="synList"></h2>
+                    <h3 id="synList" style="margin-left:5%;margin-right:5%;"></h3>
                 </div>
             </div>
         </div>
+            
         <div id="warnModal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
@@ -868,7 +869,7 @@
                 console.log("selectable: "+sel.selectable())
                 var modal = document.getElementById("synModal");
                 var synLabel = document.getElementById("synLabel");
-                synLabel.innerHTML = "Synonyms for "+sel.data("label")+":"
+                synLabel.innerHTML = "Synonyms for "+sel.data("label")
                 var span = document.getElementsByClassName("close")[1];
                 var syn = sel.data().syn;
                 var syn_split = syn.split("%%");
