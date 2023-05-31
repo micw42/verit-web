@@ -344,8 +344,6 @@
                     style="margin-left:20px;width:50%;">
                     <option value="CiSE">CiSE</option>
                     <option value="fCose">fCose</option>
-                    <option value="Circle">Circle</option>
-                    <option value="Grid">Grid</option>
                     <option value="preset">Layered Concentric</option>
                 </select>
                 <ul class="nav">
@@ -1371,17 +1369,9 @@
             
             function switch_layout() {
                 var layout = document.getElementById("layout-button");
-                if (layout.value === "Circle") {
-                    run_circle();
-                    document.getElementById("fCose_settings").style.display = "none";
-                    document.getElementById("cise_settings").style.display = "none";
-                } else if (layout.value === "fCose") {
+                if (layout.value === "fCose") {
                     run_fCose(idealEL=iel, nodeRep=nr);
                     document.getElementById("fCose_settings").style.display = "block";
-                    document.getElementById("cise_settings").style.display = "none";
-                } else if (layout.value=="Grid") {
-                    run_grid();
-                    document.getElementById("fCose_settings").style.display = "none";
                     document.getElementById("cise_settings").style.display = "none";
                 } else if (layout.value == "preset") {
                     run_preset();
