@@ -12,7 +12,7 @@ def get_ring_coord(n, R, offset=False):
     Returns:
         - x, y: two vectors -- one for the x position and one for the y
     '''
-    theta = np.linspace(0, 2 * np.pi, n)
+    theta = np.linspace(0, 2*np.pi - (2*np.pi/n), n)
     if offset:
         theta = theta + (np.pi/n)
 
@@ -75,6 +75,7 @@ def even_spacing_method(n_tot, n_fl_co, r):
         n_arr.append(i_fitted)
         R_arr.append(R_i)
 
+    # Last one needs special treatment
     n_arr[-1] = n_arr[-1] - (np.sum(n_arr) - n_tot)
     n_arr = [int(x) for x in n_arr]
 
@@ -103,7 +104,7 @@ def node_coords(R_arr, n_arr):
     return Xs, Ys
 
 
-def get_xy(n, n_fl_co, r):        
+def get_xy(n, n_fl_co=20, r=1050):
     n_tot = int(n)
     n_fl_co = int(n_fl_co)
     r = float(r)
@@ -111,25 +112,8 @@ def get_xy(n, n_fl_co, r):
     assert n > 0, f"{n}: Total number of nodes must be an integer > 0"
     assert n_fl_co > 0, f"{n_fl_co}: At least 1 node in the first layer is required"
     assert r > 0, f"{r}: r must be a float > 0"
-    
+
     R_arr, n_arr = even_spacing_method(n_tot, n_fl_co, r)
     Xs, Ys = node_coords(R_arr, n_arr)
-    
-    return Xs, Ys
 
-
-# Need to read in a json of nodes and tack on the positions
-def json_positions(nodes_json, n_fl_co=20, r=1000):
-    with open("temp_jp.pkl", "wb") as f:
-        pickle.dump(nodes_json, f)
-    with open("py.log", "a") as f:
-        f.write(f"[{len(nodes_json)}, {n_fl_co}, {r}]\n")
-    
-    nodes_json[0]["position"] = {"x": 0, "y": 0}
-    
-    if len(nodes_json) > 1:
-        Xs, Ys = get_xy(len(nodes_json), n_fl_co, r)
-        for i in range(1, len(nodes_json)):
-            nodes_json[i]["position"] = {"x": Xs[i], "y": Ys[i]}
-    
-    return nodes_json
+    return Xs, Ys, R_arr, n_arr

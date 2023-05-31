@@ -40,7 +40,7 @@
         position: absolute;
         top: 0px;
         left: 0px;
-        background: #a6a6a6;
+        background: #FFFFFF;
         z-index: -1;
         }
         .modal {
@@ -214,7 +214,7 @@
                 </form>
 
                 <ul class="nav">
-                    <li style="display:inline">
+                    <li style="display:inline;margin-left:20px;">
                         <div class="loading" id="filter_loading"></div>
                     </li>
                     <li style="display:inline">
@@ -341,17 +341,18 @@
             <div style="padding-left:20px">
                 <h6>Change Layout:</h6>
                 <select id="layout-button" onchange="run_switch_layout()" class="form-select"
-                    style="margin-left:20px;width:20%;">
+                    style="margin-left:20px;width:50%;">
                     <option value="CiSE">CiSE</option>
                     <option value="fCose">fCose</option>
                     <option value="Circle">Circle</option>
                     <option value="Grid">Grid</option>
+                    <option value="preset">Layered Concentric</option>
                 </select>
                 <ul class="nav">
-                    <li style="display:inline">
+                    <li style="display:inline;margin-left:20px;margin-top:10px;">
                         <div class="loading" id="layout_loading"></div>
                     </li>
-                    <li style="display:inline">
+                    <li style="display:inline;margin-top:10px;">
                         <div id="layout_loader" class="loader"></div>
                     </li>
                 </ul>
@@ -465,7 +466,7 @@
         <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
 
         <div id="myModal" class="modal">
-            <div class="modal-content" style="height:90%;">
+            <div class="modal-content" style="height:90%">
                 <span class="close">&times;</span>
                 
                 <div class="modal-header text-center" style="background-color:#a6a6a6;height:120px">
@@ -515,17 +516,18 @@
         </div>
 
         <div id="synModal" class="modal">
-            <div class="modal-content">
+            <div class="modal-content" style="height:90%;width:75%;">
                 <span class="close">&times;</span>
                 <div class="modal-header">
-                    <h1 id="synLabel" style="font-family: Arial, Helvetica, sans-serif">Synonyms:</h1>
-                    <button id="markovButton" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px">Get Markov neighbors</button>
+                    <h2 id="synLabel" style="font-family: Arial, Helvetica, sans-serif;margin-left:5%;margin-right:5%;">Synonyms:</h2>
+                    <button id="markovButton" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;margin-right:5%">Get Markov neighbors</button>
                 </div>
                 <div id="modalBody" class="modal-body">
-                    <h2 id="synList"></h2>
+                    <h3 id="synList" style="margin-left:5%;margin-right:5%;"></h3>
                 </div>
             </div>
         </div>
+            
         <div id="warnModal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
@@ -687,7 +689,6 @@
                 ]
             })
                 
-
             run_cise()
             
             findNode = function(arr, node) {
@@ -944,7 +945,7 @@
                 console.log("selectable: "+sel.selectable())
                 var modal = document.getElementById("synModal");
                 var synLabel = document.getElementById("synLabel");
-                synLabel.innerHTML = "Synonyms for "+sel.data("label")+":"
+                synLabel.innerHTML = "Synonyms for "+sel.data("label")
                 var span = document.getElementsByClassName("close")[1];
                 var syn = sel.data().syn;
                 var syn_split = syn.split("%%");
@@ -1382,6 +1383,10 @@
                     run_grid();
                     document.getElementById("fCose_settings").style.display = "none";
                     document.getElementById("cise_settings").style.display = "none";
+                } else if (layout.value == "preset") {
+                    run_preset();
+                    document.getElementById("fCose_settings").style.display = "none";
+                    document.getElementById("cise_settings").style.display = "none";
                 } else {
                     run_cise(nodeRep=cise_nr)
                     document.getElementById("fCose_settings").style.display = "none";
@@ -1463,6 +1468,8 @@
                     run_circle();
                 } else if (layout.value=="fCose") {
                     run_fCose(idealEL=iel, nodeRep=nr);
+                } else if (layout.value == "preset"){
+                    run_preset()
                 } else {
                     run_cise(nodeRep=cise_nr)
                 }
@@ -1661,13 +1668,9 @@
                 }) 
                 layout.run();
             }
-            
-            //run_fCose(idealEL=iel)
-            
-             
-            
-            
+
             const orig_zoom = cy.zoom()
+            
             function run_circle() {
                 var query_orphs = cy.nodes().filter(function (ele) {
                     var neighbors = ele.outgoers().union(ele.incomers());
@@ -1714,6 +1717,7 @@
                         y: 1000*Math.floor(i/2)
                       };
                     });
+                    
                     for (var i=0; i<is_connected.length; i++) {
                         ele = is_connected[i];
                         var box = ele.position();
@@ -1781,6 +1785,30 @@
             
             }
             
+            // Doesn't work because other layouts overwrite the positions
+             function run_preset(){                 
+                 var all_nodes = cy.nodes();
+                 var eles = cy.elements();
+                 
+                 var Xs = {{ Xs }};
+                 var Ys = {{ Ys }};
+             
+                 console.log(Ys);
+                 console.log(Ys[3]);
+                 console.log(cy.nodes().length);
+                 
+                 for (var i=0; i<all_nodes.length; i++) {
+                     var curr_node = all_nodes[i]
+                     console.log(Xs[i])
+                     curr_node.positions({
+                         x: Xs[i],
+                         y: Ys[i]
+                     });
+                 }
+             
+                 var layout = eles.layout({name: "preset"});
+                 layout.run();
+             }
             
         </script>
     </body>

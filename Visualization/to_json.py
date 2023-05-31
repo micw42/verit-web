@@ -58,36 +58,20 @@ def clean_edges():
     # So edge thicknesses aren't too big
     edges_df["edge_width"] = edges_df["thickness"].apply(get_width)
 
-    # Convert the color col into hex color strings
+    #Convert the color col into hex color strings
     def convert_col(color_val, palette):
-        if float(color_val) < -0.8:
-            return palette[0]
-        elif float(color_val) < -0.6:
-            return palette[1]
-        elif float(color_val) < -0.4:
-            return palette[2]
-        elif float(color_val) < -0.2:
-            return palette[3]
-        elif float(color_val) < 0:
-            return palette[4]
-        elif float(color_val) < 0.2:
-            return palette[5]
-        elif float(color_val) < 0.4:
-            return palette[6]
-        elif float(color_val) < 0.6:
-            return palette[7]
-        elif float(color_val) < 0.8:
-            return palette[8]
-        return palette[9]
+        c_segments = np.linspace(-1, 1, len(palette))
+        c_i = np.argmin((c_segments - color_val) ** 2)
 
-    pal = list(sns.color_palette("RdBu", 10).as_hex())
-    edges_df["color"] = edges_df["color"].apply(convert_col, args=(pal,))
+        return palette[c_i]
+
+    pal = list(sns.color_palette("coolwarm_r", as_cmap=False, n_colors=25).as_hex())
+    edges_df["color"]=edges_df["color"].apply(convert_col, args=(pal,))
 
     return edges_df
 
+
 # Convert nodes and edges tables into one json-style list
-
-
 def convert(nodes_df, edges_df, sq=False):
     elements = []
 
@@ -117,7 +101,7 @@ def convert(nodes_df, edges_df, sq=False):
 
 
         # Calculate x, y coordinates for each node
-        Xs, Ys = get_xy(len(nodes_df), 20, 1050)
+        Xs, Ys, _, __ = get_xy(len(nodes_df)-1, n_fl_co=20, r=1050)
         Xs = [0] + list(Xs)    # First index is 0 because it's the query node
         Ys = [0] + list(Ys)
 
