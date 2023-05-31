@@ -250,6 +250,10 @@
                 document.getElementById("loadingIcon").style.display = "block";
             }
             form.addEventListener('submit', move);
+                  
+            $(window).bind("pageshow", function(event) {
+                $("#loadingIcon").hide();
+            });
         </script>
 
     </div>

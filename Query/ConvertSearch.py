@@ -61,7 +61,7 @@ def get_missing(query_list, result_dict, string_type):
         query_list = [x.upper() for x in query_list]
     in_net = list(result_dict.keys())
     in_net = [x.replace("SPACE", " ") for x in in_net]
-    not_in = np.setdiff1d(query_list, in_net)
+    not_in = np.setdiff1d([x.upper() for x in query_list], [x.upper() for x in in_net])
     print("query_list:", query_list)
     print("result-dict:", result_dict)
     print("in_net:", in_net)

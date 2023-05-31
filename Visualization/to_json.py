@@ -129,6 +129,7 @@ def convert(nodes_df, edges_df, sq=False):
                                   "color": ndrow.color,
                                   "KB": ndrow.KB,
                                   "display_id": ndrow.display_id,
+                                  "syn": ndrow["name"],
                                   "rank": int(ndrow["rank"])
                                   }}
             node_dict["position"] = {"x": Xs[i], "y": Ys[i]}

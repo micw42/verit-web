@@ -110,6 +110,22 @@
       ul {
       list-style: none;
       }
+       .itemconfiguration
+        {
+            height:300px;
+            /* background-color:#CCC; */	
+            overflow:hidden;
+            overflow-y:scroll;
+            border:1px solid lightgrey;
+            margin-bottom:5px;
+        }
+        .matchDiv
+        {
+            padding-left:10px
+        }
+        label {
+          margin-left: 5px;
+        }
    </style>
    <body>
       <div class="w3-sidebar w3-bar-block w3-border-right" style="display:block;width:30%" id="mySidebar">
@@ -154,6 +170,7 @@
             <button id="reset" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;"><span class=reload>&#171;</span></button>
             <p style="color:grey;margin-left:20px;">(Current search: <span id="current_query">None</span>)</p>
          </div>
+          
 
           <div style="padding-left:20px;" class="slidecontainer">
               <h6>Filter by knowledge base:</h6>
@@ -357,6 +374,25 @@
             </div>
          </div>
       </div>
+       
+       <div id="searchModal" class="modal" style="width:30%;">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div class="modal-header">
+                    <h1 id="synLabel" style="font-family: Arial, Helvetica, sans-serif">Select match:</h1>
+                </div>
+                <div id="modalBody" class="modal-body">
+                    <form id="matchForm" action="#" >
+                        <div class="itemconfiguration" id="matchOptions"></div>
+                         <button type="submit" id="submitMatch" class="btn btn-primary" style="background-color:#4CAF50;float:right"><span class=reload>&#x21bb;</span></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+       
+
+
+       
       <div id="cy"></div>
       <script>
           
@@ -443,7 +479,7 @@
          ],
              
         layout:{
-             name: "preset"
+            name:"preset"
          }
          });
            
@@ -769,29 +805,103 @@
                  filterEdges(threshold);
                  filterKBs(selected_kbs)
              }
+          
+             function updateOptions(ele_id, search, nodes, name="match") {
+                var options = document.getElementById(ele_id)
+                options.innerHTML=""
+                for (var i=0; i<nodes.length; i++) {
+                    var sel = nodes[i]
+                    var syn = sel.data().syn;
+                    if (syn.includes(search)) {
+                        var cont = document.createElement("div");
+                        cont.setAttribute("class", "matchDiv")
+                        var header = document.createElement("input");
+                        header.setAttribute('value', sel.id());
+                        header.setAttribute('type', 'radio');
+                        header.setAttribute('name', name);
+                        header.setAttribute("id", sel.id());
+                        cont.appendChild(header)
+                        var newlabel = document.createElement("Label");
+                        newlabel.setAttribute("for",sel.id());
+                        var labelText = sel.data().label + " ("+sel.data().display_id+")"
+                        newlabel.innerHTML = labelText
+                        cont.appendChild(newlabel)
+                        var syn_split = syn.split("%%");
+                        syn_split = [...new Set(syn_split)];
+                        var syn_list = document.createElement("ul")
+                        for (var j = 0; j < syn_split.length; j++) {
+                            var item = document.createElement('li');
+                            var subcont = document.createElement("div");
+                            var text = syn_split[j];
+                            if (text.includes(search)) {
+                                item.appendChild(document.createTextNode(text));
+                                subcont.appendChild(item)
+                                subcont.style.padding = "0px 0px 20px 0px";
+                                syn_list.appendChild(subcont);
+                            }   
+                        }
+                        cont.appendChild(syn_list)
+                        options.appendChild(cont)
+                    }
+                }
+             }
              
              var node_search = document.getElementById("node_search");
-             var current_query = document.getElementById("current_query");
              var reset_button = document.getElementById("reset")  
              node_search.onsubmit = function () {
+                 var modal = document.getElementById("searchModal")
+                 var span = document.getElementsByClassName("close")[2];
                  reset_button.style="background-color:#4CAF50;"
                  //cy.nodes().removeClass("transp");
                  cy.edges().removeClass("transp");
                  cy.nodes().removeClass("searched");
                  var node_name = document.getElementById("node_name");
-                 current_query.innerHTML = node_name.value; 
-                 var results_nodes = cy.nodes().filter(function(ele) {
-                     return ((ele.style()["display"] != "none") && 
-                             (ele.style()["opacity"] != "0") &&
-                            (ele.data("label").toLowerCase() === node_name.value.toLowerCase()));})
-                 results_nodes.addClass('searched')
-                 var neighbors = results_nodes.outgoers().union(results_nodes.incomers());
-                 var results_edges = results_nodes.connectedEdges()
-                 var results_nodes = results_nodes.union(neighbors)
-                 cy.nodes().difference(results_nodes).addClass('transp');
-                 cy.edges().difference(results_edges).addClass('transp');
+                 var search = node_name.value
+                 var nodes = cy.nodes().filter(function(ele) {return((ele.style()["display"] != "none") && 
+                            (ele.style()["opacity"] != "0"))})
+                 updateOptions("matchOptions", search, nodes)
+
+                 modal.style.display = "block";
+            
+                window.onclick = function (event) {
+                    if (event.target == modal) {
+                        var modalBody = document.getElementById("modalBody");
+                        modalBody.scrollTop = 0;
+                        modal.style.display = "none";
+                    }
+                }
+            
+                span.onclick = function () {
+                    var modalBody = document.getElementById("modalBody");
+                    modalBody.scrollTop = 0;
+                    modal.style.display = "none";
+                }
+
+                return false
              }
-           
+          
+          var matchForm = document.getElementById("matchForm")
+          var current_query = document.getElementById("current_query");
+            matchForm.onsubmit = function() {
+                var choice = document.querySelector('input[name="match"]:checked').value;
+                var results_nodes = cy.nodes().filter(function(ele) {
+                    return ((ele.id() === choice));})
+                var cq =  results_nodes.data().label + " ("+results_nodes.data().display_id+")"
+                current_query.innerHTML = cq; 
+                results_nodes.addClass('searched')
+                var neighbors = results_nodes.outgoers().union(results_nodes.incomers());
+                var results_edges = results_nodes.connectedEdges()
+                var results_nodes = results_nodes.union(neighbors)
+                cy.nodes().difference(results_nodes).addClass('transp');
+                cy.edges().difference(results_edges).addClass('transp');
+                var modal = document.getElementById("searchModal")
+                var modalBody = document.getElementById("modalBody");
+                modalBody.scrollTop = 0;
+                modal.style.display = "none";
+                return false
+            }
+          
+
              function reset_query() {
                  var node_name = document.getElementById("node_name");
                  currently_querying = false;
@@ -804,7 +914,7 @@
                  filterKBs(selected_kbs)
                  current_query.innerHTML = "None"; 
                  node_name.value=""
-                 reset_button.style.display = "None"
+                reset_button.style.display = "None"
              }
          
              var excludedEdges = cy.edges().filter('[thickness < 0]');

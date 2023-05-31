@@ -210,6 +210,8 @@ def display_options(query_type, string_type):
     with open('result_dict.json') as json_file:
         result_dict = json.load(json_file)
     not_in = result_dict["not_in"]
+    print("Not in: ")
+    print(not_in)
     present = result_dict["present"]
 
     if request.method=="POST" or len(not_in)==0:
@@ -290,7 +292,7 @@ def single_query_result(depth, query_type, methods=["GET"]):
         query = json.load(json_file)
     depth=int(depth)
 
-    SingleQuery.query(G, edges_df, nodes_df, query, depth)
+    SingleQuery.query(G, edges_df, nodes_df, full_df, query, depth)
     elements=to_json.clean(sq=True)
     return render_template("single_query_result.html", elements=elements)
 
