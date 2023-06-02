@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="en">
 
-    
     <head>
         <meta charset="utf-8">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.18.2/cytoscape.min.js"></script>
@@ -157,24 +156,58 @@
         }
         dl{height:200px;}
         dl{overflow:hidden; overflow-y:scroll;}
-        ul {
-        list-style: none;
-        }
         .itemconfiguration
         {
-            height:300px;
+            height:175px;
             /* background-color:#CCC; */	
             overflow:hidden;
             overflow-y:scroll;
             border:1px solid lightgrey;
-            margin-bottom:5px;
+            margin-bottom:10px;
+            padding-top:5px;
         }
         .matchDiv
         {
-            padding-left:10px
+            padding-left:10px;
         }
         label {
           margin-left: 5px;
+        }
+        
+        .collapsible {
+          background-color: #FFFFFF;
+          cursor: pointer;
+          padding: 5px;
+          width: 80%;
+          height: 10%;
+          border: none;
+          text-align: left;
+          outline: none;
+          font-size: 15px;
+          word-break: break-all;
+        }
+
+        .collapsible:hover {
+          background-color: #f1f1f1;
+        }
+
+        .collapsible:after {
+          color: white;
+          font-weight: bold;
+          float: right;
+          margin-left: 5px;
+          border: "none";
+        }
+
+        .content {
+          padding: 0 4%;
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.2s ease-out;
+        }
+
+        li{
+            word-break: break-all;
         }
 
 </style>
@@ -182,7 +215,6 @@
 
 
     <body>
-
         <div id="floatParent">
         <div id="cy"></div>
         <div class="w3-sidebar w3-bar-block w3-border-right" style="display:block;width:30%" id="mySidebar">
@@ -204,12 +236,12 @@
             
             <hr>
             
-            <div style="padding-left:20px;padding-bottom:20px" class="slidecontainer">
+            <div style="padding-left:20px;" class="slidecontainer">
                 <h2 style="padding-bottom:10px;">Parameters</h2>
                 <h6>Filter by thickness:</h6>
-                <input type="range" min="1" value="1" class="slider" id="myRange" style="width:50%;margin-left:20px">
+                <input type="range" min="2" value="2" class="slider" id="myRange" style="width:50%;margin-left:20px">
                 <form action="#" id="input_thickness" style="display:inline;">
-                    <input type="number" id="quantity" min="1" style="width:15%" value="1">
+                    <input type="number" id="quantity" min="1" style="width:15%" value="2">
                     <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
                 </form>
 
@@ -222,8 +254,8 @@
                     </li>
                 </ul>
             </div>
-            
-            
+
+
             <div style="padding-left:20px;">
                 <h6>Search for a node:</h6>
                 <form action="#" id="node_search" style="display:inline;">
@@ -233,25 +265,26 @@
                 <button id="reset" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;"><span class=reload>&#171;</span></button>
                 <p style="color:grey;margin-left:20px;">Current search: <span id="current_query">None</span></p>
             </div>
-            
-             <div style="padding-left:20px;padding-bottom:20px">
+
+             <div style="padding-left:20px;padding-bottom:10px">
+
                 <h6>Find all paths between two nodes:</h6>
+
                 <form action="#" id="path_finding" style="display:inline;">
-                    <div style="float:left;padding-left:20px">
-                        <input id="node1" name="path" type="text" placeholder="Node 1" style="width:95%">
-                    </div>
-                    <div style="float:left;padding-right:5px">
-                        <p>to</p>
-                    </div>
-                    <div style="float:left">
-                        <input id="node2" name="path" type="text" placeholder="Node 2" style="width:95%">
+                    <div style="padding-left:20px;display:inline;">
+                        <input id="node1" name="path" type="text" placeholder="Node 1" style="width:27%;display:inline;">
+                        <p style="display:inline;margin-left:3%;margin-right:3%;"> to </p>
+                        <input id="node2" name="path" type="text" placeholder="Node 2" style="width:27%;display:inline;">
                     </div>
                     <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;display:inline"><span class="reload">&#x21bb;</span></button>
                 </form>
-                <button id="reset_path" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;"><span class=reload>&#171;</span></button> 
-                 <div style="width:100%; clear:both;">
-                    <p style="color:grey;margin-left:20px;">Current path: <span id="current_path">None</span></p>
+
+                <button id="reset_path" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;"><span class=reload>&#171;</span></button>
+
+                 <div style="clear:both;">
+                    <p style="color:grey;margin-left:20px;margin-right:100px">Current path: <span id="current_path">None</span></p>
                 </div>
+                 
             </div>
         
             
@@ -267,7 +300,7 @@
                       </dt>
 
                      <dd>
-                        <ul>
+                        <ul style="list-style:none;">
                            <li>
                               <input class="messageCheckbox" id="uniprot" value="uniprot" type="checkbox"/>
                               <label for="uniprot" style="margin-left:5px">Uniprot</label>
@@ -297,7 +330,7 @@
                      </dt>
 
                      <dd>
-                        <ul>
+                        <ul style="list-style:none;">
                            <li>
                               <input class="messageCheckbox" id="CHEBI" value="CHEBI" type="checkbox" />
                               <label for="CHEBI" style="margin-left:5px">CHEBI</label>
@@ -312,7 +345,7 @@
                      <dt style="margin-left:10px">Cellular events</dt>
 
                      <dd>
-                        <ul>
+                        <ul style="list-style:none;">
                            <li>
                               <input class="messageCheckbox" id="GO" value="GO" type="checkbox" />
                               <label for="GO" style="margin-left:5px">GO</label>
@@ -323,7 +356,7 @@
                      <dt style="margin-left:10px" style="margin-left:5px">Diseases</dt>
 
                      <dd>
-                        <ul>
+                        <ul style="list-style:none;">
                            <li>
                               <input class="messageCheckbox" id="mesh" value="mesh" type="checkbox" />
                               <label for="mesh" style="margin-left:5px">Mesh</label>
@@ -335,8 +368,7 @@
                 <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;float:right;margin-bottom:20px;"><span class=reload>&#x21bb;</span></button>
             </form>
           <br><br>
-          </div>
-            
+          </div>            
             
             <div style="padding-left:20px">
                 <h6>Change Layout:</h6>
@@ -371,7 +403,7 @@
                 <div style="padding-left:20px" class="slidecontainer" id="cise_settings">
                     Node repulsion: <input type="range" min="3" max="18" value="3" class="slider" id="cise_nr_slider" style="display:inline;">
                     <p style="display:inline;"><span id="cise_cur_nr"></span></p>
-                    <p style="color:grey;margin-right:20px">Description: parameter for adjusting internodal distance.</p>
+                    <p style="color:grey;margin-right:40px">Description: parameter for adjusting internodal distance.</p>
                     <ul class="nav">
                         <li style="display:inline">
                             <div class="loading" id="nr_loading"></div>
@@ -514,15 +546,18 @@
         </div>
 
         <div id="synModal" class="modal">
-            <div class="modal-content" style="height:90%;width:75%;">
+            <div class="modal-content" style="height:85%;width:75%;">
                 <span class="close">&times;</span>
+                
                 <div class="modal-header">
                     <h2 id="synLabel" style="font-family: Arial, Helvetica, sans-serif;margin-left:5%;margin-right:5%;">Synonyms:</h2>
                     <button id="markovButton" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;margin-right:5%">Get Markov neighbors</button>
                 </div>
+                
                 <div id="modalBody" class="modal-body">
                     <h3 id="synList" style="margin-left:5%;margin-right:5%;"></h3>
                 </div>
+                
             </div>
         </div>
             
@@ -536,40 +571,61 @@
         </div>
             
         <div id="searchModal" class="modal" style="width:30%;">
-            <div class="modal-content">
+            <div class="modal-content" style="height:57%;">
                 <span class="close">&times;</span>
-                <div class="modal-header">
-                    <h1 id="synLabel" style="font-family: Arial, Helvetica, sans-serif">Select match:</h1>
+                <div class="modal-header" style="padding-top:0;padding-bottom:1;display:block;">
+                    <h5 id="synLabel" style="font-family: Arial, Helvetica, sans-serif">Select match</h5>
+                    <p style="color:gray;">Click text to show synonyms</p> 
                 </div>
+                
                 <div id="modalBody" class="modal-body">
                     <form id="matchForm" action="#" >
-                        <div class="itemconfiguration" id="matchOptions"></div>
+                        <div class="itemconfiguration">
+                            <div style="margin-left:3%;" id="matchOptions"></div>
+                        </div>
+                        
                          <button type="submit" id="submitMatch" class="btn btn-primary" style="background-color:#4CAF50;float:right"><span class=reload>&#x21bb;</span></button>
                     </form>
                 </div>
+                
             </div>
         </div>
-            
+
+
        <div id="pathModal" class="modal" style="width:30%;">
-            <div class="modal-content">
+            <div class="modal-content" style="height:95%;">
                 <span class="close">&times;</span>
-                <div class="modal-header">
-                    <h1 id="synLabel" style="font-family: Arial, Helvetica, sans-serif">Select matches:</h1>
+                
+                <div class="modal-header" style="padding-top:0;padding-bottom:0;display:block;">
+                    <h4 id="synLabel" style="font-family: Arial, Helvetica, sans-serif">Select matches</h4>
+                    <p style="color:gray;">Click text to show synonyms</p> 
                 </div>
+                
                 <div id="modalBody" class="modal-body">
                     <form id="pathForm" action="#" >
                         <h6>Node 1:</h6>
-                        <div class="itemconfiguration" id="options1"></div>
+                        
+                        <div class="itemconfiguration">
+                            <div style="margin-left:3%;" id="options1"></div>
+                        </div>
+                        
                         <h6>Node 2:</h6>
-                        <div class="itemconfiguration" id="options2"></div>
+                        
+                        <div class="itemconfiguration">
+                            <div style="margin-left:3%;" id="options2"></div>
+                        </div>
+                        
                          <button type="submit" id="submitPath" class="btn btn-primary" style="background-color:#4CAF50;float:right"><span class=reload>&#x21bb;</span></button>
+                        
                     </form>
                 </div>
+                
             </div>
         </div>
 
 
         <script src="{{url_for('static', filename='bfs_vis_functions.js')}}"></script>
+
         <script>
             const data = {{ elements | tojson }};
             var cy = cytoscape({
@@ -953,12 +1009,12 @@
                     // Create the list item:
                     var item = document.createElement('li');
                     var cont = document.createElement("div");
-            
+
                     var text = syn_split[i];
-            
+
                     // Set its contents:
                     item.appendChild(document.createTextNode(text));
-                    cont.appendChild(item)
+                    cont.appendChild(item);
                     cont.style.padding = "0px 0px 20px 0px";
             
                     // Add it to the list:
@@ -984,34 +1040,34 @@
                 
                 var markovButton = document.getElementById("markovButton");
                 markovButton.onclick = function() {
-                    in_clust = true
-                    markov_clust(sel)
+                    in_clust = true;
+                    markov_clust(sel);
                     modalBody.scrollTop = 0;
-                    modal.style.display="none"
+                    modal.style.display="none";
                 }
             });
-             
-            
+
+
             cy.on('box', function (evt) {
                  var sel = evt.target
                  console.log(sel.length)
                  sel.filter(function(ele) {return((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"))}).addClass("mouseup")
-            }); 
-             
-            
+            });
+
+
              cy.on('tap', function(event){
               // target holds a reference to the originator
               // of the event (core or element)
               var evtTarget = event.target;
-            
+
               if( evtTarget === cy ){
                 cy.nodes().removeClass("mouseup")
               } 
                  cy.nodes().removeClass("markov")
-                 
+
             }); 
 
-         
+
          function getSelectValues(select) {
               var result = [];
               for (var i=0, iLen=select.length; i<iLen; i++) {
@@ -1022,7 +1078,7 @@
               }
               return result;
         }
-        
+
         var kb_form =  document.getElementById("kb_form");
         var selected_kbs = []
         kb_form.onsubmit = function() {
@@ -1036,10 +1092,8 @@
             console.log("KB filter threshold: "+threshold)
             filterEdges(threshold)
             return false
-        } 
-         
-             
-             
+        }
+
             function getMaxWeight(allEdges) {
                 var weight_arr = []
                 for (var i = 0; i < allEdges.length; i++) {
@@ -1053,9 +1107,7 @@
                 var maxWeight = weight_arr.max()
                 return(maxWeight)
             }
-            
-            
-            
+
             var filteredEdges = cy.edges().filter('[thickness < 0]');
             var filteredNodes = cy.nodes().filter(function (ele) {
                 return ele.degree() == -2;
@@ -1092,43 +1144,140 @@
                 output.innerHTML = threshold
                 slider.value=threshold
             }
-             
+
+            function updatePM(tu_id) {
+                // Get the item you want to update
+                var toupdate = document.ElementById(tu_id)
+                
+                // Loop through all nodes
+                for (var i=0; i<nodes.length; i++) {
+                    var sel = nodes[i];
+                    var syn = sel.data().syn;
+                    
+                    // String-match onto the search from all nodes
+                    if (syn.includes(search)) {
+                        var cont = document.createElement("div")
+                        
+                    }
+                }
+            }
+
+// Start inserting here -- follows the below generalized form:
+// <input type="radio" style="display:inline" name="nodeSel">
+// <button class="collapsible"></button>
+// <div class="content">
+//     <ul>
+//         <li> ... </li>
+//         ...
+//     <ul>
+// </div>
+
+            function updateCollapsible(el_id, search, nodes, name){
+                var options = document.getElementById(el_id);
+                options.innerHTML = "";
+                for(var i=0; i<nodes.length; i++) {
+                    var sel = nodes[i];
+                    var syn = sel.data().syn;
+
+                    // String-matching part
+                    if (syn.includes(search)) {
+                        // Content: append other stuff to this for the scrolling menu
+                        // Making the input radio
+                        var input_el = document.createElement("input");
+                        input_el.type = "radio";
+                        input_el.style.display = "inline";
+                        input_el.name = name;
+                        input_el.value = sel.id();
+                        input_el.id = sel.id();
+
+                        options.appendChild(input_el);
+
+                        // Making the button
+                        var btn_el = document.createElement("button");
+                        btn_el.className = "collapsible";
+                        btn_el.id = "btn_el";
+                        btn_el.innerHTML = sel.data().label + " ("+sel.data().display_id+")";
+
+                        options.appendChild(btn_el);
+
+                        // Making the div to contain the synonyms (parent of ul_el)
+                        var div_el = document.createElement("div");
+                        div_el.className = "content";
+
+                        // Making the ul to contain the synonyms (parent of li_el)
+                        var ul_el = document.createElement("ul");
+
+                        // Turn the synonyms into usable text
+                        var syn_split = syn.split("%%");
+                        syn_split = [...new Set(syn_split)];    // Turn split into array
+                        for (var j = 0; j < syn_split.length; j++) {
+                            // Making the li to contain the synonym (child of ul_el)
+                            var li_el = document.createElement("li");
+                            li_el.innerHTML = syn_split[j];
+
+                            ul_el.appendChild(li_el);
+                        }
+
+                        div_el.appendChild(ul_el);
+
+                        options.appendChild(div_el);
+                    }
+                }
+            }
+            
             function updateOptions(ele_id, search, nodes, name="match") {
+                // You first go get the thing you want to update by its ID (a div)
                 var options = document.getElementById(ele_id)
-                options.innerHTML=""
+                // options.innerHTML=""
                 for (var i=0; i<nodes.length; i++) {
                     var sel = nodes[i]
                     var syn = sel.data().syn;
                     if (syn.includes(search)) {
+                        // Content: append other stuff to this for the scrolling menu
                         var cont = document.createElement("div");
                         cont.setAttribute("class", "matchDiv")
+                        
+                        // Header: the button that the user will select
                         var header = document.createElement("input");
                         header.setAttribute('value', sel.id());
                         header.setAttribute('type', 'radio');
                         header.setAttribute('name', name);
                         header.setAttribute("id", sel.id());
-                        cont.appendChild(header)
+                        cont.appendChild(header);
+
+                        // Header's label: ID label for the button
                         var newlabel = document.createElement("Label");
-                        newlabel.setAttribute("for",sel.id());
-                        var labelText = sel.data().label + " ("+sel.data().display_id+")"
-                        newlabel.innerHTML = labelText
-                        cont.appendChild(newlabel)
+                        newlabel.setAttribute("for", sel.id());
+                        var labelText = sel.data().label + " ("+sel.data().display_id+")";
+                        console.log(sel.data().label + " ("+sel.data().display_id+")")
+                        console.log(sel.data().label + " ("+sel.data().display_id+")")
+                        newlabel.innerHTML = labelText;
+                        cont.appendChild(newlabel);
+                        
+                        // Synonyms: Synonyms that need to be turned into a dropdown
+                        // [[Button goes here?]]
+                        // Create a list from a long string punctuated by '%%'
                         var syn_split = syn.split("%%");
-                        syn_split = [...new Set(syn_split)];
-                        var syn_list = document.createElement("ul")
+                        syn_split = [...new Set(syn_split)];    // Turn split into array
+
+                        // HTML-formatted synonyms to append to
+                        var syn_list = document.createElement("ul");
                         for (var j = 0; j < syn_split.length; j++) {
                             var item = document.createElement('li');
-                            var subcont = document.createElement("div");
+                            var subcont = document.createElement("div");                            
                             var text = syn_split[j];
+
+                            // TODO: Handle if search === ""
                             if (text.includes(search)) {
                                 item.appendChild(document.createTextNode(text));
-                                subcont.appendChild(item)
-                                subcont.style.padding = "0px 0px 20px 0px";
+                                subcont.appendChild(item);
+                                subcont.style.padding = "0px 0px 3px 0px";
                                 syn_list.appendChild(subcont);
-                            }   
+                            }
                         }
-                        cont.appendChild(syn_list)
-                        options.appendChild(cont)
+
+                        cont.appendChild(syn_list)  // APPEND syn_list TO cont
+                        options.appendChild(cont)  // APPEND cont TO options
                     }
                 }
             }
@@ -1144,12 +1293,12 @@
                 cy.edges().removeClass("transp");
                 cy.nodes().removeClass("searched");
                 var node_name = document.getElementById("node_name");
-                var search = node_name.value
+                var search = node_name.value.toLowerCase();
                 var nodes = cy.nodes().filter(function(ele) {return((ele.style()["display"] != "none") && 
                             (ele.style()["opacity"] != "0"))})
-                
-                updateOptions("matchOptions", search, nodes)
-        
+
+                updateCollapsible("matchOptions", search, nodes, "match")
+
                 modal.style.display = "block";
             
                 window.onclick = function (event) {
@@ -1200,14 +1349,14 @@
                 cy.edges().removeClass("searched");
                 cy.nodes().removeClass("searched");
                 
-                var node1 = document.getElementById("node1").value
-                var node2 = document.getElementById("node2").value
+                var node1 = document.getElementById("node1").value.toLowerCase();
+                var node2 = document.getElementById("node2").value.toLowerCase();
                 
                 var nodes = cy.nodes().filter(function(ele) {return((ele.style()["display"] != "none") && 
                             (ele.style()["opacity"] != "0"))})
                 
-                updateOptions("options1", node1, nodes, "options1")
-                updateOptions("options2", node2, nodes, "options2")
+                updateCollapsible("options1", node1, nodes, "options1")
+                updateCollapsible("options2", node2, nodes, "options2")
                 
                modal.style.display = "block";
             
@@ -1459,9 +1608,9 @@
                 } else if (layout.value=="fCose") {
                     run_fCose(idealEL=iel, nodeRep=nr);
                 } else if (layout.value == "preset"){
-                    run_preset()
+                    run_preset();
                 } else {
-                    run_cise(nodeRep=cise_nr)
+                    run_cise(nodeRep=cise_nr);
                 }
             }
             
@@ -1533,8 +1682,7 @@
                             animationDuration: 1,
                             clusters:newclusters,
                             allowNodesInsideCircle: true,
-                            nodeRepulsion: nodeRep 
-             
+                            nodeRepulsion: nodeRep
                     });
                 layout.run();
                 setTimeout(() => {  layout.stop(); }, 500);         
@@ -1559,8 +1707,6 @@
                 console.log("Edge filter threshold: " + threshold)
 
                 rerun_layout();
-                            
-                //rerun_layout();
             } 
             
             let show = true
@@ -1775,17 +1921,12 @@
             
             }
             
-            // Doesn't work because other layouts overwrite the positions
              function run_preset(){                 
                  var all_nodes = cy.nodes();
                  var eles = cy.elements();
                  
                  var Xs = {{ Xs }};
                  var Ys = {{ Ys }};
-             
-                 console.log(Ys);
-                 console.log(Ys[3]);
-                 console.log(cy.nodes().length);
                  
                  for (var i=0; i<all_nodes.length; i++) {
                      var curr_node = all_nodes[i]
@@ -1799,7 +1940,22 @@
                  var layout = eles.layout({name: "preset"});
                  layout.run();
              }
-            
+
+            // Add listener to dynamically created buttons
+            document.addEventListener("click", function(e){
+              const target = e.target.closest("#btn_el"); // Or any other selector.
+
+              if(target){
+                target.classList.toggle("active");
+                var content = target.nextElementSibling;
+                if (content.style.maxHeight){
+                  content.style.maxHeight = null;
+                } else {
+                  content.style.maxHeight = content.scrollHeight + "px";
+                }
+              }
+            });
         </script>
+
     </body>
 </html>

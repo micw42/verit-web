@@ -107,24 +107,56 @@
       }
       dl{height:200px;}
       dl{overflow:hidden; overflow-y:scroll;}
-      ul {
-      list-style: none;
-      }
        .itemconfiguration
         {
-            height:300px;
-            /* background-color:#CCC; */	
-            overflow:hidden;
-            overflow-y:scroll;
-            border:1px solid lightgrey;
-            margin-bottom:5px;
+          height:300px;
+          /* background-color:#CCC; */	
+          overflow:hidden;
+          overflow-y:scroll;
+          border:1px solid lightgrey;
+          margin-bottom:5px;
         }
         .matchDiv
         {
-            padding-left:10px
+          padding-left:10px
         }
         label {
           margin-left: 5px;
+        }
+       .collapsible {
+          background-color: #FFFFFF;
+          cursor: pointer;
+          padding: 5px;
+          width: 80%;
+          height: 10%;
+          border: none;
+          text-align: left;
+          outline: none;
+          font-size: 15px;
+          word-break: break-all;
+        }
+
+        .collapsible:hover {
+          background-color: #f1f1f1;
+        }
+
+        .collapsible:after {
+          color: white;
+          font-weight: bold;
+          float: right;
+          margin-left: 5px;
+          border: none;
+        }
+
+        .content {
+          padding: 0 4%;
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.2s ease-out;
+        }
+
+        li{
+            word-break: break-all;
         }
    </style>
    <body>
@@ -150,9 +182,9 @@
          <div style="padding-left:20px;padding-bottom:20px" class="slidecontainer">
             <h2 style="padding-bottom:10px;">Parameters</h2>
             <h6>Filter by thickness:</h6>
-            <input type="range" min="1" value="2" class="slider" id="myRange" style="width:50%;margin-left:20px">
+            <input type="range" min="2" value="2" class="slider" id="myRange" style="width:50%;margin-left:20px">
             <form action="#" id="input_thickness" style="display:inline;">
-               <input type="number" id="quantity" min="2" style="width:15%">
+               <input type="number" id="quantity" min="2" value="2" style="width:15%">
                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
             </form>
             <br>
@@ -168,7 +200,7 @@
             </form>
              
             <button id="reset" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;"><span class=reload>&#171;</span></button>
-            <p style="color:grey;margin-left:20px;">(Current search: <span id="current_query">None</span>)</p>
+            <p style="color:grey;margin-left:20px;margin-right:40px;">(Current search: <span id="current_query">None</span>)</p>
          </div>
           
 
@@ -184,7 +216,7 @@
                       </dt>
 
                      <dd>
-                        <ul>
+                        <ul style="list-style:none;">
                            <li>
                               <input class="messageCheckbox" id="uniprot" value="uniprot" type="checkbox"/>
                               <label for="uniprot" style="margin-left:5px">Uniprot</label>
@@ -214,7 +246,7 @@
                      </dt>
 
                      <dd>
-                        <ul>
+                        <ul style="list-style:none;">
                            <li>
                               <input class="messageCheckbox" id="CHEBI" value="CHEBI" type="checkbox" />
                               <label for="CHEBI" style="margin-left:5px">CHEBI</label>
@@ -229,7 +261,7 @@
                      <dt style="margin-left:10px">Cellular events</dt>
 
                      <dd>
-                        <ul>
+                        <ul style="list-style:none;">
                            <li>
                               <input class="messageCheckbox" id="GO" value="GO" type="checkbox" />
                               <label for="GO" style="margin-left:5px">GO</label>
@@ -240,7 +272,7 @@
                      <dt style="margin-left:10px" style="margin-left:5px">Diseases</dt>
 
                      <dd>
-                        <ul>
+                        <ul style="list-style:none;">
                            <li>
                               <input class="messageCheckbox" id="mesh" value="mesh" type="checkbox" />
                               <label for="mesh" style="margin-left:5px">Mesh</label>
@@ -375,22 +407,26 @@
          </div>
       </div>
        
-       <div id="searchModal" class="modal" style="width:30%;">
-            <div class="modal-content">
+        <div id="searchModal" class="modal" style="width:30%;">
+            <div class="modal-content" style="height:80%;">
                 <span class="close">&times;</span>
-                <div class="modal-header">
-                    <h1 id="synLabel" style="font-family: Arial, Helvetica, sans-serif">Select match:</h1>
+                <div class="modal-header" style="padding-top:0;padding-bottom:0;display:block;">
+                    <h5 id="synLabel" style="font-family: Arial, Helvetica, sans-serif">Select match</h5>
+                    <p style="color:gray;">Click text to show synonyms</p> 
                 </div>
+                
                 <div id="modalBody" class="modal-body">
                     <form id="matchForm" action="#" >
-                        <div class="itemconfiguration" id="matchOptions"></div>
+                        <div class="itemconfiguration">
+                            <div style="margin-left:3%;" id="matchOptions"></div>
+                        </div>
+                        
                          <button type="submit" id="submitMatch" class="btn btn-primary" style="background-color:#4CAF50;float:right"><span class=reload>&#x21bb;</span></button>
                     </form>
                 </div>
+                
             </div>
         </div>
-       
-
 
        
       <div id="cy"></div>
@@ -806,6 +842,60 @@
                  filterKBs(selected_kbs)
              }
           
+          
+            function updateCollapsible(el_id, search, nodes){
+                var options = document.getElementById(el_id);
+                options.innerHTML="";
+                for(var i=0; i<nodes.length; i++) {
+                    var sel = nodes[i];
+                    var syn = sel.data().syn;
+
+                    // String-matching part
+                    if (syn.includes(search)) {
+                        // Content: append other stuff to this for the scrolling menu
+                        // Making the input radio
+                        var input_el = document.createElement("input");
+                        input_el.type = "radio";
+                        input_el.style.display = "inline";
+                        input_el.name = "nodeSel";
+                        input_el.value = sel.id();
+                        input_el.id = sel.id();
+
+                        options.appendChild(input_el);
+
+                        // Making the button
+                        var btn_el = document.createElement("button");
+                        btn_el.className = "collapsible";
+                        btn_el.id = "btn_el";
+                        btn_el.innerHTML = sel.data().label + " ("+sel.data().display_id+")";
+
+                        options.appendChild(btn_el);
+
+                        // Making the div to contain the synonyms (parent of ul_el)
+                        var div_el = document.createElement("div");
+                        div_el.className = "content";
+
+                        // Making the ul to contain the synonyms (parent of li_el)
+                        var ul_el = document.createElement("ul");
+
+                        // Turn the synonyms into usable text
+                        var syn_split = syn.split("%%");
+                        syn_split = [...new Set(syn_split)];    // Turn split into array
+                        for (var j = 0; j < syn_split.length; j++) {
+                            // Making the li to contain the synonym (child of ul_el)
+                            var li_el = document.createElement("li");
+                            li_el.innerHTML = syn_split[j];
+
+                            ul_el.appendChild(li_el);
+                        }
+
+                        div_el.appendChild(ul_el);
+
+                        options.appendChild(div_el);
+                    }
+                }
+            }
+          
              function updateOptions(ele_id, search, nodes, name="match") {
                 var options = document.getElementById(ele_id)
                 options.innerHTML=""
@@ -856,10 +946,10 @@
                  cy.edges().removeClass("transp");
                  cy.nodes().removeClass("searched");
                  var node_name = document.getElementById("node_name");
-                 var search = node_name.value
+                 var search = node_name.value.toLowerCase();
                  var nodes = cy.nodes().filter(function(ele) {return((ele.style()["display"] != "none") && 
                             (ele.style()["opacity"] != "0"))})
-                 updateOptions("matchOptions", search, nodes)
+                 updateCollapsible("matchOptions", search, nodes)
 
                  modal.style.display = "block";
             
@@ -980,6 +1070,21 @@
            }
          }
           
+          // Add listener to dynamically created buttons
+          document.addEventListener("click", function(e){
+            const target = e.target.closest("#btn_el"); // Or any other selector.
+  
+            if(target){
+              target.classList.toggle("active");
+              var content = target.nextElementSibling;
+              if (content.style.maxHeight){
+                content.style.maxHeight = null;
+              } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+              }
+            }
+          });
+
       </script>
       <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
    </body>
