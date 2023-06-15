@@ -10,6 +10,7 @@ from multiprocessing import Pool
 from Query import GetEv
 from functools import partial
 from joblib import Parallel, delayed
+from memory_profiler import profile, LogFile
 
 
 def run_nx(query_pairs, G, qtype, max_linkers):
@@ -64,39 +65,30 @@ def run_nx(query_pairs, G, qtype, max_linkers):
 # query_type: name or ID
 
 #qtype: all_simple_paths or all_shortest_paths
-
+fp=open('memory_profiler_RB_E2F.log','w')
+@profile(stream=fp)
 def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get_direct_linkers, db_df, access_key, secret_key, bucket="all-abstract-ev", parallel_threshold=40):
     nodes_df = nodes_df.drop_duplicates(subset='Id', keep="first")
     edges_df = edges_df.drop_duplicates(subset=['source', 'target'], keep="first")
-    print("In multiquery")
     if query_type == "name":
         query_list = list(queries_id.values())
-        print("Len query_list:", len(query_list))
         # Get all possible pairs of queries (note: each query is a list of IDs)
         li_perm = list(it.permutations(query_list, 2))
-        print("Got li perm")
         # Get all possible pairs of element from 1st list with element from 2nd list
         q_combinations = [list(it.product(*sub_li)) for sub_li in li_perm]
-        print("Got q combinaions")
         # Unroll to list of tuples
         q_combinations = [item for sublist in q_combinations for item in sublist]
-        print("Unrolled q combinaions")
         # Unroll list of query IDs
         query_list = [item for sublist in query_list for item in sublist]
-        print("Got query list")
-
 
     elif query_type == "id":
         query_list = queries_id["QUERY_ID"].split(",")
         q_combinations = list(it.permutations(query_list, 2))
 
-    print("Length q_combinations:", len(q_combinations))
-
     if len(q_combinations) >= parallel_threshold:
         start = time.time()
         source_targets = Parallel(n_jobs=4, require="sharedmem", verbose=10)(delayed(run_nx)(pair_chunk, G, qtype, max_linkers)
                                             for pair_chunk in np.array_split(np.array(q_combinations), len(q_combinations)))
-        print("Finished querying in", time.time()-start, "sec.")
 
         sources = [x[0] for x in source_targets]
         targets = [x[1] for x in source_targets]
@@ -111,8 +103,6 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     st_df = pd.DataFrame(st_dict).drop_duplicates()
 
     # Making edges
-    print("Edges_df columns:", edges_df.columns)
-    print("Nrow edges_df:", len(edges_df.index))
     rel_df = st_df.merge(edges_df, on=["source", "target"], how="left")
 
     # Bidirectional edges
