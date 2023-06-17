@@ -70,7 +70,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     edges_df = edges_df.drop_duplicates(subset=['source', 'target'], keep="first")
     print("In multiquery")
     if query_type == "name":
-        query_list = list(queries_id.values())
+        query_list = list(queries_id.values())    # Expecting queries_id to be a dictionary. Each element is a list.
         print("Len query_list:", len(query_list))
         # Get all possible pairs of queries (note: each query is a list of IDs)
         li_perm = list(it.permutations(query_list, 2))
@@ -84,7 +84,6 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
         # Unroll list of query IDs
         query_list = [item for sublist in query_list for item in sublist]
         print("Got query list")
-
 
     elif query_type == "id":
         query_list = queries_id["QUERY_ID"].split(",")
@@ -132,6 +131,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     # IDs that were found (not in original query list)
     found_ids = set(rel_df["source"].tolist()) | set(rel_df["target"].tolist()) - set(query_list)
 
+
     # Get all direct connections to query nodes that were not already found by query
     # (user has option to show them in the visualization)
     links = edges_df[((edges_df["source"].isin(query_list)) & ~(edges_df["target"].isin(found_ids))) |
@@ -143,6 +143,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     # Nodes directly targeted by query nodes
     targets = links[(links["source"].isin(query_list)) & ~(links["target"].isin(query_list))]
     targets = targets[["target"]]
+    
     # Nodes that directly target query nodes
     sources = links[(links["target"].isin(query_list)) & ~(links["source"].isin(query_list))]
     sources = sources[["source"]]
@@ -217,6 +218,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     aggregation_functions = {'color2': 'sum','thickness': 'sum', "orig_source":id_concat, "orig_target":id_concat}
     rel_df = rel_df.groupby(["source", "target"]).aggregate(aggregation_functions).reset_index()
     rel_df["color"] = rel_df["color2"]/rel_df["thickness"]
+    
     def formatter(sources, targets):
         source_list = sources.split("%%")
         target_list = targets.split("%%")
@@ -277,3 +279,103 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     
     nodes.to_csv("query_nodes_cleaned.csv", index=False)
     rel_df.to_csv("query_edges_cleaned.csv", index=False)
+
+
+def BIOGRID_query(G, edges_df, nodes_df, queries_id,
+          max_linkers, qtype, query_type, get_direct_linkers,
+          db_df, parallel_threshold=40):
+    
+    ## Permutations of queries
+    query_list = list(queries_id.values())    # Expecting queries_id to be a dictionary. Each element is a list.
+    # Get all possible pairs of queries (note: each query is a list of IDs)
+    li_perm = list(it.permutations(query_list, 2))
+    # Get all possible pairs of element from 1st list with element from 2nd list
+    q_combinations = [list(it.product(*sub_li)) for sub_li in li_perm]
+    # Unroll to list of tuples
+    q_combinations = [item for sublist in q_combinations for item in sublist]
+    # Unroll list of query IDs
+    query_list = [item for sublist in query_list for item in sublist]
+
+
+    ## Run network querying
+    if len(q_combinations) >= parallel_threshold:
+        start = time.time()
+
+        source_targets = Parallel(n_jobs=4, require="sharedmem", verbose=10)(
+            delayed(run_nx)(
+                pair_chunk, G, qtype, max_linkers) for pair_chunk in np.array_split(
+                np.array(q_combinations), len(q_combinations)))
+
+        print("Finished querying in", time.time()-start, "sec.")
+
+        sources = [x[0] for x in source_targets]
+        targets = [x[1] for x in source_targets]
+
+        sources = list(it.chain.from_iterable(sources))
+        targets = list(it.chain.from_iterable(targets))
+
+    elif len(q_combinations) < parallel_threshold:
+        sources, targets = run_nx(q_combinations, G, qtype, max_linkers)
+
+    st_dict = {"source_id": sources, "target_id": targets}
+    st_df = pd.DataFrame(st_dict).drop_duplicates()
+
+
+    ## Construct nodes dataframe
+    # Initialize
+    qnode_ids = list(set(pd.concat([st_df.source_id, st_df.target_id])))
+
+    # Direct linkers
+    links = edges_df[((edges_df["source"].isin(query_list)) &
+                      ~(edges_df["target"].isin(set(qnode_ids) - set(query_list)))) |
+                     ((edges_df["target"].isin(query_list)) &
+                      ~(edges_df["source"].isin(set(qnode_ids) - set(query_list))))]
+    links.columns = ["source_id", "target_id"]
+
+    # Keep direct-linkers to keep track
+    direct = list(set(pd.concat([links.source_id, links.target_id])))
+    qnode_ids.extend(direct)
+    st_df = pd.concat([st_df, links]).reset_index(drop=True)
+
+    qnodes_df = pd.DataFrame.from_dict({"Id": qnode_ids})
+    qnodes_df = qnodes_df.merge(
+        nodes_df, on="Id").drop_duplicates(
+        subset="Id").rename(
+        columns={"name": "Label"}).reset_index(
+        drop=True)
+
+    # Dummy knowledgebase column
+    qnodes_df["KB"] = "BIOGRID"
+
+    # Distinguish which nodes were which
+    ntype = pd.Series(["Linker"] * len(qnodes_df))
+    ntype[qnodes_df["Id"].isin(direct)] = "Direct"
+    ntype[qnodes_df["Id"].isin(query_list)] = "Query"
+    qnodes_df["Type"] = ntype
+
+    # Get the synonyms
+    qnodes_syn = nodes_df.merge(qnodes_df, on=["Id"])
+    qnodes_syn = qnodes_syn.groupby("Id").agg({'name': lambda x: "%%".join(x)}).reset_index()
+    qnodes_syn.columns = ["Id", "name"]
+    qnodes_df = qnodes_df.merge(qnodes_syn, on="Id")
+    qnodes_df["display_id"] = qnodes_df["Id"].copy()    # Equal because BG only used with gene id query
+
+    qnodes_df.to_csv("./query_nodes_BIOGRID.csv", index=False)
+
+
+    ## Construct edges dataframe
+    qedges_df = st_df.merge(qnodes_df[["Id", "Label"]], left_on="source_id", right_on="Id").drop(
+        columns="Id"
+    ).rename(columns={"Label": "source"})
+
+    qedges_df = qedges_df.merge(qnodes_df[["Id", "Label"]], left_on="target_id", right_on="Id").drop(
+        columns="Id"
+    ).rename(columns={"Label": "target"})
+
+    # Dummy columns for consistency. Files are None
+    qedges_df["color"] = 0
+    qedges_df["thickness"] = int(1)
+    qedges_df["files"] = None
+
+    qedges_df.to_csv("./query_edges_BIOGRID.csv", index=False)
+    

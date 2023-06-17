@@ -11,9 +11,11 @@ from .layeredConcentric import get_xy
 def filter_graph():
     nodes_df=pd.read_csv("query_nodes.csv",header = 0)
     edges_df = pd.read_csv("query_edges.csv",header = 0)
+    
     edges_df = edges_df[edges_df["thickness"] > 20]
     all_ids = list(np.union1d(edges_df["source"], edges_df["target"]))
     nodes_df = nodes_df[nodes_df["Id"].isin(all_ids)]
+    
     edges_df.to_csv("query_edges.csv", index=False)
     nodes_df.to_csv("query_nodes.csv", index=False)
 
@@ -172,7 +174,6 @@ def convert(nodes_df, edges_df):
         elements.append(node_dict)
 
     # Construct edges datatable
-    # Does the order of edges and nodes have to be the same?
     edges_df["edge_id"] = edges_df.source.str.cat(edges_df.target)
     for i in range(len(edges_df)):
         erow = edges_df.iloc[i]
@@ -198,19 +199,26 @@ def clean():
 def get_mc_clust():
     nodes_df = pd.read_csv("query_nodes.csv")
     q_nodes = nodes_df[nodes_df["Type"]=="Query"]["Id"].tolist()
+    
     edges_df = pd.read_csv("query_edges.csv")
     edges_df = edges_df[edges_df["source"].isin(q_nodes) & edges_df["target"].isin(q_nodes)]
+    
     G = nx.from_pandas_edgelist(edges_df, edge_attr=True, source="source", target="target", create_using=nx.DiGraph())
+    
     mat = nx.to_scipy_sparse_matrix(G)
 
     result = mc.run_mcl(mat, inflation=1.2)           # run MCL with default parameters
     clusters = mc.get_clusters(result)
 
     node_list = list(G.nodes())
+    
     clust_list = [itemgetter(*list(x))(node_list) for x in clusters]
     clust_list = [list(x) if type(x) is tuple else [x] for x in clust_list]
+    
     small = list(filter(lambda x: len(x) < 5, clust_list))
     small = [item for sublist in small for item in sublist]    #Combine all small clusters into one
+    
     clust_list = list(filter(lambda x: len(x) >= 5, clust_list))
     clust_list.append(small)
+    
     return clust_list

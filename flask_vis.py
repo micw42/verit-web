@@ -45,6 +45,9 @@ print("Loaded nodes.")
 print("Reading databases...", end="\x1b[1K\r")
 full_df=pd.read_pickle(f"{pickle_path}combinedDBs.pkl")
 uniprot_df=pd.read_pickle(f"{pickle_path}FiltUniProtMappings_human.pkl")
+bg_nodes = pd.read_pickle(f"{pickle_path}BIOGRID_nodes.pkl")
+bg_edges = pd.read_pickle(f"{pickle_path}BIOGRID_edges.pkl")
+bg_G = pd.read_pickle(f"{pickle_path}BIOGRID_graph.pkl")
 
 print("Loaded databases.")
 
@@ -93,6 +96,7 @@ def validate(query_type):
     if request.method=="POST":
         string_type=request.form["queryType"]
         default_PR = request.form.get("default_PR")
+        
         #Only multi query accepts file input
         if query_type == "dijkstra":
             file = request.files['file']
@@ -109,11 +113,10 @@ def validate(query_type):
                 return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
             #If the query is a text box format with name contains/begins/ends
             else:
-                MultiSearcher.query(query, nodes_df, full_df, uniprot_df, string_type)
-                result = pd.read_csv("multiSearchOut.csv")
+                MultiSearcher.query(query, nodes_df, full_df, uniprot_df, bg_nodes, string_type)
                 result_dict=ConvertSearch.multi_convert()
-                if string_type=="gene" or default_PR:
-                    query_dict={}
+                if string_type == "gene" or default_PR:
+                    query_dict = {}
                     for query_key in result_dict:
                         query_dict[query_key] = [result_dict[query_key]["max_PR"]]
                     with open("query_dict.json", "w") as outfile:
@@ -187,13 +190,14 @@ def pick_query(query, query_type):
             with open('query_dict.json', 'w') as json_file:
                 json.dump(query_dict, json_file)
             return redirect(url_for("make_single_query", query_type="name"))
+
         else:
             query_dict={}
             for query in result_dict:
                 query_dict[query] = request.form.getlist(query)
             with open('query_dict.json', 'w') as json_file:
                 json.dump(query_dict, json_file)
-            return redirect(url_for("make_bfs_query", query_type = "name"))
+            return redirect(url_for("make_bfs_query", query_type="name"))
 
     else:
         if query_type=="single":
@@ -218,26 +222,41 @@ def display_options(query_type, string_type):
     if request.method=="POST" or len(not_in)==0:
         if query_type=="dijkstra":
             if string_type == "id":
-                return redirect(url_for("make_bfs_query", query_type = "id"))
+                return redirect(url_for("make_bfs_query", string_type=string_type, query_type="id"))
             else:
-                return redirect(url_for("make_bfs_query", query_type = "name"))
+                return redirect(url_for("make_bfs_query", string_type=string_type, query_type="name"))
         elif query_type=="single":
             return redirect(url_for("make_single_query", query_type = "id"))
     else:
         return render_template("validate_result.html", not_in=not_in, query_type=query_type, present=present)
 
 
-@app.route('/bfs/<query_type>', methods=["POST","GET"])
-def make_bfs_query(query_type):
+@app.route('/bfs/<string_type>/<query_type>', methods=["POST","GET"])
+def make_bfs_query(string_type, query_type):
     with open('query_dict.json') as json_file:
         query = json.load(json_file)
     q_len = len(query)
     if q_len > 100:
-        return redirect(url_for("bfs_query_result", max_linkers=1, qtype = "all_shortest_paths", query_type = query_type, get_direct_linkers = True))
+        return redirect(url_for("bfs_query_result",
+                                max_linkers=1,
+                                qtype="all_shortest_paths",
+                                string_type=string_type,
+                                query_type=query_type,
+                                get_direct_linkers = True)
+                       )
+
     if request.method=="POST":
         max_linkers=int(request.form["max_linkers"])
         qtype = request.form["qtype"]
-        return redirect(url_for("bfs_query_result", max_linkers=max_linkers, qtype = qtype, query_type = query_type, get_direct_linkers = True))
+        return redirect(
+            url_for("bfs_query_result",
+                    max_linkers=max_linkers,
+                    string_type=string_type,
+                    qtype=qtype,
+                    query_type=query_type,
+                    get_direct_linkers=True)
+        )
+
     else:
         return render_template("bfs_search.html")
 
@@ -252,8 +271,8 @@ def make_single_query(query_type):
         return render_template("single_search.html")
 
 
-@app.route('/bfsresult/<max_linkers>/<qtype>/<query_type>/<get_direct_linkers>')
-def bfs_query_result(max_linkers, qtype, query_type, get_direct_linkers):
+@app.route('/bfsresult/<max_linkers>/<qtype>/<string_type>/<query_type>/<get_direct_linkers>')
+def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_linkers):
     global edges_df
     global nodes_df
     global ev_df
@@ -264,14 +283,45 @@ def bfs_query_result(max_linkers, qtype, query_type, get_direct_linkers):
     print("At bfs_query_result")
     with open('query_dict.json') as json_file:
         query = json.load(json_file)
+    print(query)
+        
     print(len(query))
     max_linkers=int(max_linkers)
     if get_direct_linkers == "True":
         get_direct_linkers = True
     else:
         get_direct_linkers = False
+
     print("Starting multiquery")
-    MultiQuery.query(G, edges_df, nodes_df, query, max_linkers, qtype, query_type, get_direct_linkers = get_direct_linkers, db_df = full_df, access_key=access_key, secret_key=secret_key, bucket=bucket)
+    MultiQuery.query(
+        G,
+        edges_df,
+        nodes_df,
+        query,
+        max_linkers,
+        qtype,
+        query_type,
+        get_direct_linkers=get_direct_linkers,
+        db_df=full_df,
+        access_key=access_key,
+        secret_key=secret_key,
+        bucket=bucket
+    )
+    
+    if string_type == "gene":
+        queries_id = pd.read_pickle("bg_multiSearchOut.pkl")
+        MultiQuery.BIOGRID_query(
+            bg_G,
+            bg_edges,
+            bg_nodes,
+            queries_id,
+            max_linkers,
+            qtype,
+            query_type,
+            get_direct_linkers=get_direct_linkers,
+            db_df=full_df
+        )
+    
     print("Finished multiquery")
     query_edges = pd.read_csv("query_edges.csv",header = 0)
     n_edges = len(query_edges.index)
@@ -279,7 +329,7 @@ def bfs_query_result(max_linkers, qtype, query_type, get_direct_linkers):
     if n_edges > 5000:
         to_json_netx.filter_graph()
         filtered = True
-        
+    
     elements, n_query, n_direct = to_json_netx.clean()
 
     # Compute X and Y for concentric layout

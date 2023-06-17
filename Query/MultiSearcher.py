@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import pickle
 
 
 def name_query(name, nodes, full_df, string_type):
@@ -26,12 +27,23 @@ def name_query(name, nodes, full_df, string_type):
     return in_net
 
 
-def multi_query(query_list, nodes, full_df, string_type):
+def multi_query(query_list, nodes, full_df, bg_nodes, string_type):
     # Gene querying can be streamlined
     if string_type == "gene":
         # Get found and unfound queries
+        # full_df in this case is uniprot_df. uniprot_df is has 1-1 correspondence between Id and Label at this stage.
         mapped_ids = full_df[full_df["Label"].isin(query_list)].drop_duplicates(subset=["Id", "Label"])
         
+        print(bg_nodes.columns)
+        
+        # Only line pertaining to BIOGRID network for searching.
+        bg_in_net = bg_nodes[bg_nodes["name"].isin(query_list)].drop_duplicates(subset=["Id"])
+        bg_in_net["user_query"] = bg_in_net["name"]
+        bg_in_net = bg_in_net.drop(columns="name").set_index("user_query")
+        bg_in_net = bg_in_net.T.to_dict(orient="list")
+        with open("bg_multiSearchOut.pkl", "wb") as p:
+            pickle.dump(bg_in_net, p)
+
         unmapped = np.setdiff1d(query_list, list(full_df["Label"]))    # Unused
 
         # Get only IDs and PR values
@@ -55,11 +67,12 @@ def multi_query(query_list, nodes, full_df, string_type):
     return full_query
 
 
-def query(query_list, nodes, full_df, uniprot_df, string_type):
+def query(query_list, nodes, full_df, uniprot_df, bg_nodes, string_type):
     if string_type == "gene":
         query_list = [x.upper() for x in query_list]
-        multi_query(query_list, nodes, uniprot_df, string_type).to_csv("multiSearchOut.csv", index=False)
+        multi_query(query_list, nodes, uniprot_df, bg_nodes, string_type).to_csv("multiSearchOut.csv", index=False)
+        
     else:
         # Turns all entries into lower case
         case_proof = [x.lower() for x in query_list]
-        multi_query(case_proof, nodes, full_df, string_type).to_csv("multiSearchOut.csv", index=False)
+        multi_query(case_proof, nodes, full_df, bg_nodes, string_type).to_csv("multiSearchOut.csv", index=False)
