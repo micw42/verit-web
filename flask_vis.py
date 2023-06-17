@@ -12,6 +12,8 @@ import numpy as np
 from werkzeug.utils import secure_filename
 from os.path import expanduser
 import random
+from memory_profiler import profile
+
 
 with open("./settings.txt") as file:
     settings = [x.strip("\n") for x in file.readlines()]
@@ -55,6 +57,7 @@ print(f"{clr.Fore.GREEN}Loaded pickles in {round(time.time() - start, 3)}s.{clr.
 
 G = nx.from_pandas_edgelist(edges_df, edge_attr=True, source="source", target="target", create_using=nx.DiGraph())
 
+@profile
 @app.route('/_get_evidence')
 def get_evidence():
     global access_key
