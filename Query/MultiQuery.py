@@ -365,6 +365,9 @@ def BIOGRID_query(G, edges_df, nodes_df, queries_id,
     qedges_df = qedges_df.merge(qnodes_df[["Id", "Label"]], left_on="target_id", right_on="Id").drop(
         columns="Id"
     ).rename(columns={"Label": "target"})
+    
+    qedges_df["source"] = qedges_df["source_id"]
+    qedges_df["target"] = qedges_df["target_id"]
 
     # Dummy columns for consistency. Files are None
     qedges_df["color"] = 0

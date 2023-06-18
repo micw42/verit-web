@@ -310,8 +310,10 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
         secret_key=secret_key,
         bucket=bucket
     )
-    
+
+    # -- BIOGRID portion --
     if string_type == "gene":
+        # Running the query
         queries_id = pd.read_pickle("bg_multiSearchOut.pkl")
         MultiQuery.BIOGRID_query(
             bg_G,
@@ -333,26 +335,12 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
         to_json_netx.filter_graph()
         filtered = True
     
-    elements, n_query, n_direct = to_json_netx.clean()
-
-    # Compute X and Y for concentric layout
-    r1 = 500
-
-    Xs = []; Ys = []
-    Xs_q, Ys_q, R_arr_q, n_arr_q = layeredConcentric.get_xy(n_query, r=r1)
-    Xs.extend(Xs_q); Ys.extend(Ys_q)
-
-    r2 = 100
-    n_fl_co_d = 2 * np.pi * (R_arr_q[-1] + 3*r1) / (2 * r2)
-    Xs_d, Ys_d, R_arr_d, n_arr_d = layeredConcentric.get_xy(n_direct, n_fl_co_d, r=r2)
-    Xs.extend(Xs_d); Ys.extend(Ys_d)
+    elements = to_json_netx.clean(biogrid=string_type=="gene")        
 
     return render_template(
         "bfs_result.html",
         elements = elements,
-        filtered=filtered,
-        Xs=Xs,
-        Ys=Ys
+        filtered = filtered
     )
 
 

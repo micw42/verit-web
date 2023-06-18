@@ -5,7 +5,7 @@ import seaborn as sns
 from operator import itemgetter
 import networkx as nx
 
-from .layeredConcentric import get_xy
+from Visualization import layeredConcentric
 
 
 def filter_graph():
@@ -20,10 +20,7 @@ def filter_graph():
     nodes_df.to_csv("query_nodes.csv", index=False)
 
 
-def clean_nodes():
-
-    nodes_df=pd.read_csv("query_nodes.csv",header = 0)
-
+def clean_nodes(nodes_df, layer):
     def get_color(query_type):
         if query_type == "Query":
             return "#fc0800"
@@ -45,23 +42,22 @@ def clean_nodes():
     nodes_df["Color"] = nodes_df["Type"].apply(get_color)
     nodes_df["class"] = nodes_df["Type"].apply(get_class)
     nodes_df["display"] = nodes_df["Type"].apply(get_display)
+    nodes_df["layer"] = layer
 
     return nodes_df
 
 
-def clean_edges():
-    nodes_df = pd.read_csv("query_nodes.csv",header = 0)
-    direct_nodes = nodes_df[nodes_df["Type"]=="Direct"]["Id"].tolist()
-    edges_df=pd.read_csv("query_edges.csv",header = 0)
+def clean_edges(nodes_df, edges_df, layer):
+    direct_nodes = nodes_df[nodes_df["Type"] == "Direct"]["Id"].tolist()
 
     def get_width(x):
-        if x<50:
-            return x+10
+        if x < 50:
+            return x + 10
         else:
-            return math.log(x,10)+60
+            return math.log(x, 10) + 60
 
     #Take square root of thickness column so values aren't too big
-    edges_df["edge_width"]=edges_df["thickness"].apply(get_width)
+    edges_df["edge_width"] = edges_df["thickness"].apply(get_width)
 
     #Convert the color col into hex color strings
     def convert_col(color_val, palette):
@@ -71,7 +67,7 @@ def clean_edges():
         return palette[c_i]
 
     pal = list(sns.color_palette("coolwarm_r", as_cmap=False, n_colors=25).as_hex())
-    edges_df["color"]=edges_df["color"].apply(convert_col, args=(pal,))
+    edges_df["color"] = edges_df["color"].apply(convert_col, args=(pal,))
 
     def get_display(id1, id2, direct_nodes):
         if id1 in direct_nodes or id2 in direct_nodes:
@@ -80,145 +76,92 @@ def clean_edges():
             return "element"
 
     edges_df['display'] = edges_df.apply(lambda x: get_display(x.source, x.target, direct_nodes=direct_nodes), axis=1)
-
+    edges_df["layer"] = layer
+    
     return edges_df
-
-
-def get_square_clusters():
-    nodes_df=pd.read_csv("query_nodes.csv",header = 0)
-    edges_df = pd.read_csv("query_edges.csv", header=0)
-
-    is_query = nodes_df[nodes_df["Type"] == "Query"]["Id"].tolist()
-    is_connected = list(set(edges_df["source"].tolist()) | set(edges_df["target"].tolist()))  #All non-orphans
-    query_orphans = list(set(is_query) - set(is_connected))  # Non-connected query nodes
-    query_conn = list(set(is_query) - set(query_orphans))    # Connected query nodes
-
-    linkers = nodes_df[nodes_df["Type"] == "Linker"]["Id"].tolist()
-    direct = nodes_df[nodes_df["Type"] == "Direct"]["Id"].tolist()
-    n_linkers = int(math.sqrt(len(linkers)))
-
-    # Align connected query nodes
-    if len(linkers) == 0:
-        align = [{"nodeId": query_conn[i], "position": {"x": 1000*(i%2), "y": 1000*(i//2)}} for i in range(len(query_conn))]
-    else:
-        align = [{"nodeId": query_conn[i], "position": {"x": (n_linkers*500+5000)*(i%2), "y": (n_linkers)*100*(i//2+1)}} for i in range(len(query_conn))]
-
-    # Align linker nodes
-    y_coord = 0
-    x_coord = 2500
-    for i in range(len(linkers)):
-        align.append({"nodeId":linkers[i], "position":{"x":x_coord, "y":y_coord}})
-        x_coord += 500
-        if i%n_linkers == 0:
-            x_coord = 2500
-            y_coord += 500
-
-    # Align orphan query nodes
-    y_coord = -500
-    x_coord = -500
-    n_orphans = int(math.sqrt(len(query_orphans)))
-    for i in range(len(query_orphans)):
-        align.append({"nodeId":query_orphans[i], "position":{"x":x_coord, "y":y_coord}})
-        x_coord -= 500
-        if (i+1)%n_orphans == 0:
-            x_coord = -500
-            y_coord -= 500
-
-    return align
-
-
-#original function
-def get_orig_clusters():
-    nodes_df=pd.read_csv("query_nodes.csv",header = 0)
-    edges_df = pd.read_csv("query_edges.csv", header=0)
-
-    is_query = nodes_df[nodes_df["Type"] == "Query"]["Id"].tolist()
-    is_connected = list(set(edges_df["source"].tolist()) | set(edges_df["target"].tolist()))  #All non-orphans
-    query_orphans = list(set(is_query) - set(is_connected))  # Non-connected query nodes
-    query_conn = list(set(is_query) - set(query_orphans))    # Connected query nodes
-
-    linkers = nodes_df[nodes_df["Type"] == "Linker"]["Id"].tolist()
-    direct = nodes_df[nodes_df["Type"] == "Direct"]["Id"].tolist()
-    if len(linkers) == 0:
-        align = [{"nodeId": query_conn[i], "position": {"x": 1000*(i%2), "y": 1000*(i//2)}} for i in range(len(query_conn))]
-    else:
-        align = [{"nodeId": query_conn[i], "position": {"x": 10000*(i%2), "y": 10000*(i//2)}} for i in range(len(query_conn))]
-
-    orph_align = [{"nodeId": query_orphans[i],
-                   "position": {"x": (-500-500*(i%2)), "y": -500*(i//2)}} for i in range(len(query_orphans))]
-    align.extend(orph_align)
-    
-    align_linkers_n1 = [{"left": query_conn[0], "right": x, "gap": 2500} for x in linkers]
-    align_linkers_n2 = [{"left": x, "right": query_conn[1], "gap": 2500} for x in linkers]
-    align_linkers = align_linkers_n1 + align_linkers_n2
-    
-    return (align, align_linkers)
 
 
 #Convert nodes and edges tables into one json-style list
 def convert(nodes_df, edges_df):
-    nodes_df = nodes_df.sort_values("Type", ascending=False)
-
-    n_query = len(nodes_df[nodes_df.Type == "Query"])
-    n_direct = len(nodes_df[nodes_df.Type == "Direct"])
-
     elements=[]
+    coord_dict = dict()
+    layers = list(nodes_df.layer.unique())
 
-    # Construct nodes datatable
-    for i in range(len(nodes_df)):
-        ndrow = nodes_df.iloc[i]
-        node_dict={"data":{"id":ndrow["Id"], "label":ndrow.Label, "KB":ndrow.KB, "type":ndrow["Type"],
-                           "syn":ndrow["name"], "color":ndrow.Color, "classes":ndrow["class"],
-                           "display":ndrow.display, "orig_display":ndrow.display, "display_id":ndrow.display_id}}
+    for layer in layers:
+        nodes_layer = nodes_df[nodes_df.layer == layer].copy()
+        edges_layer = edges_df[edges_df.layer == layer].copy()
 
-        elements.append(node_dict)
+        vc_nodes = nodes_layer.Type.value_counts()
 
-    # Construct edges datatable
-    edges_df["edge_id"] = edges_df.source.str.cat(edges_df.target)
-    for i in range(len(edges_df)):
-        erow = edges_df.iloc[i]
-        edge_dict = {"data": {"id": erow.edge_id,
-                              "source": erow.source, "target": erow.target,
-                              "weight": float(erow.edge_width),
-                              "color": erow.color,
-                              "files": erow.files,
-                              "thickness": int(erow.thickness)}}
-        elements.append(edge_dict)
+        n_query = vc_nodes["Query"]
+        n_links = vc_nodes.sum() - vc_nodes["Query"]
 
-    return elements, n_query, n_direct
+        # Compute X and Y for concentric layout
+        Xs = []; Ys = []
 
+        r1 = 500
+        Xs_q, Ys_q, R_arr_q, n_arr_q = layeredConcentric.get_xy(n_query, r=r1)
+        Xs.extend(Xs_q); Ys.extend(Ys_q)
 
-def clean():
-    nodes_df=clean_nodes()
-    edges_df=clean_edges()
-    elements, n_query, n_direct = convert(nodes_df, edges_df)
-
-    return elements, n_query, n_direct
+        r2 = 100
+        n_fl_co_d = 2 * np.pi * (R_arr_q[-1] + 3*r1) / (2 * r2)
+        Xs_d, Ys_d, R_arr_d, n_arr_d = layeredConcentric.get_xy(n_links, n_fl_co_d, r=r2)
+        Xs.extend(Xs_d); Ys.extend(Ys_d)
 
 
-def get_mc_clust():
-    nodes_df = pd.read_csv("query_nodes.csv")
-    q_nodes = nodes_df[nodes_df["Type"]=="Query"]["Id"].tolist()
+        # Construct nodes datatable
+        for i in range(len(nodes_layer)):
+            ndrow = nodes_layer.iloc[i]
+            node_dict={"data":{"id":ndrow["Id"], "label":ndrow.Label, "KB":ndrow.KB, "type":ndrow["Type"],
+                               "syn":ndrow["name"], "color":ndrow.Color, "classes":ndrow["class"],
+                               "display":ndrow.display, "orig_display":ndrow.display, "display_id":ndrow.display_id, 
+                               "layer":ndrow.layer, "lcX": Xs[i], "lcY": Ys[i]
+                              }}
+
+            elements.append(node_dict)
+
+        # Construct edges datatable
+        edges_layer["edge_id"] = edges_layer.source.str.cat(edges_layer.target)
+        for i in range(len(edges_layer)):
+            erow = edges_layer.iloc[i]
+            edge_dict = {"data": {"id": erow.edge_id,
+                                  "source": erow.source, "target": erow.target,
+                                  "weight": float(erow.edge_width),
+                                  "color": erow.color,
+                                  "files": erow.files,
+                                  "thickness": int(erow.thickness),
+                                  "layer": erow.layer
+                                 }}
+            elements.append(edge_dict)
+
+    return elements
+
+
+def clean(biogrid=False):
+    if biogrid:
+        nodes_df_reach = pd.read_csv("query_nodes.csv", header=0)
+        edges_df_reach = pd.read_csv("query_edges.csv", header=0)
+
+        nodes_df_reach = clean_nodes(nodes_df_reach, layer="reach")
+        edges_df_reach = clean_edges(nodes_df_reach, edges_df_reach, layer="reach")
+
+        nodes_df_bg = pd.read_csv("query_nodes_BIOGRID.csv", header=0)
+        edges_df_bg = pd.read_csv("query_edges_BIOGRID.csv", header=0)
+
+        nodes_df_bg = clean_nodes(nodes_df_bg, layer="biogrid")
+        edges_df_bg = clean_edges(nodes_df_bg, edges_df_bg, layer="biogrid")
+
+        nodes_df = pd.concat([nodes_df_reach, nodes_df_bg])
+        edges_df = pd.concat([edges_df_reach, edges_df_bg])
+
+    else:
+        nodes_df = pd.read_csv("query_nodes.csv", header=0)
+        edges_df = pd.read_csv("query_edges.csv", header=0)
+
+        nodes_df = clean_nodes(nodes_df, layer="reach")
+        edges_df = clean_edges(nodes_df, edges_df, layer="reach")
     
-    edges_df = pd.read_csv("query_edges.csv")
-    edges_df = edges_df[edges_df["source"].isin(q_nodes) & edges_df["target"].isin(q_nodes)]
-    
-    G = nx.from_pandas_edgelist(edges_df, edge_attr=True, source="source", target="target", create_using=nx.DiGraph())
-    
-    mat = nx.to_scipy_sparse_matrix(G)
+    elements = convert(nodes_df, edges_df)
 
-    result = mc.run_mcl(mat, inflation=1.2)           # run MCL with default parameters
-    clusters = mc.get_clusters(result)
+    return elements
 
-    node_list = list(G.nodes())
-    
-    clust_list = [itemgetter(*list(x))(node_list) for x in clusters]
-    clust_list = [list(x) if type(x) is tuple else [x] for x in clust_list]
-    
-    small = list(filter(lambda x: len(x) < 5, clust_list))
-    small = [item for sublist in small for item in sublist]    #Combine all small clusters into one
-    
-    clust_list = list(filter(lambda x: len(x) >= 5, clust_list))
-    clust_list.append(small)
-    
-    return clust_list

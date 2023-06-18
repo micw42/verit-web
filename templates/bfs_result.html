@@ -650,8 +650,10 @@
                             'background-fit': 'contain',
                             'background-clip': 'none',
                             "display": "data(display)",
-                            "display_id":"data(display_id)"
-            
+                            "display_id":"data(display_id)",
+                            "lcX": "data(lcX)",
+                            "lcY": "data(lcY)",
+                            "layer": "data(layer)"
                         },
                         position: {
                             x: "data(position)",
@@ -996,6 +998,7 @@
              
             cy.on('click', 'node', function (evt) {
                 var sel = evt.target;
+                console.log("layer:"+sel.data("layer"))
                 console.log("selectable: "+sel.selectable())
                 var modal = document.getElementById("synModal");
                 var synLabel = document.getElementById("synLabel");
@@ -1921,19 +1924,16 @@
             
             }
             
-             function run_preset(){                 
-                 var all_nodes = cy.nodes();
-                 var eles = cy.elements();
-                 
-                 var Xs = {{ Xs }};
-                 var Ys = {{ Ys }};
+             // pass parameter to signify BIOGRID or reach layer?
+             function run_preset(){
+                 var all_nodes = cy.nodes();    // Filter by {layer}?
+                 var eles = cy.elements();    // Filter by {layer}?
                  
                  for (var i=0; i<all_nodes.length; i++) {
                      var curr_node = all_nodes[i]
-                     console.log(Xs[i])
                      curr_node.positions({
-                         x: Xs[i],
-                         y: Ys[i]
+                         x: curr_node.data("lcX"),
+                         y: curr_node.data("lcY")
                      });
                  }
              
