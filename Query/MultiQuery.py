@@ -371,7 +371,7 @@ def BIOGRID_query(G, edges_df, nodes_df, queries_id,
 
     # Dummy columns for consistency. Files are None
     qedges_df["color"] = 0
-    qedges_df["thickness"] = int(1)
+    qedges_df["thickness"] = 1e6
     qedges_df["files"] = None
 
     qedges_df.to_csv("./query_edges_BIOGRID.csv", index=False)

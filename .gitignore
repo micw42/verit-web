@@ -1,3 +1,5 @@
+*.pkl
+*.log
 aws.txt
 *.csv
 file*.py

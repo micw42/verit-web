@@ -236,7 +236,7 @@
             
             <hr>
             
-            <div style="padding-left:20px;" class="slidecontainer">
+            <div style="padding-left:20px;" class="slidecontainer" id="thickness_div">
                 <h2 style="padding-bottom:10px;">Parameters</h2>
                 <h6>Filter by thickness:</h6>
                 <input type="range" min="2" value="2" class="slider" id="myRange" style="width:50%;margin-left:20px">
@@ -288,7 +288,7 @@
             </div>
         
             
-          <div style="padding-left:20px;" class="slidecontainer">
+          <div style="padding-left:20px;" class="slidecontainer" id="kb_div">
               <h6>Filter by knowledge base:</h6>
               
                 <form id="kb_form" action="#" style="width:82%;">
@@ -435,7 +435,16 @@
                 </ul>
             </div>
             
+             <div style="padding-left:20px">
+                <h6 style="margin-right:5px;display:inline;">Toggle database:</h6>
+                <div class="form-check form-switch" style="display:inline;">
+                    <input class="form-check-input" type="checkbox" role="switch" id="layer-button" style="display:inline" onchange="switch_layers()">
+                    <label class="form-check-label" for="layer-button" style="display:inline"></label>
+                </div>
+                <p style="color:grey;margin-right:20px;">Current database: <span id="current_layer">REACH</span></p>
+            </div>
             <hr>
+            
             
             <div style="padding:20px;padding-top:0px;text-align:center">
                 <h6>
@@ -653,7 +662,8 @@
                             "display_id":"data(display_id)",
                             "lcX": "data(lcX)",
                             "lcY": "data(lcY)",
-                            "layer": "data(layer)"
+                            "layer": "data(layer)",
+                            "type": "data(type)"
                         },
                         position: {
                             x: "data(position)",
@@ -998,6 +1008,7 @@
              
             cy.on('click', 'node', function (evt) {
                 var sel = evt.target;
+                console.log("type:"+sel.data("type"))
                 console.log("layer:"+sel.data("layer"))
                 console.log("selectable: "+sel.selectable())
                 var modal = document.getElementById("synModal");
@@ -1120,9 +1131,9 @@
             
             var slider = document.getElementById("myRange");
             var queryEdges = cy.edges().filter(function (ele) {
-                return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
+                return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0") && (ele.data("layer")=="reach"));
             });
-            var allEdges = cy.edges()    
+            var allEdges = cy.edges().filter(function(ele) {return((ele.data("layer")=="reach"))})    
             var queryMax = Math.ceil(getMaxWeight(queryEdges))
             var allMax = Math.ceil(getMaxWeight(allEdges))
             slider.max = queryMax
@@ -1181,9 +1192,9 @@
                 for(var i=0; i<nodes.length; i++) {
                     var sel = nodes[i];
                     var syn = sel.data().syn;
-
+                    
                     // String-matching part
-                    if (syn.includes(search)) {
+                    if (syn.toLowerCase().includes(search)) {
                         // Content: append other stuff to this for the scrolling menu
                         // Making the input radio
                         var input_el = document.createElement("input");
@@ -1462,10 +1473,12 @@
                 filteredNodes.removeClass("transp");
                 filteredEdges.restore();
             
-                filteredEdges = cy.edges().filter('[thickness < ' + threshold + ']');
+                filteredEdges = cy.edges().filter(function(ele) {
+                    return((ele.data("thickness") < threshold) && (ele.data("layer")=="reach"))
+                });
                 filteredEdges = cy.remove(filteredEdges);
                 filteredNodes = cy.nodes().filter(function (ele) {
-                    return ((ele.degree() == 0) && (ele.data("type") != "Query"));
+                    return ((ele.degree() == 0) && (ele.data("type") != "Query")&& (ele.data("layer")=="reach"));
                 });
                 filteredNodes.addClass("transp");
                 rerun_layout();
@@ -1481,7 +1494,7 @@
                 resetKBs()
                 if (kb_list.length!=0) {
                     excludedNodes = cy.nodes().filter(function(ele) {
-                        return (!((kb_list.includes(ele.data("KB")) && ele.degree()!=0) | ele.data("type")=="Query"))
+                        return (!((kb_list.includes(ele.data("KB")) && ele.degree()!=0) | ele.data("type")=="Query") &&(ele.data("layer")=="reach"))
                     });
                     excludedNodes.addClass("transp");
                     excludedEdges = cy.edges().filter(function(ele) {
@@ -1545,7 +1558,7 @@
                         if (layout=="fCose") {
                             run_fCose(idealEL, nodeRep)
                         } else {
-                            run_cise(nodeRep)
+                            run_cise(nodeRep=nodeRep)
                         }
                         resolve();
                     },ms)
@@ -1696,19 +1709,23 @@
                 var input_qty = document.getElementById("quantity");
                 
                 if (show) {
-                    cy.edges().filter("[display = 'none']").style("display", "element")
-                    cy.nodes().filter("[display = 'none']").style("display", "element")  
+                    cy.edges().filter(function(ele) {
+                        return((ele.data("type")=="Direct") && (ele.data("layer")==cur_layer))
+                    }).style("display", "element")
+                    cy.nodes().filter(function(ele) {
+                        return((ele.data("type")=="Direct") && (ele.data("layer")==cur_layer))
+                    }).style("display", "element")  
                     slider.max = allMax
                     input_qty.max = allMax
                 } else {
-                    cy.edges().filter("[display = 'none']").style("display", "none")
-                    cy.nodes().filter("[display = 'none']").style("display", "none")
+                    cy.edges().filter("[type = 'Direct']").style("display", "none")
+                    cy.nodes().filter("[type = 'Direct']").style("display", "none")
                     slider.max = queryMax
                     input_qty.max = queryMax
                 }
                 threshold = output.innerHTML
                 console.log("Edge filter threshold: " + threshold)
-
+                    
                 rerun_layout();
             } 
             
@@ -1740,6 +1757,46 @@
                     status.innerHTML = "";
                     loader.classList.toggle('show', false);
                 })
+            }
+            
+            var cur_layer = "reach" 
+            function switch_layers() {
+                var biogrid_eles = cy.elements().filter(function (ele) {
+                        return((ele.data("layer")=="biogrid"))
+                    })
+                var reach_eles =  cy.elements().filter(function (ele) {
+                        return((ele.data("layer")=="reach"))
+                    })
+                var layer_label = document.getElementById("current_layer")
+                if (cur_layer=="reach") {
+                    console.log("BG edges:"+biogrid_eles.edges().length)
+                    reach_eles.style("display", "none")
+                    biogrid_eles.style("display", "element")
+                    if (show) {
+                        console.log("not show")
+                        biogrid_eles.nodes().filter(function(ele) {
+                            return(ele.data("type")=="Direct") }).style("display", "none")
+                    }
+                    cur_layer = "biogrid"
+                    document.getElementById("kb_div").style.display = "none"
+                    document.getElementById("thickness_div").style.display = "none"
+                    layer_label.innerHTML="BIOGRID"
+                } else {
+                    reach_eles.style("display", "element")
+                    biogrid_eles.style("display", "none")
+                    if (show) {
+                        reach_eles.filter(function(ele) {
+                            return(ele.data("type")=="Direct") }).style("display", "none")
+                    }
+                    cur_layer="reach"
+                    layer_label.innerHTML="REACH"
+                    var slider = document.getElementById("myRange");
+                    var threshold=slider.value
+                    document.getElementById("kb_div").style.display = "block"
+                    document.getElementById("thickness_div").style.display = "block"
+                }
+                rerun_layout()
+                return false
             }
             
             function add_colors() {

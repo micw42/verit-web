@@ -33,15 +33,15 @@ def clean_nodes(nodes_df, layer):
         else:
             return "level0"
 
-    def get_display(query_type):
-        if query_type=="Direct":
+    def get_display(query_type, layer):
+        if query_type=="Direct" or layer=="biogrid":
             return "none"
         else:
             return "element"
 
     nodes_df["Color"] = nodes_df["Type"].apply(get_color)
     nodes_df["class"] = nodes_df["Type"].apply(get_class)
-    nodes_df["display"] = nodes_df["Type"].apply(get_display)
+    nodes_df["display"] = nodes_df["Type"].apply(get_display, layer=layer)
     nodes_df["layer"] = layer
 
     return nodes_df
@@ -52,9 +52,9 @@ def clean_edges(nodes_df, edges_df, layer):
 
     def get_width(x):
         if x < 50:
-            return x + 10
+            return x
         else:
-            return math.log(x, 10) + 60
+            return math.log(x, 10) + 50
 
     #Take square root of thickness column so values aren't too big
     edges_df["edge_width"] = edges_df["thickness"].apply(get_width)
@@ -76,8 +76,15 @@ def clean_edges(nodes_df, edges_df, layer):
             return "element"
 
     edges_df['display'] = edges_df.apply(lambda x: get_display(x.source, x.target, direct_nodes=direct_nodes), axis=1)
-    edges_df["layer"] = layer
     
+    def get_type(id1, id2, direct_nodes):
+        if id1 in direct_nodes or id2 in direct_nodes:
+            return "Direct"
+        else:
+            return "Query"
+        
+    edges_df['type'] = edges_df.apply(lambda x: get_type(x.source, x.target, direct_nodes=direct_nodes), axis=1)   
+    edges_df["layer"] = layer
     return edges_df
 
 
@@ -89,6 +96,7 @@ def convert(nodes_df, edges_df):
 
     for layer in layers:
         nodes_layer = nodes_df[nodes_df.layer == layer].copy()
+        nodes_layer = nodes_layer.sort_values('Type', ascending=False)
         edges_layer = edges_df[edges_df.layer == layer].copy()
 
         vc_nodes = nodes_layer.Type.value_counts()
@@ -112,7 +120,7 @@ def convert(nodes_df, edges_df):
         # Construct nodes datatable
         for i in range(len(nodes_layer)):
             ndrow = nodes_layer.iloc[i]
-            node_dict={"data":{"id":ndrow["Id"], "label":ndrow.Label, "KB":ndrow.KB, "type":ndrow["Type"],
+            node_dict={"data":{"id":ndrow["Id"]+ndrow["layer"], "label":ndrow.Label, "KB":ndrow.KB, "type":ndrow["Type"],
                                "syn":ndrow["name"], "color":ndrow.Color, "classes":ndrow["class"],
                                "display":ndrow.display, "orig_display":ndrow.display, "display_id":ndrow.display_id, 
                                "layer":ndrow.layer, "lcX": Xs[i], "lcY": Ys[i]
@@ -124,13 +132,14 @@ def convert(nodes_df, edges_df):
         edges_layer["edge_id"] = edges_layer.source.str.cat(edges_layer.target)
         for i in range(len(edges_layer)):
             erow = edges_layer.iloc[i]
-            edge_dict = {"data": {"id": erow.edge_id,
-                                  "source": erow.source, "target": erow.target,
-                                  "weight": float(erow.edge_width),
+            edge_dict = {"data": {"id": erow.edge_id+erow.layer,
+                                  "source": erow.source+erow.layer, "target": erow.target+erow.layer,
+                                  "weight": float(erow.edge_width) * (erow.layer == "reach") + 10,
                                   "color": erow.color,
                                   "files": erow.files,
                                   "thickness": int(erow.thickness),
-                                  "layer": erow.layer
+                                  "layer": erow.layer,
+                                  "type":erow.type
                                  }}
             elements.append(edge_dict)
 
