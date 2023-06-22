@@ -313,6 +313,10 @@ def BIOGRID_query(G, edges_df, nodes_df, queries_id,
 
     st_dict = {"source_id": sources, "target_id": targets}
     st_df = pd.DataFrame(st_dict).drop_duplicates()
+    # Unidirectional
+    st_df = st_df.merge(
+        edges_df, left_on=["source_id", "target_id"], right_on=["source", "target"]
+    )[["source_id", "target_id", "thickness"]]
 
 
     ## Construct nodes dataframe
@@ -324,7 +328,7 @@ def BIOGRID_query(G, edges_df, nodes_df, queries_id,
                       ~(edges_df["target"].isin(set(qnode_ids) - set(query_list)))) |
                      ((edges_df["target"].isin(query_list)) &
                       ~(edges_df["source"].isin(set(qnode_ids) - set(query_list))))]
-    links.columns = ["source_id", "target_id"]
+    links.columns = ["source_id", "target_id", "thickness"]
 
     # Keep direct-linkers to keep track
     direct = list(set(pd.concat([links.source_id, links.target_id])))
@@ -369,10 +373,12 @@ def BIOGRID_query(G, edges_df, nodes_df, queries_id,
     qedges_df["source"] = qedges_df["source_id"]
     qedges_df["target"] = qedges_df["target_id"]
 
-    # Dummy columns for consistency. Files are None
+    qedges_df["files"] = qedges_df["source_id"] + "_" + qedges_df["target_id"] + ".txt"
+
+    # Dummy columns for consistency.
     qedges_df["color"] = 0
-    qedges_df["thickness"] = 1e6
-    qedges_df["files"] = None
+    
+    qedges_df = qedges_df.drop_duplicates()
 
     qedges_df.to_csv("./query_edges_BIOGRID.csv", index=False)
     
