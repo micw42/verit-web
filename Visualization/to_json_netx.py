@@ -43,19 +43,22 @@ def clean_nodes(nodes_df, layer):
     nodes_df["class"] = nodes_df["Type"].apply(get_class)
     nodes_df["display"] = nodes_df["Type"].apply(get_display, layer=layer)
     nodes_df["layer"] = layer
+    nodes_df["border-width"] = 2
+    nodes_df["border-color"] = "#0000FFFF"
 
     return nodes_df
 
 
+def get_width(x):
+    if x < 50:
+        return x
+    else:
+        return math.log(x, 10) + 50
+
+
 def clean_edges(nodes_df, edges_df, layer):
     direct_nodes = nodes_df[nodes_df["Type"] == "Direct"]["Id"].tolist()
-
-    def get_width(x):
-        if x < 50:
-            return x
-        else:
-            return math.log(x, 10) + 50
-
+    
     #Take square root of thickness column so values aren't too big
     edges_df["edge_width"] = edges_df["thickness"].apply(get_width)
 
@@ -86,6 +89,49 @@ def clean_edges(nodes_df, edges_df, layer):
     edges_df['type'] = edges_df.apply(lambda x: get_type(x.source, x.target, direct_nodes=direct_nodes), axis=1)   
     edges_df["layer"] = layer
     return edges_df
+
+
+def clean_union(nodes_df, edges_df):
+    ## Nodes
+    gb_size = nodes_df.groupby("Id").size()
+    union_ids = gb_size[gb_size == 2].index
+
+    union_nodes_df = nodes_df.copy()
+    union_nodes_df = union_nodes_df.drop_duplicates(subset="Id")
+
+    outline_vec = union_nodes_df["layer"].copy().replace({
+        "reach": "#F00000",
+        "biogrid": "#F11111"
+    })
+    outline_vec[union_nodes_df["display_id"].isin(union_ids)] = "#F22222"
+
+    union_nodes_df["layer"] = "union"
+
+    union_nodes_df["border-color"] = outline_vec
+    union_nodes_df["border-width"] = 16
+    
+    nodes_df = pd.concat([nodes_df, union_nodes_df])
+    
+    ## Edges
+    union_edges_df = edges_df.copy()
+    # Sum the thicknesses together between reach and BIOGRID
+    union_thickness = union_edges_df.groupby(["source_id", "target_id"]).apply(lambda x: x.thickness.sum())
+    union_thickness = union_thickness.reset_index()
+
+    # Format layer, thickness, and edge_width columns appropriately
+    union_edges_df = union_edges_df.drop_duplicates(subset=["source_id", "target_id"])
+    union_edges_df = union_edges_df.merge(
+        union_thickness).drop(
+        columns="thickness").rename(
+        columns={0: "thickness"})
+
+    union_edges_df["edge_width"] = union_edges_df["thickness"].apply(get_width)
+    
+    union_edges_df["layer"] = "union"
+
+    edges_df = pd.concat([edges_df, union_edges_df])
+
+    return nodes_df, edges_df
 
 
 #Convert nodes and edges tables into one json-style list
@@ -162,6 +208,8 @@ def clean(biogrid=False):
 
         nodes_df = pd.concat([nodes_df_reach, nodes_df_bg])
         edges_df = pd.concat([edges_df_reach, edges_df_bg])
+        
+        nodes_df, edges_df = clean_union(nodes_df, edges_df)
 
     else:
         nodes_df = pd.read_csv("query_nodes.csv", header=0)
@@ -173,4 +221,3 @@ def clean(biogrid=False):
     elements = convert(nodes_df, edges_df)
 
     return elements
-
