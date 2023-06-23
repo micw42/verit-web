@@ -200,7 +200,7 @@ def pick_query(query, query_type):
                 query_dict[query] = request.form.getlist(query)
             with open('query_dict.json', 'w') as json_file:
                 json.dump(query_dict, json_file)
-            return redirect(url_for("make_bfs_query", query_type="name"))
+            return redirect(url_for("make_bfs_query", string_type="name", query_type="name"))
 
     else:
         if query_type=="single":
