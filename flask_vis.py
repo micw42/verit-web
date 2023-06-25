@@ -48,7 +48,7 @@ print("Reading databases...", end="\x1b[1K\r")
 full_df=pd.read_pickle(f"{pickle_path}combinedDBs.pkl")
 uniprot_df=pd.read_pickle(f"{pickle_path}FiltUniProtMappings_human.pkl")
 bg_nodes = pd.read_pickle(f"{pickle_path}BIOGRID_nodes.pkl")
-bg_edges = pd.read_pickle(f"{pickle_path}BIOGRID_edges_unique.pkl")
+bg_edges = pd.read_pickle(f"{pickle_path}BIOGRID_edges.pkl")
 bg_G = pd.read_pickle(f"{pickle_path}BIOGRID_graph.pkl")
 
 print("Loaded databases.")
