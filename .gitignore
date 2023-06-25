@@ -1,3 +1,4 @@
+*.edgelist
 *.pkl
 *.log
 aws.txt

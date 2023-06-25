@@ -48,7 +48,7 @@ print("Reading databases...", end="\x1b[1K\r")
 full_df=pd.read_pickle(f"{pickle_path}combinedDBs.pkl")
 uniprot_df=pd.read_pickle(f"{pickle_path}FiltUniProtMappings_human.pkl")
 bg_nodes = pd.read_pickle(f"{pickle_path}BIOGRID_nodes.pkl")
-bg_edges = pd.read_pickle(f"{pickle_path}BIOGRID_edges.pkl")
+bg_edges = pd.read_pickle(f"{pickle_path}BIOGRID_edges_unique.pkl")
 bg_G = pd.read_pickle(f"{pickle_path}BIOGRID_graph.pkl")
 
 print("Loaded databases.")
@@ -200,7 +200,7 @@ def pick_query(query, query_type):
                 query_dict[query] = request.form.getlist(query)
             with open('query_dict.json', 'w') as json_file:
                 json.dump(query_dict, json_file)
-            return redirect(url_for("make_bfs_query", query_type="name"))
+            return redirect(url_for("make_bfs_query", string_type="name", query_type="name"))
 
     else:
         if query_type=="single":
@@ -295,25 +295,10 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
     else:
         get_direct_linkers = False
 
-    print("Starting multiquery")
-    MultiQuery.query(
-        G,
-        edges_df,
-        nodes_df,
-        query,
-        max_linkers,
-        qtype,
-        query_type,
-        get_direct_linkers=get_direct_linkers,
-        db_df=full_df,
-        access_key=access_key,
-        secret_key=secret_key,
-        bucket=bucket
-    )
-
+    
     # -- BIOGRID portion --
     if string_type == "gene":
-        # Running the query
+        # Run biogrid query
         queries_id = pd.read_pickle("bg_multiSearchOut.pkl")
         MultiQuery.BIOGRID_query(
             bg_G,
@@ -326,8 +311,48 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
             get_direct_linkers=get_direct_linkers,
             db_df=full_df
         )
-    
-    print("Finished multiquery")
+        #Get edges found in biogrid
+        query_bg_edges = pd.read_csv("query_edges_BIOGRID.csv")
+        #Run REACH query
+        MultiQuery.query(
+            G,
+            edges_df,
+            nodes_df,
+            query,
+            max_linkers,
+            qtype,
+            query_type,
+            get_direct_linkers=get_direct_linkers,
+            db_df=full_df,
+            access_key=access_key,
+            secret_key=secret_key,
+            bucket=bucket,
+            bg_edges=query_bg_edges
+        )
+        
+        #Change IDs back to uniprot for compatibility with biogrid
+        query_edges = pd.read_csv("query_edges.csv",header = 0)
+        query_nodes = pd.read_csv("query_nodes.csv",header=0)        
+        query_nodes["Id"] = query_nodes["display_id"]
+        query_edges["source"] = query_edges["source_id"]
+        query_edges["target"] = query_edges["target_id"]
+        query_nodes.to_csv("query_nodes.csv", index=False)
+        query_edges.to_csv("query_edges.csv", index=False)
+    else:
+        MultiQuery.query(
+            G,
+            edges_df,
+            nodes_df,
+            query,
+            max_linkers,
+            qtype,
+            query_type,
+            get_direct_linkers=get_direct_linkers,
+            db_df=full_df,
+            access_key=access_key,
+            secret_key=secret_key,
+            bucket=bucket
+        )
     query_edges = pd.read_csv("query_edges.csv",header = 0)
     n_edges = len(query_edges.index)
     filtered = False
@@ -340,7 +365,8 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
     return render_template(
         "bfs_result.html",
         elements = elements,
-        filtered = filtered
+        filtered = filtered,
+        string_type=string_type
     )
 
 
