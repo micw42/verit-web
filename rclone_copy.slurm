@@ -10,9 +10,9 @@
 ###SBATCH --array 0-7
 #SBATCH --output=%x.out
 
-base_dir="/xdisk/guangyao/michellewei/PMC_OA_Processed"
+base_dir="/xdisk/guangyao/michellewei/PMC_OA_BIOGRID"
 
-for i in {0..18};
+for i in {0..24};
 do
-    rclone copy ${base_dir}/ev_${i} aws:pmc-oa-biogrid --progress -vv --transfers=100
+    rclone copy ${base_dir}/ev_${i} aws:pmcbiogrid --progress -vv --transfers=100
 done
