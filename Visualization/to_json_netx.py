@@ -43,8 +43,8 @@ def clean_nodes(nodes_df, layer):
     nodes_df["class"] = nodes_df["Type"].apply(get_class)
     nodes_df["display"] = nodes_df["Type"].apply(get_display, layer=layer)
     nodes_df["layer"] = layer
-    nodes_df["border-width"] = 2
-    nodes_df["border-color"] = "#0000FFFF"
+    nodes_df["border_width"] = 2
+    nodes_df["border_color"] = "#0000FFFF"
 
     return nodes_df
 
@@ -100,15 +100,16 @@ def clean_union(nodes_df, edges_df):
     union_nodes_df = union_nodes_df.drop_duplicates(subset="Id")
 
     outline_vec = union_nodes_df["layer"].copy().replace({
-        "reach": "#F00000",
-        "biogrid": "#F11111"
+        "reach": "#9d49f2",
+        "biogrid": "#77ed40"
     })
-    outline_vec[union_nodes_df["display_id"].isin(union_ids)] = "#F22222"
+    outline_vec[union_nodes_df["display_id"].isin(union_ids)] = "#42a7f5"
 
     union_nodes_df["layer"] = "union"
 
-    union_nodes_df["border-color"] = outline_vec
-    union_nodes_df["border-width"] = 16
+    union_nodes_df["border_color"] = outline_vec
+    union_nodes_df["border_width"] = 16
+    union_nodes_df["display"] = "none"
     
     nodes_df = pd.concat([nodes_df, union_nodes_df])
     
@@ -169,18 +170,17 @@ def convert(nodes_df, edges_df):
             node_dict={"data":{"id":ndrow["Id"]+ndrow["layer"], "label":ndrow.Label, "KB":ndrow.KB, "type":ndrow["Type"],
                                "syn":ndrow["name"], "color":ndrow.Color, "classes":ndrow["class"],
                                "display":ndrow.display, "orig_display":ndrow.display, "display_id":ndrow.display_id, 
-                               "layer":ndrow.layer, "lcX": Xs[i], "lcY": Ys[i]
+                               "layer":ndrow.layer, "lcX": Xs[i], "lcY": Ys[i], "border_color":ndrow["border_color"], "border_width":int(ndrow["border_width"])
                               }}
-
+            
             elements.append(node_dict)
-
         # Construct edges datatable
         edges_layer["edge_id"] = edges_layer.source.str.cat(edges_layer.target)
         for i in range(len(edges_layer)):
             erow = edges_layer.iloc[i]
             edge_dict = {"data": {"id": erow.edge_id+erow.layer,
                                   "source": erow.source+erow.layer, "target": erow.target+erow.layer,
-                                  "weight": float(erow.edge_width) * (erow.layer == "reach") + 10,
+                                  "weight": float(erow.edge_width) * (erow.layer == "reach" or erow.layer=="union") + 10,
                                   "color": erow.color,
                                   "files": erow.files,
                                   "thickness": int(erow.thickness),
@@ -209,7 +209,11 @@ def clean(biogrid=False):
         nodes_df = pd.concat([nodes_df_reach, nodes_df_bg])
         edges_df = pd.concat([edges_df_reach, edges_df_bg])
         
+        nodes_df.to_csv("union_nodes.csv", index=False)
+        edges_df.to_csv("union_edges.csv", index=False)
+        
         nodes_df, edges_df = clean_union(nodes_df, edges_df)
+
 
     else:
         nodes_df = pd.read_csv("query_nodes.csv", header=0)
