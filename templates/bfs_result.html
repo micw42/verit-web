@@ -45,7 +45,7 @@
         .modal {
         display: none;
         /* Hidden by default */
-        position: fixed;
+        position: absolute;
         /* Stay in place */
         z-index: 1;
         /* Sit on top */
@@ -71,6 +71,7 @@
         padding: 20px;
         border: 1px solid #888;
         width: 80%;
+        height: 85%;
         font-family: Arial, Helvetica, sans-serif;
         }
         .modal-body {
@@ -431,7 +432,10 @@
                     <input class="form-check-input" type="checkbox" role="switch" id="direct-button" onchange="run_show_direct()" style="display:inline">
                     <label class="form-check-label" for="direct-button" style="display:inline"></label>
                 </div>
-                <p style="color:grey;margin-right:20px;">Description: Toggle showing direct neighbors to the query nodes. Only edges with >20 thickness are retrieved to limit network size.</p>
+                
+                <p style="color:grey;margin-right:20px;">
+                    Description: Toggle showing direct neighbors to the query nodes. Only edges with >20 thickness are retrieved to limit network size.
+                </p>
 
                 <ul class="nav">
                     <li style="display:inline">
@@ -443,18 +447,19 @@
                 </ul>
             </div>
             
-            <div id="layer-div" style="padding-left:20px">
-                    <h6>Change network:</h6>
+            <div id="layer-div" style="padding-left:20px;">
+                    <h6>Network Layer:</h6>
                     <select id="layer-button" onchange="run_switch_layer()" class="form-select"
                         style="margin-left:20px;width:50%;" value="reach">
-                        <option value="reach">NLP-only</option>
-                        <option value="biogrid">Experimental-only</option>
-                        <option value="union">NLP+Experimental</option>
+                        <option value="reach">Reach</option>
+                        <option value="biogrid">BIOGRID</option>
+                        <option value="union">Reach + BIOGRID</option>
                     </select>
-               <p id="legend" style="color:gray;margin-left:20px;display:none">Nodes outlined by network: <br>
-                    Blue - NLP+Experimental <br>
-                    Purple - NLP-only <br>
-                    Green - Experimental-only <br>
+                <p id="legend" style="color:gray;margin-left:20px;margin-top:10px;display:none">
+                    Outline color legend: <br>
+                    Blue - Reach + BIOGRID <br>
+                    Purple - Reach <br>
+                    Green - BIOGRID <br>
                 </p>
                  <ul class="nav">
                     <li style="display:inline">
@@ -464,8 +469,8 @@
                         <div id="layer_loader" class="loader"></div>
                     </li>
                 </ul>
-
             </div>
+            
             <hr>
             
             
@@ -528,7 +533,7 @@
         <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
             
         <div id="newModal" class="modal">
-            <div class="modal-content">
+            <div class="modal-content" style="height:85%;">
                 <span class="close">&times;</span>
                  <div class="modal-header text-center" style="background-color:#a6a6a6;height:120px">
                  <svg  xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
@@ -565,12 +570,12 @@
             <nav>
 			<div class="nav nav-tabs mb-3" id="nav-tab" role="tablist">
 				<button class="nav-link active" id="reach-tab" data-bs-toggle="tab" data-bs-target="#nav-reach" type="button" role="tab" aria-controls="nav-reach" aria-selected="true" style="visibility:hidden">NLP</button>
-				<button class="nav-link" id="biogrid-tab" data-bs-toggle="tab" data-bs-target="#nav-biogrid" type="button" role="tab" aria-controls="nav-biogrid" aria-selected="false" style="visibility:hidden">Experimental</button>
+				<button class="nav-link" id="biogrid-tab" data-bs-toggle="tab" data-bs-target="#nav-biogrid" type="button" role="tab" aria-controls="nav-biogrid" aria-selected="false" style="visibility:hidden">BIOGRID</button>
 			</div>
 		</nav>
-		<div id="tablist" class="tab-content p-3 border bg-light" id="nav-tabContent">
-			<div class="tab-pane fade" id="nav-reach" role="tabpanel" aria-labelledby="reach-tab">
-				 <div id="reachEv" class="evDiv">
+		<div id="tablist" class="tab-content p-3 border bg-light" id="nav-tabContent" style="height:60%;">
+			<div class="tab-pane fade" id="nav-reach" role="tabpanel" aria-labelledby="reach-tab" style="height:100%;">
+				 <div id="reachEv" class="evDiv" style="height:inherit;">
                     <h1 id="thickness" style="font-family: Arial, Helvetica, sans-serif"></h1>
                     <h2 id="posThickness"></h2>
                     <h2 id="negThickness"></h2>
@@ -580,8 +585,8 @@
                     <div id="incEv"></div>
                 </div>
 			</div>
-			<div class="tab-pane fade" id="nav-biogrid" role="tabpanel" aria-labelledby="nav-biogrid">
-				<div id="bgEv" class="evDiv">
+			<div class="tab-pane fade" id="nav-biogrid" role="tabpanel" aria-labelledby="nav-biogrid" style="height:100%;">
+				<div id="bgEv" class="evDiv" style="height:inherit;">
                     <table class="table">
                       <thead>
                         <tr>
@@ -1116,8 +1121,8 @@
                     document.getElementById("reach-tab").style.visibility = 'visible'
                     document.getElementById("biogrid-tab").style.visibility = 'visible'
                     document.getElementById("nav-reach").classList.add('active', 'show')
-                    document.getElementById("reach-tab").innerHTML = "NLP ("+reach_ev_length+")"
-                    document.getElementById("biogrid-tab").innerHTML = "Experimental ("+bg_ev_length+")"
+                    document.getElementById("reach-tab").innerHTML = "Reach ("+reach_ev_length+")"
+                    document.getElementById("biogrid-tab").innerHTML = "BIOGRID ("+bg_ev_length+")"
                 }
                  
                 
