@@ -192,16 +192,10 @@ def convert(nodes_df, edges_df):
     return elements
 
 
-def clean(biogrid=False):
+def clean(nodes_df_reach, edges_df_reach, nodes_df_bg=None, edges_df_bg=None, biogrid=False):
     if biogrid:
-        nodes_df_reach = pd.read_csv("query_nodes.csv", header=0)
-        edges_df_reach = pd.read_csv("query_edges.csv", header=0)
-
         nodes_df_reach = clean_nodes(nodes_df_reach, layer="reach")
         edges_df_reach = clean_edges(nodes_df_reach, edges_df_reach, layer="reach")
-
-        nodes_df_bg = pd.read_csv("query_nodes_BIOGRID.csv", header=0)
-        edges_df_bg = pd.read_csv("query_edges_BIOGRID.csv", header=0)
 
         nodes_df_bg = clean_nodes(nodes_df_bg, layer="biogrid")
         edges_df_bg = clean_edges(nodes_df_bg, edges_df_bg, layer="biogrid")
@@ -211,16 +205,9 @@ def clean(biogrid=False):
         edges_df = pd.concat([edges_df_reach, edges_df_bg])
         
         nodes_df, edges_df = clean_union(nodes_df, edges_df)
-        nodes_df.to_csv("union_nodes.csv", index=False)
-        edges_df.to_csv("union_edges.csv", index=False)
-
-
     else:
-        nodes_df = pd.read_csv("query_nodes.csv", header=0)
-        edges_df = pd.read_csv("query_edges.csv", header=0)
-
-        nodes_df = clean_nodes(nodes_df, layer="reach")
-        edges_df = clean_edges(nodes_df, edges_df, layer="reach")
+        nodes_df = clean_nodes(nodes_df_reach, layer="reach")
+        edges_df = clean_edges(nodes_df_reach, edges_df_reach, layer="reach")
     
     elements = convert(nodes_df, edges_df)
 

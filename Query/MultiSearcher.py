@@ -70,9 +70,9 @@ def multi_query(query_list, nodes, full_df, bg_nodes, string_type):
 def query(query_list, nodes, full_df, uniprot_df, bg_nodes, string_type):
     if string_type == "gene":
         query_list = [x.upper() for x in query_list]
-        multi_query(query_list, nodes, uniprot_df, bg_nodes, string_type).to_csv("multiSearchOut.csv", index=False)
-        
+        result = multi_query(query_list, nodes, uniprot_df, bg_nodes, string_type)
     else:
         # Turns all entries into lower case
         case_proof = [x.lower() for x in query_list]
-        multi_query(case_proof, nodes, full_df, bg_nodes, string_type).to_csv("multiSearchOut.csv", index=False)
+        result = multi_query(case_proof, nodes, full_df, bg_nodes, string_type)
+    return result

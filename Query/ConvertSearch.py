@@ -3,8 +3,7 @@ import time
 import numpy as np
 import json
 
-def single_convert():
-    results=pd.read_csv("singleSearchOut.csv")
+def single_convert(results):
     ids=results["id"].tolist()
     names=results["name"].tolist()
     pr_vals = results["PR"].tolist()
@@ -20,9 +19,7 @@ def single_convert():
         result_dict["max_PR"] = ids[0]
     return result_dict
 
-def multi_convert():
-    results=pd.read_csv("multiSearchOut.csv")
-
+def multi_convert(results):
     ids=results["id"].tolist()
     names=results["name"].tolist()
     pr_vals = results["PR"].tolist()
@@ -67,9 +64,7 @@ def get_missing(query_list, result_dict, string_type):
     print("in_net:", in_net)
     print("not_in:", not_in)
     result_dict = {"not_in": list(not_in), "present":in_net, "query":query_list}
-    with open("result_dict.json", "w") as outfile:
-        json.dump(result_dict, outfile)
-    print("Finished get missing")
+    return result_dict
 
 
 

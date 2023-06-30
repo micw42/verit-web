@@ -76,7 +76,6 @@ def query(G, edges_df, nodes_df, db_df, query, depth):
     syn_concat = lambda x: "%%".join(x)  # Separate each synonym with %%
     aggregation_functions = {'Id': 'first', 'Label':"first", "depth":"first", "KB":"first", "PR":"first", "name":syn_concat}
     nodes = nodes.groupby('id').aggregate(aggregation_functions)
-    nodes.to_csv("intermediate_nodes.csv", index=False)
     
     # If the user selected multiple IDs, merge them all into one node
     if user_query != "QUERY_ID":
@@ -117,5 +116,4 @@ def query(G, edges_df, nodes_df, db_df, query, depth):
                      "files", "source", "target"]]
     
     
-    full_df.to_csv("query_edges.csv", index=False)
-    nodes.to_csv("query_nodes.csv", index=False)
+    return nodes, full_df

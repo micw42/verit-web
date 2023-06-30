@@ -18,13 +18,9 @@ def check(edges_table, queries_id, query_type):
     not_in = np.setdiff1d(queries_id, all_specs)
     
     result_dict = {"not_in": list(not_in), "present":list(present)}
-    
-    with open("result_dict.json", "w") as outfile:
-        json.dump(result_dict, outfile)
 
     query = ",".join(queries_id)
     query=query.replace(" ","SPACE")
     query_dict = {"QUERY_ID":query}
-    with open("query_dict.json", "w") as outfile:
-        json.dump(query_dict, outfile)
+    return query_dict, result_dict
 

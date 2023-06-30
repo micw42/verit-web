@@ -13,6 +13,7 @@ from werkzeug.utils import secure_filename
 from os.path import expanduser
 import random
 from memory_profiler import profile
+from flask_caching import Cache
 
 
 with open("./settings.txt") as file:
@@ -28,6 +29,8 @@ bucket = settings[2]
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config["CACHE_TYPE"] = "SimpleCache" # better not use this type w. gunicorn
+cache = Cache(app)
 
 with open(f"{aws_path}aws.txt", "r") as f:
     creds = f.read().split(",")
@@ -112,25 +115,24 @@ def validate(query_type):
                 query = [x.strip() for x in query]
 
             if string_type == "id":
-                DictChecker.check(edges_df, query, query_type=query_type)
+                query_dict, result_dict = DictChecker.check(edges_df, query, query_type=query_type)
+                cache.set("query_dict", query_dict)
+                cache.set("result_dict", result_dict)
                 return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
             #If the query is a text box format with name contains/begins/ends
             else:
-                MultiSearcher.query(query, nodes_df, full_df, uniprot_df, bg_nodes, string_type)
-                result_dict=ConvertSearch.multi_convert()
+                results = MultiSearcher.query(query, nodes_df, full_df, uniprot_df, bg_nodes, string_type)
+                result_dict=ConvertSearch.multi_convert(results)
                 if string_type == "gene" or default_PR:
                     query_dict = {}
                     for query_key in result_dict:
                         query_dict[query_key] = [result_dict[query_key]["max_PR"]]
-                    with open("query_dict.json", "w") as outfile:
-                        json.dump(query_dict, outfile)
-                    ConvertSearch.get_missing(query, query_dict, string_type)
-                    print("Redirecting")
+                    result_dict = ConvertSearch.get_missing(query, query_dict, string_type)
+                    cache.set("query_dict", query_dict)
+                    cache.set("result_dict", result_dict)
                     return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
-
                 else:
-                    with open("query_dict.json", "w") as outfile:
-                        json.dump(result_dict, outfile)
+                    cache.set("result_dict", result_dict)
                     query = ",".join(query)
                     query=query.replace(" ","SPACE")
                     return redirect(url_for("pick_query", query=query, query_type = "name"))
@@ -138,12 +140,13 @@ def validate(query_type):
         else:
             query=request.form["query"].strip()
             if string_type=="id":
-                DictChecker.check(edges_df, query, query_type=query_type)
+                query_dict, result_dict = DictChecker.check(edges_df, query, query_type=query_type)
+                cache.set("query_dict", query_dict)
+                cache.set("result_dict", result_dict)
                 return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
             else:
-                SingleSearcher.query(query, nodes_df, full_df, uniprot_df, string_type)
-                result_dict=ConvertSearch.single_convert()
-                print("Result_dict_1:", result_dict)
+                results = SingleSearcher.query(query, nodes_df, full_df, uniprot_df, string_type)
+                result_dict=ConvertSearch.single_convert(results)
                 if default_PR or string_type=="gene":
                     if result_dict:
                         query_dict = {"QUERY_ID":result_dict["max_PR"]}
@@ -151,14 +154,11 @@ def validate(query_type):
                     else:
                         query_dict = {"QUERY_ID":[]}
                         result_dict = {"not_in":[query], "present":[]}
-                    with open("query_dict.json", "w") as outfile:
-                            json.dump(query_dict, outfile)
-                    with open("result_dict.json", "w") as outfile:
-                            json.dump(result_dict, outfile)
+                    cache.set("query_dict", query_dict)
+                    cache.set("result_dict", result_dict)
                     return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
                 else:
-                    with open("query_dict.json", "w") as outfile:
-                            json.dump(result_dict, outfile)
+                    cache.set("result_dict", result_dict)
                     query=query.replace(" ","SPACE")
                     return redirect(url_for("pick_query", query=query, query_type=query_type))
 
@@ -176,8 +176,8 @@ def pick_query(query, query_type):
 
     user_query=query.replace("SPACE"," ")
     user_query = user_query.split(",")
-    with open('query_dict.json') as json_file:
-        result_dict = json.load(json_file)
+
+    result_dict = cache.get("result_dict")
 
     if request.method=="POST":
         if query_type=="single":
@@ -190,16 +190,13 @@ def pick_query(query, query_type):
         if query_type=="single":
             query=request.form.getlist("query")
             query_dict = {user_query[0]:query}   #Query[0] since there's only 1 query, and no commas
-            with open('query_dict.json', 'w') as json_file:
-                json.dump(query_dict, json_file)
+            cache.set("query_dict", query_dict)
             return redirect(url_for("make_single_query", query_type="name"))
-
         else:
             query_dict={}
             for query in result_dict:
                 query_dict[query] = request.form.getlist(query)
-            with open('query_dict.json', 'w') as json_file:
-                json.dump(query_dict, json_file)
+            cache.set("query_dict", query_dict)
             return redirect(url_for("make_bfs_query", string_type="name", query_type="name"))
 
     else:
@@ -212,16 +209,10 @@ def pick_query(query, query_type):
 
 @app.route('/options/<query_type>/<string_type>', methods=["POST","GET"])
 def display_options(query_type, string_type):
-    print("At display options")
-    with open('query_dict.json') as json_file:
-        query = json.load(json_file)
-    with open('result_dict.json') as json_file:
-        result_dict = json.load(json_file)
+    query = cache.get("query_dict")
+    result_dict = cache.get("result_dict")
     not_in = result_dict["not_in"]
-    print("Not in: ")
-    print(not_in)
     present = result_dict["present"]
-
     if request.method=="POST" or len(not_in)==0:
         if query_type=="dijkstra":
             if string_type == "id":
@@ -236,8 +227,7 @@ def display_options(query_type, string_type):
 
 @app.route('/bfs/<string_type>/<query_type>', methods=["POST","GET"])
 def make_bfs_query(string_type, query_type):
-    with open('query_dict.json') as json_file:
-        query = json.load(json_file)
+    query = cache.get("query_dict")
     q_len = len(query)
     if q_len > 100:
         return redirect(url_for("bfs_query_result",
@@ -283,9 +273,7 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
     global access_key
     global secret_key
 
-    print("At bfs_query_result")
-    with open('query_dict.json') as json_file:
-        query = json.load(json_file)
+    query = cache.get("query_dict")
     print(query)
         
     print(len(query))
@@ -300,7 +288,7 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
     if string_type == "gene":
         # Run biogrid query
         queries_id = pd.read_pickle("bg_multiSearchOut.pkl")
-        MultiQuery.BIOGRID_query(
+        query_bg_nodes, query_bg_edges = MultiQuery.BIOGRID_query(
             bg_G,
             bg_edges,
             bg_nodes,
@@ -311,10 +299,9 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
             get_direct_linkers=get_direct_linkers,
             db_df=full_df
         )
-        #Get edges found in biogrid
-        query_bg_edges = pd.read_csv("query_edges_BIOGRID.csv")
+
         #Run REACH query
-        MultiQuery.query(
+        query_nodes, query_edges, nodes_cleaned, edges_cleaned = MultiQuery.query(
             G,
             edges_df,
             nodes_df,
@@ -330,16 +317,14 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
             bg_edges=query_bg_edges
         )
         
-        #Change IDs back to uniprot for compatibility with biogrid
-        query_edges = pd.read_csv("query_edges.csv",header = 0)
-        query_nodes = pd.read_csv("query_nodes.csv",header=0)        
+        #Change IDs back to uniprot for compatibility with biogrid       
         query_nodes["Id"] = query_nodes["display_id"]
         query_edges["source"] = query_edges["source_id"]
         query_edges["target"] = query_edges["target_id"]
-        query_nodes.to_csv("query_nodes.csv", index=False)
-        query_edges.to_csv("query_edges.csv", index=False)
     else:
-        MultiQuery.query(
+        query_bg_nodes = None
+        query_bg_edges = None
+        query_nodes, query_edges, nodes_cleaned, edges_cleaned = MultiQuery.query(
             G,
             edges_df,
             nodes_df,
@@ -353,15 +338,16 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
             secret_key=secret_key,
             bucket=bucket
         )
-    query_edges = pd.read_csv("query_edges.csv",header = 0)
     n_edges = len(query_edges.index)
     filtered = False
     if n_edges > 5000:
         to_json_netx.filter_graph()
         filtered = True
     
-    elements = to_json_netx.clean(biogrid=string_type=="gene")        
-
+    elements = to_json_netx.clean(query_nodes, query_edges, query_bg_nodes, query_bg_edges, biogrid=string_type=="gene")        
+    
+    cache.set("nodes_cleaned", nodes_cleaned)
+    cache.set("edges_cleaned", edges_cleaned)
     return render_template(
         "bfs_result.html",
         elements = elements,
@@ -376,12 +362,11 @@ def single_query_result(depth, query_type, methods=["GET"]):
     global nodes_df
     global G
 
-    with open('query_dict.json') as json_file:
-        query = json.load(json_file)
+    query = cache.get("query_dict")
     depth=int(depth)
 
-    SingleQuery.query(G, edges_df, nodes_df, full_df, query, depth)
-    elements=to_json.clean(sq=True)
+    query_nodes, query_edges = SingleQuery.query(G, edges_df, nodes_df, full_df, query, depth)
+    elements=to_json.clean(query_nodes, query_edges, sq=True)
     return render_template("single_query_result.html", elements=elements)
 
 
@@ -389,7 +374,7 @@ def single_query_result(depth, query_type, methods=["GET"]):
 def process_data():
     query=request.form["next_query"]
     query_dict = {"QUERY_ID":query}
-    query_dict = json.dumps(query_dict)
+    cache.set("query_dict", query_dict)
     return redirect(url_for("make_single_query", query=query_dict, query_type = "id"))
 
 
@@ -402,7 +387,7 @@ def go_home():
 def getNodes():
     # with open("outputs/Adjacency.csv") as fp:
     #     csv = fp.read()
-    df = pd.read_csv("query_nodes_cleaned.csv")
+    df = cache.get("nodes_cleaned")
     resp = make_response(df.to_csv())
     resp.headers["Content-Disposition"] = "attachment; filename=query_nodes.csv"
     resp.headers["Content-Type"] = "text/csv"
@@ -413,7 +398,7 @@ def getNodes():
 def getEdges():
     # with open("outputs/Adjacency.csv") as fp:
     #     csv = fp.read()
-    df = pd.read_csv("query_edges_cleaned.csv")
+    df = cache.get("edges_cleaned")
     resp = make_response(df.to_csv())
     resp.headers["Content-Disposition"] = "attachment; filename=query_edges.csv"
     resp.headers["Content-Type"] = "text/csv"

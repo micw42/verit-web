@@ -7,8 +7,7 @@ import pickle
 from .layeredConcentric import get_xy
 
 
-def clean_nodes():
-    nodes_df = pd.read_csv("query_nodes.csv", header=0)
+def clean_nodes(nodes_df):
 
     # Duplicate the depth column in nodes table
     nodes_df["rank"] = nodes_df["depth"]
@@ -46,9 +45,7 @@ def clean_nodes():
     return nodes_df
 
 
-def clean_edges():
-    edges_df = pd.read_csv("query_edges.csv", header=0)
-
+def clean_edges(edges_df):
     def get_width(x):
         if x < 50:
             return x+10
@@ -136,12 +133,12 @@ def convert(nodes_df, edges_df, sq=False):
     return elements
 
 
-def clean(sq=False):
+def clean(nodes_df, edges_df, sq=False):
     '''
     sq: ad hoc change for singlequery to manually add x and y values
     '''
-    nodes_df = clean_nodes()
-    edges_df = clean_edges()
+    nodes_df = clean_nodes(nodes_df)
+    edges_df = clean_edges(edges_df)
     elements = convert(nodes_df, edges_df, sq=sq)
     
     return elements

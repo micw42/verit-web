@@ -246,21 +246,20 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     nodes["Label"] = nodes["Label"].str.replace("SPACE", " ")
     nodes = nodes[["Id", "Label", "KB", "name", "Type", "display_id"]]
 
-    # Write edges and nodes
-    nodes.to_csv("query_nodes.csv", index=False)
-    rel_df.to_csv("query_edges.csv", index=False)
+    nodes_cleaned = nodes.copy()
+    edges_cleaned = rel_df.copy()
+    nodes_cleaned['name'] = nodes_cleaned['name'].str.replace('%%',', ')
+    nodes_cleaned = nodes_cleaned.rename(columns={"name": "Synonyms"})
+    edges_cleaned = edges_cleaned.merge(nodes_cleaned, left_on="source", right_on="Id").drop(labels="Id", axis=1).rename(columns={"Label":"source_name"})
+    edges_cleaned = edges_cleaned.merge(nodes_cleaned, left_on="target", right_on="Id").drop(labels="Id", axis=1).rename(columns={"Label":"target_name"})
+    edges_cleaned = edges_cleaned.rename(columns={"color":"score", "thickness":"evidence_count"})
+    edges_cleaned = edges_cleaned[["source_id", "source_name", "target_id", "target_name", "evidence_count", "score"]]
+    nodes_cleaned = nodes_cleaned.drop(labels="Id", axis=1).rename(columns={"display_id":"Id"})
+    nodes_cleaned = nodes_cleaned[["Id", "Label", "KB", "Synonyms", "Type"]]
     
-    nodes['name'] = nodes['name'].str.replace('%%',', ')
-    nodes = nodes.rename(columns={"name": "Synonyms"})
-    rel_df = rel_df.merge(nodes, left_on="source", right_on="Id").drop(labels="Id", axis=1).rename(columns={"Label":"source_name"})
-    rel_df = rel_df.merge(nodes, left_on="target", right_on="Id").drop(labels="Id", axis=1).rename(columns={"Label":"target_name"})
-    rel_df = rel_df.rename(columns={"color":"score", "thickness":"evidence_count"})
-    rel_df = rel_df[["source_id", "source_name", "target_id", "target_name", "evidence_count", "score"]]
-    nodes = nodes.drop(labels="Id", axis=1).rename(columns={"display_id":"Id"})
-    nodes = nodes[["Id", "Label", "KB", "Synonyms", "Type"]]
+    return nodes, rel_df, nodes_cleaned, edges_cleaned
     
-    nodes.to_csv("query_nodes_cleaned.csv", index=False)
-    rel_df.to_csv("query_edges_cleaned.csv", index=False)
+    
 
 
 def BIOGRID_query(G, edges_df, nodes_df, queries_id,
@@ -369,4 +368,6 @@ def BIOGRID_query(G, edges_df, nodes_df, queries_id,
     qedges_df = qedges_df.drop_duplicates()
 
     qedges_df.to_csv("./query_edges_BIOGRID.csv", index=False)
+    
+    return qnodes_df, qedges_df
     
