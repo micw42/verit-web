@@ -78,6 +78,10 @@
         max-height: calc(100vh - 210px);
         overflow-y: auto;
         }
+        .hiddenHeader {
+            visibility: hidden;
+            max-height: 0;
+        }
         .circle {
         width: 300px;
         height: 200px;
@@ -535,15 +539,14 @@
         <div id="newModal" class="modal">
             <div class="modal-content" style="height:85%;">
                 <span class="close">&times;</span>
-                 <div class="modal-header text-center" style="background-color:#a6a6a6;height:120px">
+                 <div id="reachHeader" class="modal-header text-center" style="background-color:#a6a6a6;height:120px">
                  <svg  xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
                         <g>
                             <circle id="source" cx="230" cy="75" r="30" />
                             <text id="source_lab" x="230" y="70" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
                             <text id="source_id" x="230" y="85" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
                         </g>
-                    </svg>
-                                        
+                    </svg>                                      
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 100">
                         <defs>
                             <marker id="arrowhead" markerWidth="10" markerHeight="7" 
@@ -556,14 +559,35 @@
                         
                         <line id="line" x1="10" y1="50" x2="270" y2="50" stroke="#000" 
                             stroke-width="8" marker-end="url(#arrowhead)" />
-                    </svg>
-                    
-                    
+                    </svg>                  
                     <svg  xmlns="http://www.w3.org/2000/svg" style="overflow: visible">
                         <g>
                             <circle id="target" cx="70" cy="75" r="30" />
                             <text id="target_lab" x="70" y="70" dominant-baseline="central" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
                             <text id="target_id" x="70" y="85" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                        </g>
+                    </svg>
+            </div>
+                 <div id="BGHeader" class="modal-header text-center" style="background-color:#a6a6a6;height:120px">
+                 <svg  xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+                        <g>
+                            <circle id="sourceBG" cx="230" cy="75" r="30" />
+                            <text id="source_labBG" x="230" y="70" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <text id="source_idBG" x="230" y="85" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                        </g>
+                    </svg>                                      
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 100">
+                        
+                        <text id="line_labBG" dominant-baseline="central" text-anchor="middle" x="138" y="38" font-family="Verdana" font-size="12" fill="black"></text>
+                        
+                        <line id="lineBG" x1="0" y1="50" x2="800" y2="50" stroke="#000" 
+                            stroke-width="8" />
+                    </svg>                  
+                    <svg  xmlns="http://www.w3.org/2000/svg" style="overflow: visible">
+                        <g>
+                            <circle id="targetBG" cx="70" cy="75" r="30" />
+                            <text id="target_labBG" x="70" y="70" dominant-baseline="central" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <text id="target_idBG" x="70" y="85" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
                         </g>
                     </svg>
             </div>
@@ -1026,6 +1050,15 @@
                 var target_id_lab = document.getElementById("target_id")                
                 var line = document.getElementById("line");
                 var line_lab = document.getElementById("line_lab");
+                 
+                var src_nodeBG = document.getElementById("sourceBG");
+                var source_labBG = document.getElementById("source_labBG");
+                var tar_nodeBG = document.getElementById("targetBG");
+                var target_labBG = document.getElementById("target_labBG");
+                var source_id_labBG = document.getElementById("source_idBG")
+                var target_id_labBG = document.getElementById("target_idBG")                
+                var lineBG = document.getElementById("lineBG");
+                var line_labBG = document.getElementById("line_labBG");
                
            
                 var sel_source = sel.source();
@@ -1043,18 +1076,34 @@
                 target_lab.innerHTML = target
                 source_id_lab.innerHTML = src_lab
                 target_id_lab.innerHTML = tar_lab
+                source_labBG.innerHTML = source
+                target_labBG.innerHTML = target
+                source_id_labBG.innerHTML = src_lab
+                target_id_labBG.innerHTML = tar_lab
                        
                 src_node.parentNode.appendChild(source_id_lab);
 
                 <!-- Visualize clicked edge/nodes -->                
                 src_node.style.fill = sel.source().data().color;
-
+                src_nodeBG.style.fill = sel.source().data().color;
                 tar_node.style.fill = sel.target().data().color;
-                
+                tar_nodeBG.style.fill = sel.target().data().color;
+                 
                 triangle.style.fill = sel.data().color;
                 line.style.stroke = sel.data().color;
+                lineBG.style.stroke = sel.data().color;
                  
                 line_lab.innerHTML = "Total mentions: " + sel.data("thickness");
+                line_labBG.innerHTML = "Total mentions: " + sel.data("thickness");
+                 
+                //hide arrowhead if BG
+                 if (document.getElementById("layer-button").value=="biogrid") {
+                     document.getElementById("reachHeader").classList.add("hiddenHeader");
+                     document.getElementById("BGHeader").classList.remove("hiddenHeader");
+                 } else {
+                     document.getElementById("reachHeader").classList.remove("hiddenHeader");
+                     document.getElementById("BGHeader").classList.add("hiddenHeader");
+                 }
              }
 
              cy.on('click', 'edge', function (evt) {     
@@ -1107,38 +1156,46 @@
                 document.getElementById("incEv").innerHTML = reach_formatted["ul_inc"].innerHTML;
                                
                 var cur_layer = document.getElementById("layer-button").value 
+                var rt = document.getElementById("reach-tab")
+                var bt = document.getElementById("biogrid-tab")
+                var navr = document.getElementById("nav-reach")
+                var navb = document.getElementById("nav-biogrid")
                 if  (cur_layer=="reach") {
-                    document.getElementById("reach-tab").style.visibility = 'hidden'
-                    document.getElementById("biogrid-tab").style.visibility = 'hidden'
-                    document.getElementById("nav-reach").classList.add('active', 'show')
-                    document.getElementById("nav-biogrid").classList.remove('active', 'show')
+                    rt.style.visibility = 'hidden'
+                    bt.style.visibility = 'hidden'
+                    navr.classList.add('active', 'show')
+                    navb.classList.remove('active', 'show')
                 } else if (cur_layer=="biogrid") {
-                    document.getElementById("biogrid-tab").style.visibility = 'hidden'
-                    document.getElementById("reach-tab").style.visibility = 'hidden'
-                    document.getElementById("nav-biogrid").classList.add('active', 'show')
-                    document.getElementById("nav-reach").classList.remove('active', 'show')
+                    rt.style.visibility = 'hidden'
+                    bt.style.visibility = 'hidden'
+                    navr.classList.remove('active', 'show')
+                    navb.classList.add('active', 'show')
                 } else {
-                    document.getElementById("reach-tab").style.visibility = 'visible'
-                    document.getElementById("biogrid-tab").style.visibility = 'visible'
-                    document.getElementById("nav-reach").classList.add('active', 'show')
-                    document.getElementById("reach-tab").innerHTML = "Reach ("+reach_ev_length+")"
-                    document.getElementById("biogrid-tab").innerHTML = "BIOGRID ("+bg_ev_length+")"
+                    rt.style.visibility = 'visible'
+                    bt.style.visibility = 'visible'
+                    rt.classList.add('active')
+                    bt.classList.remove('active')
+                    navr.classList.add('active', 'show')
+                    navb.classList.remove('active', 'show')
+                    rt.innerHTML = "Reach ("+reach_ev_length+")"
+                    bt.innerHTML = "BIOGRID ("+bg_ev_length+")"
                 }
-                 
-                
+                var reache = document.getElementById("reachEv")
+                var bge = document.getElementById("bgEv")
+
                 modal.style.display = "block";
             
                 window.onclick = function (event) {
                     if (event.target == modal) {
-                        var modalBody = document.getElementById("modalBody");
-                        modalBody.scrollTop = 0;
+                        reache.scrollTop = 0;
+                        bge.scrollTop = 0;
                         modal.style.display = "none";
                     }
                 }
             
                 span.onclick = function () {
-                    var modalBody = document.getElementById("modalBody");
-                    modalBody.scrollTop = 0;
+                    reache.scrollTop = 0;
+                    bge.scrollTop = 0;
                     modal.style.display = "none";
                 }
             });
@@ -1980,6 +2037,7 @@
                     }
                     document.getElementById("kb_div").style.display = "none"
                     document.getElementById("legend").style.display = "none"
+                    cy.edges().style('target-arrow-shape', 'none')
                 } else if (cur_layer=="reach") {
                     reach_eles.style("display", "element")
                     union_eles.style("display", "none")
@@ -1990,6 +2048,7 @@
                     }
                     document.getElementById("kb_div").style.display = "block"
                     document.getElementById("legend").style.display = "none"
+                    cy.edges().style('target-arrow-shape', 'triangle')
                 } else {
                     reach_eles.style("display", "none")
                     union_eles.style("display", "element")
@@ -2000,6 +2059,7 @@
                     }
                     document.getElementById("kb_div").style.display = "none"
                     document.getElementById("legend").style.display = "block"
+                    cy.edges().style('target-arrow-shape', 'triangle')
                 }
                 resetSliderMax(show)
                 resetSliderMin(cur_layer)

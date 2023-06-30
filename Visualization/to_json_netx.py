@@ -205,14 +205,14 @@ def clean(biogrid=False):
 
         nodes_df_bg = clean_nodes(nodes_df_bg, layer="biogrid")
         edges_df_bg = clean_edges(nodes_df_bg, edges_df_bg, layer="biogrid")
-
+        edges_df_bg_switched = edges_df_bg.rename(columns={"source":"target", "target":"source", "source_id":"target_id", "target_id":"source_id"})   #Bidirectional BG edges
+        edges_df_bg=pd.concat([edges_df_bg, edges_df_bg_switched]).drop_duplicates()
         nodes_df = pd.concat([nodes_df_reach, nodes_df_bg])
         edges_df = pd.concat([edges_df_reach, edges_df_bg])
         
+        nodes_df, edges_df = clean_union(nodes_df, edges_df)
         nodes_df.to_csv("union_nodes.csv", index=False)
         edges_df.to_csv("union_edges.csv", index=False)
-        
-        nodes_df, edges_df = clean_union(nodes_df, edges_df)
 
 
     else:
