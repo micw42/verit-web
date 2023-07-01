@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request, redirect, jsonify, Response, make_response
+from flask import Flask, render_template, url_for, request, redirect, jsonify, Response, make_response, session
 from Query import DictChecker, SingleQuery, SingleSearcher, MultiSearcher, ConvertSearch, MultiQuery, GeneConvert, GetEv
 from Visualization import to_json, to_json_netx, layeredConcentric
 import pandas as pd
@@ -32,8 +32,8 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config["CACHE_TYPE"] = "SimpleCache" # better not use this type w. gunicorn
 cache = Cache(app)
 
-user_id = str(uuid.uuid4())
-print("Starting new session with user id:", user_id)
+app.secret_key = 'verit_sk'
+
 
 with open(f"{aws_path}aws.txt", "r") as f:
     creds = f.read().split(",")
@@ -77,7 +77,11 @@ def get_evidence():
 
 @app.route('/')
 def home():
-    return render_template("home.html")
+    resp = make_response(render_template('home.html'))
+    user_id = str(uuid.uuid4())
+    resp.set_cookie('user_id', user_id)
+    return resp
+    
 
 
 @app.route('/readme')
@@ -103,6 +107,7 @@ def select_query():
 def validate(query_type):
     global edges_df
     if request.method=="POST":
+        user_id = request.cookies.get('user_id')
         string_type=request.form["queryType"]
         default_PR = request.form.get("default_PR")
         
@@ -212,6 +217,7 @@ def pick_query(query, query_type):
 
 @app.route('/options/<query_type>/<string_type>', methods=["POST","GET"])
 def display_options(query_type, string_type):
+    user_id = request.cookies.get('user_id')
     query = cache.get(f"query_dict_{user_id}")
     result_dict = cache.get(f"result_dict_{user_id}")
     not_in = result_dict["not_in"]
@@ -230,6 +236,7 @@ def display_options(query_type, string_type):
 
 @app.route('/bfs/<string_type>/<query_type>', methods=["POST","GET"])
 def make_bfs_query(string_type, query_type):
+    user_id = request.cookies.get('user_id')
     query = cache.get(f"query_dict_{user_id}")
     q_len = len(query)
     if q_len > 100:
@@ -276,6 +283,7 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
     global access_key
     global secret_key
 
+    user_id = request.cookies.get('user_id')
     query = cache.get(f"query_dict_{user_id}")
     print(query)
         
@@ -390,6 +398,7 @@ def go_home():
 def getNodes():
     # with open("outputs/Adjacency.csv") as fp:
     #     csv = fp.read()
+    user_id = session['user_id']
     df = cache.get(f"nodes_cleaned_{user_id}")
     resp = make_response(df.to_csv())
     resp.headers["Content-Disposition"] = "attachment; filename=query_nodes.csv"
@@ -401,6 +410,7 @@ def getNodes():
 def getEdges():
     # with open("outputs/Adjacency.csv") as fp:
     #     csv = fp.read()
+    user_id = session['user_id']
     df = cache.get(f"edges_cleaned_{user_id}")
     resp = make_response(df.to_csv())
     resp.headers["Content-Disposition"] = "attachment; filename=query_edges.csv"
