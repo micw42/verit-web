@@ -14,7 +14,7 @@ from os.path import expanduser
 import random
 from memory_profiler import profile
 from flask_caching import Cache
-
+import uuid
 
 with open("./settings.txt") as file:
     settings = [x.strip("\n") for x in file.readlines()]
@@ -31,6 +31,9 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config["CACHE_TYPE"] = "SimpleCache" # better not use this type w. gunicorn
 cache = Cache(app)
+
+user_id = str(uuid.uuid4())
+print("Starting new session with user id:", user_id)
 
 with open(f"{aws_path}aws.txt", "r") as f:
     creds = f.read().split(",")
@@ -116,8 +119,8 @@ def validate(query_type):
 
             if string_type == "id":
                 query_dict, result_dict = DictChecker.check(edges_df, query, query_type=query_type)
-                cache.set("query_dict", query_dict)
-                cache.set("result_dict", result_dict)
+                cache.set(f"query_dict_{user_id}", query_dict)
+                cache.set(f"result_dict_{user_id}", result_dict)
                 return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
             #If the query is a text box format with name contains/begins/ends
             else:
@@ -209,8 +212,8 @@ def pick_query(query, query_type):
 
 @app.route('/options/<query_type>/<string_type>', methods=["POST","GET"])
 def display_options(query_type, string_type):
-    query = cache.get("query_dict")
-    result_dict = cache.get("result_dict")
+    query = cache.get(f"query_dict_{user_id}")
+    result_dict = cache.get(f"result_dict_{user_id}")
     not_in = result_dict["not_in"]
     present = result_dict["present"]
     if request.method=="POST" or len(not_in)==0:
@@ -227,7 +230,7 @@ def display_options(query_type, string_type):
 
 @app.route('/bfs/<string_type>/<query_type>', methods=["POST","GET"])
 def make_bfs_query(string_type, query_type):
-    query = cache.get("query_dict")
+    query = cache.get(f"query_dict_{user_id}")
     q_len = len(query)
     if q_len > 100:
         return redirect(url_for("bfs_query_result",
@@ -273,7 +276,7 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
     global access_key
     global secret_key
 
-    query = cache.get("query_dict")
+    query = cache.get(f"query_dict_{user_id}")
     print(query)
         
     print(len(query))
@@ -346,8 +349,8 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
     
     elements = to_json_netx.clean(query_nodes, query_edges, query_bg_nodes, query_bg_edges, biogrid=string_type=="gene")        
     
-    cache.set("nodes_cleaned", nodes_cleaned)
-    cache.set("edges_cleaned", edges_cleaned)
+    cache.set(f"nodes_cleaned_{user_id}", nodes_cleaned)
+    cache.set(f"edges_cleaned_{user_id}", edges_cleaned)
     return render_template(
         "bfs_result.html",
         elements = elements,
@@ -387,7 +390,7 @@ def go_home():
 def getNodes():
     # with open("outputs/Adjacency.csv") as fp:
     #     csv = fp.read()
-    df = cache.get("nodes_cleaned")
+    df = cache.get(f"nodes_cleaned_{user_id}")
     resp = make_response(df.to_csv())
     resp.headers["Content-Disposition"] = "attachment; filename=query_nodes.csv"
     resp.headers["Content-Type"] = "text/csv"
@@ -398,7 +401,7 @@ def getNodes():
 def getEdges():
     # with open("outputs/Adjacency.csv") as fp:
     #     csv = fp.read()
-    df = cache.get("edges_cleaned")
+    df = cache.get(f"edges_cleaned_{user_id}")
     resp = make_response(df.to_csv())
     resp.headers["Content-Disposition"] = "attachment; filename=query_edges.csv"
     resp.headers["Content-Type"] = "text/csv"
