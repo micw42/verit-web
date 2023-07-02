@@ -136,11 +136,11 @@ def validate(query_type):
                     for query_key in result_dict:
                         query_dict[query_key] = [result_dict[query_key]["max_PR"]]
                     result_dict = ConvertSearch.get_missing(query, query_dict, string_type)
-                    cache.set("query_dict", query_dict)
-                    cache.set("result_dict", result_dict)
+                    cache.set(f"query_dict_{user_id}", query_dict)
+                    cache.set(f"result_dict_{user_id}", result_dict)
                     return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
                 else:
-                    cache.set("result_dict", result_dict)
+                    cache.set(f"result_dict_{user_id}", result_dict)
                     query = ",".join(query)
                     query=query.replace(" ","SPACE")
                     return redirect(url_for("pick_query", query=query, query_type = "name"))
@@ -149,8 +149,8 @@ def validate(query_type):
             query=request.form["query"].strip()
             if string_type=="id":
                 query_dict, result_dict = DictChecker.check(edges_df, query, query_type=query_type)
-                cache.set("query_dict", query_dict)
-                cache.set("result_dict", result_dict)
+                cache.set(f"query_dict_{user_id}", query_dict)
+                cache.set(f"result_dict_{user_id}", result_dict)
                 return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
             else:
                 results = SingleSearcher.query(query, nodes_df, full_df, uniprot_df, string_type)
@@ -162,11 +162,11 @@ def validate(query_type):
                     else:
                         query_dict = {"QUERY_ID":[]}
                         result_dict = {"not_in":[query], "present":[]}
-                    cache.set("query_dict", query_dict)
-                    cache.set("result_dict", result_dict)
+                    cache.set(f"query_dict_{user_id}", query_dict)
+                    cache.set(f"result_dict_{user_id}", result_dict)
                     return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
                 else:
-                    cache.set("result_dict", result_dict)
+                    cache.set(f"result_dict_{user_id}", result_dict)
                     query=query.replace(" ","SPACE")
                     return redirect(url_for("pick_query", query=query, query_type=query_type))
 
@@ -181,11 +181,12 @@ def validate(query_type):
 def pick_query(query, query_type):
     global nodes_df
     global full_df
-
+    
+    user_id = request.cookies.get('user_id')
     user_query=query.replace("SPACE"," ")
     user_query = user_query.split(",")
 
-    result_dict = cache.get("result_dict")
+    result_dict = cache.get(f"result_dict_{user_id}")
 
     if request.method=="POST":
         if query_type=="single":
@@ -198,13 +199,13 @@ def pick_query(query, query_type):
         if query_type=="single":
             query=request.form.getlist("query")
             query_dict = {user_query[0]:query}   #Query[0] since there's only 1 query, and no commas
-            cache.set("query_dict", query_dict)
+            cache.set(f"query_dict_{user_id}", query_dict)
             return redirect(url_for("make_single_query", query_type="name"))
         else:
             query_dict={}
             for query in result_dict:
                 query_dict[query] = request.form.getlist(query)
-            cache.set("query_dict", query_dict)
+            cache.set(f"query_dict_{user_id}", query_dict)
             return redirect(url_for("make_bfs_query", string_type="name", query_type="name"))
 
     else:
@@ -285,9 +286,7 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
 
     user_id = request.cookies.get('user_id')
     query = cache.get(f"query_dict_{user_id}")
-    print(query)
-        
-    print(len(query))
+
     max_linkers=int(max_linkers)
     if get_direct_linkers == "True":
         get_direct_linkers = True
@@ -372,8 +371,9 @@ def single_query_result(depth, query_type, methods=["GET"]):
     global edges_df
     global nodes_df
     global G
-
-    query = cache.get("query_dict")
+    
+    user_id = request.cookies.get('user_id')
+    query = cache.get(f"query_dict_{user_id}")
     depth=int(depth)
 
     query_nodes, query_edges = SingleQuery.query(G, edges_df, nodes_df, full_df, query, depth)
@@ -383,9 +383,10 @@ def single_query_result(depth, query_type, methods=["GET"]):
 
 @app.route("/process", methods=["POST"])
 def process_data():
+    user_id = request.cookies.get('user_id')
     query=request.form["next_query"]
     query_dict = {"QUERY_ID":query}
-    cache.set("query_dict", query_dict)
+    cache.set(f"query_dict_{user_id}", query_dict)
     return redirect(url_for("make_single_query", query=query_dict, query_type = "id"))
 
 
@@ -398,7 +399,7 @@ def go_home():
 def getNodes():
     # with open("outputs/Adjacency.csv") as fp:
     #     csv = fp.read()
-    user_id = session['user_id']
+    user_id = request.cookies.get('user_id')
     df = cache.get(f"nodes_cleaned_{user_id}")
     resp = make_response(df.to_csv())
     resp.headers["Content-Disposition"] = "attachment; filename=query_nodes.csv"
@@ -410,7 +411,7 @@ def getNodes():
 def getEdges():
     # with open("outputs/Adjacency.csv") as fp:
     #     csv = fp.read()
-    user_id = session['user_id']
+    user_id = request.cookies.get('user_id')
     df = cache.get(f"edges_cleaned_{user_id}")
     resp = make_response(df.to_csv())
     resp.headers["Content-Disposition"] = "attachment; filename=query_edges.csv"

@@ -25,7 +25,6 @@ def multi_convert(results):
     pr_vals = results["PR"].tolist()
     queries=results["user_query"].tolist()
     query_display=results["user_query"].tolist()  #The name to display, but not use as a key, b/c flask doesn't like spaces in request.form[]
-
     s = time.time()
     print("Starting convert loop 1.")
     result_dict={}
