@@ -200,7 +200,7 @@ def pick_query(query, query_type):
             query=request.form.getlist("query")
             query_dict = {user_query[0]:query}   #Query[0] since there's only 1 query, and no commas
             cache.set(f"query_dict_{user_id}", query_dict)
-            return redirect(url_for("make_single_query", query_type="name"))
+            return redirect(url_for("make_single_query", query_type="name", string_type="name"))
         else:
             query_dict={}
             for query in result_dict:
@@ -230,7 +230,7 @@ def display_options(query_type, string_type):
             else:
                 return redirect(url_for("make_bfs_query", string_type=string_type, query_type="name"))
         elif query_type=="single":
-            return redirect(url_for("make_single_query", query_type = "id"))
+            return redirect(url_for("make_single_query", query_type="id", string_type=string_type))
     else:
         return render_template("validate_result.html", not_in=not_in, query_type=query_type, present=present)
 
@@ -266,11 +266,11 @@ def make_bfs_query(string_type, query_type):
 
 
 @app.route('/single_query', methods=["POST","GET"])
-@app.route('/single_query/<query_type>', methods=["POST","GET"])
-def make_single_query(query_type):
+@app.route('/single_query/<query_type>/<string_type>', methods=["POST","GET"])
+def make_single_query(query_type, string_type):
     if request.method=="POST":
         depth=request.form["depth"]
-        return redirect(url_for("single_query_result", depth=depth, query_type = query_type))
+        return redirect(url_for("single_query_result", depth=depth, query_type=query_type, string_type=string_type))
     else:
         return render_template("single_search.html")
 
@@ -331,6 +331,7 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
         query_nodes["Id"] = query_nodes["display_id"]
         query_edges["source"] = query_edges["source_id"]
         query_edges["target"] = query_edges["target_id"]
+
     else:
         query_bg_nodes = None
         query_bg_edges = None
@@ -348,6 +349,7 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
             secret_key=secret_key,
             bucket=bucket
         )
+
     n_edges = len(query_edges.index)
     filtered = False
     if n_edges > 5000:
@@ -366,18 +368,49 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
     )
 
 
-@app.route('/singleresult/<depth>/<query_type>')
-def single_query_result(depth, query_type, methods=["GET"]):
+@app.route('/singleresult/<depth>/<query_type>/<string_type>')
+def single_query_result(depth, query_type, string_type, methods=["GET"]):
     global edges_df
     global nodes_df
+    global bg_G
+    global bg_edges
+    global bg_nodes
     global G
     
     user_id = request.cookies.get('user_id')
-    query = cache.get(f"query_dict_{user_id}")
+    q = cache.get(f"query_dict_{user_id}")
+    print(f"Query: {q}")
     depth=int(depth)
 
-    query_nodes, query_edges = SingleQuery.query(G, edges_df, nodes_df, full_df, query, depth)
-    elements=to_json.clean(query_nodes, query_edges, sq=True)
+    query_nodes, query_edges = SingleQuery.query(
+        G, 
+        edges_df, 
+        nodes_df,
+        full_df,
+        q,
+        depth
+    )
+    
+    if string_type == "gene":
+        query_bg_nodes, query_bg_edges = SingleQuery.BIOGRID_query(
+            bg_G,
+            bg_edges,
+            bg_nodes,
+            q,
+            depth
+        )
+    else:
+        query_bg_nodes = None
+        query_bg_edges = None
+    
+    elements = to_json.clean(
+        query_nodes,
+        query_edges,
+        query_bg_nodes,
+        query_bg_edges,
+        biogrid=string_type=="gene"
+    )
+    
     return render_template("single_query_result.html", elements=elements)
 
 
@@ -387,7 +420,8 @@ def process_data():
     query=request.form["next_query"]
     query_dict = {"QUERY_ID":query}
     cache.set(f"query_dict_{user_id}", query_dict)
-    return redirect(url_for("make_single_query", query=query_dict, query_type = "id"))
+    string_type = request.form["queryType"]
+    return redirect(url_for("make_single_query", query=query_dict, query_type = "id", string_type=string_type))
 
 
 @app.route("/go_home", methods=["POST"])

@@ -7,7 +7,7 @@ import pickle
 from .layeredConcentric import get_xy
 
 
-def clean_nodes(nodes_df):
+def clean_nodes(nodes_df, layer):
 
     # Duplicate the depth column in nodes table
     nodes_df["rank"] = nodes_df["depth"]
@@ -41,17 +41,19 @@ def clean_nodes(nodes_df):
             return "#f7d4ab"
 
     nodes_df["color"] = nodes_df["depth"].apply(get_node_color)
+    nodes_df["layer"] = layer
 
     return nodes_df
 
 
-def clean_edges(edges_df):
-    def get_width(x):
+def get_width(x):
         if x < 50:
             return x+10
         else:
             return math.log(x, 10)+60
 
+
+def clean_edges(edges_df, layer):
     # So edge thicknesses aren't too big
     edges_df["edge_width"] = edges_df["thickness"].apply(get_width)
 
@@ -63,47 +65,84 @@ def clean_edges(edges_df):
         return palette[c_i]
 
     pal = list(sns.color_palette("coolwarm_r", as_cmap=False, n_colors=25).as_hex())
-    edges_df["color"]=edges_df["color"].apply(convert_col, args=(pal,))
+    edges_df["color"] = edges_df["color"].apply(convert_col, args=(pal,))
+    edges_df["layer"] = layer
 
     return edges_df
 
 
+def clean_union(nodes_df, edges_df):
+    ## Nodes
+    gb_size = nodes_df.groupby("Id").size()
+    union_ids = gb_size[gb_size == 2].index
+
+    union_nodes_df = nodes_df.copy()
+    union_nodes_df = union_nodes_df.drop_duplicates(subset="Id")
+
+    outline_vec = union_nodes_df["layer"].copy().replace({
+        "reach": "#9d49f2",
+        "biogrid": "#77ed40"
+    })
+    outline_vec[union_nodes_df["display_id"].isin(union_ids)] = "#42a7f5"
+
+    union_nodes_df["layer"] = "union"
+
+    union_nodes_df["border_color"] = outline_vec
+    union_nodes_df["border_width"] = 16
+    union_nodes_df["display"] = "none"
+    
+    nodes_df = pd.concat([nodes_df, union_nodes_df])
+    
+    ## Edges
+    union_edges_df = edges_df.copy()
+    # Sum the thicknesses together between reach and BIOGRID
+    union_thickness = union_edges_df.groupby(["source", "target"]).apply(lambda x: x.thickness.sum())
+    union_thickness = union_thickness.reset_index()
+
+    # Format layer, thickness, and edge_width columns appropriately
+    union_edges_df = union_edges_df.drop_duplicates(subset=["source", "target"])
+    union_edges_df = union_edges_df.merge(
+        union_thickness).drop(
+        columns="thickness").rename(
+        columns={0: "thickness"})
+
+    union_edges_df["edge_width"] = union_edges_df["thickness"].apply(get_width)
+    
+    union_edges_df["layer"] = "union"
+
+    edges_df = pd.concat([edges_df, union_edges_df])
+
+    return nodes_df, edges_df
+
+
 # Convert nodes and edges tables into one json-style list
-def convert(nodes_df, edges_df, sq=False):
+def convert(nodes_df, edges_df):
     elements = []
+    layers = list(nodes_df.layer.unique())
 
-    # Construct nodes datatable
-    if not sq:
-        for i in range(len(nodes_df)):
-            ndrow = nodes_df.iloc[i]
-            node_dict = {"data": {"id": ndrow["Id"],
-                                  "label": ndrow.Label,
-                                  "color": ndrow.color,
-                                  "KB": ndrow.KB,
-                                  "display_id": ndrow.display_id,
-                                  "rank": int(ndrow["rank"])
-                                  }}
-
-    if sq:
-        # Sort the nodes by thickness to be arranged polarly
-        query_id = nodes_df[nodes_df["depth"] == 0].iloc[0]["Id"]
-
-        nq1 = edges_df[edges_df.source == query_id][["target", "thickness"]].rename(columns={"target": "Id"})
-        nq2 = edges_df[edges_df.target == query_id][["source", "thickness"]].rename(columns={"source": "Id"})
+    for layer in layers:
+        nodes_layer = nodes_df[nodes_df.layer == layer].copy()
+        edges_layer = edges_df[edges_df.layer == layer].copy()
         
+        # Sort the nodes by thickness to be arranged polarly
+        query_id = nodes_layer[nodes_layer["depth"] == 0].iloc[0]["Id"]
+
+        nq1 = edges_layer[edges_layer.source == query_id][["target", "thickness"]].rename(columns={"target": "Id"})
+        nq2 = edges_layer[edges_layer.target == query_id][["source", "thickness"]].rename(columns={"source": "Id"})
+
         nq_df = pd.concat([nq1, nq2])
         nq_df = nq_df.groupby("Id").max().reset_index()
-        nodes_df = nodes_df.merge(nq_df, on="Id", how="left")
-        nodes_df = nodes_df.sort_values(["depth", "thickness"], ascending=[True, False])
+        nodes_layer = nodes_layer.merge(nq_df, on="Id", how="left")
+        nodes_layer = nodes_layer.sort_values(["depth", "thickness"], ascending=[True, False])
 
 
         # Calculate x, y coordinates for each node
-        Xs, Ys, _, __ = get_xy(len(nodes_df)-1, n_fl_co=20, r=1050)
+        Xs, Ys, _, __ = get_xy(len(nodes_layer)-1, n_fl_co=20, r=1050)
         Xs = [0] + list(Xs)    # First index is 0 because it's the query node
         Ys = [0] + list(Ys)
 
-        for i in range(len(nodes_df)):
-            ndrow = nodes_df.iloc[i]
+        for i in range(len(nodes_layer)):
+            ndrow = nodes_layer.iloc[i]
 
             node_dict = {"data": {"id": ndrow["Id"],
                                   "label": ndrow.Label,
@@ -117,28 +156,43 @@ def convert(nodes_df, edges_df, sq=False):
 
             elements.append(node_dict)
 
-    # Construct edges datatable
-    # Does the order of edges and nodes have to be the same?
-    edges_df["edge_id"] = edges_df.source.str.cat(edges_df.target)
-    for i in range(len(edges_df)):
-        erow = edges_df.iloc[i]
-        edge_dict = {"data": {"id": erow.edge_id,
-                              "source": erow.source, "target": erow.target,
-                              "weight": float(erow.edge_width),
-                              "color": erow.color,
-                              "files": erow.files,
-                              "thickness": int(erow.thickness)}}
-        elements.append(edge_dict)
+        # Construct edges datatable
+        # Does the order of edges and nodes have to be the same?
+        edges_layer["edge_id"] = edges_layer.source.str.cat(edges_layer.target)
+        for i in range(len(edges_layer)):
+            erow = edges_layer.iloc[i]
+            edge_dict = {"data": {"id": erow.edge_id,
+                                  "source": erow.source, "target": erow.target,
+                                  "weight": float(erow.edge_width),
+                                  "color": erow.color,
+                                  "files": erow.files,
+                                  "thickness": int(erow.thickness)}}
+            elements.append(edge_dict)
 
     return elements
 
 
-def clean(nodes_df, edges_df, sq=False):
-    '''
-    sq: ad hoc change for singlequery to manually add x and y values
-    '''
-    nodes_df = clean_nodes(nodes_df)
-    edges_df = clean_edges(edges_df)
-    elements = convert(nodes_df, edges_df, sq=sq)
+def clean(nodes_df_reach, edges_df_reach, nodes_df_bg=None, edges_df_bg=None, biogrid=False):
+    if biogrid:
+        nodes_df_reach = clean_nodes(nodes_df_reach, layer="reach")
+        edges_df_reach = clean_edges(edges_df_reach, layer="reach")
+
+        nodes_df_bg = clean_nodes(nodes_df_bg, layer="biogrid")
+        edges_df_bg = clean_edges(edges_df_bg, layer="biogrid")
+        edges_df_bg_switched = edges_df_bg.rename(columns={"source":"target", "target":"source", "source_id":"target_id", "target_id":"source_id"})   #Bidirectional BG edges
+        edges_df_bg = pd.concat([edges_df_bg, edges_df_bg_switched]).drop_duplicates()
+
+        nodes_df = pd.concat([nodes_df_reach, nodes_df_bg])
+        edges_df = pd.concat([edges_df_reach, edges_df_bg])
+        
+        nodes_df, edges_df = clean_union(nodes_df, edges_df)
+    else:
+        nodes_df = clean_nodes(nodes_df_reach, layer="reach")
+        edges_df = clean_edges(edges_df_reach, layer="reach")
+    
+    elements = convert(nodes_df, edges_df)
+    
+    with open("elements.pkl", "wb") as p:
+        pickle.dump(elements, p)
     
     return elements

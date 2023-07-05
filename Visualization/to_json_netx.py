@@ -138,7 +138,6 @@ def clean_union(nodes_df, edges_df):
 #Convert nodes and edges tables into one json-style list
 def convert(nodes_df, edges_df):
     elements=[]
-    coord_dict = dict()
     layers = list(nodes_df.layer.unique())
 
     for layer in layers:

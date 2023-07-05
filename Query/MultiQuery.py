@@ -257,9 +257,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     nodes_cleaned = nodes_cleaned.drop(labels="Id", axis=1).rename(columns={"display_id":"Id"})
     nodes_cleaned = nodes_cleaned[["Id", "Label", "KB", "Synonyms", "Type"]]
     
-    return nodes, rel_df, nodes_cleaned, edges_cleaned
-    
-    
+    return nodes, rel_df, nodes_cleaned, edges_cleaned    
 
 
 def BIOGRID_query(G, edges_df, nodes_df, queries_id,
