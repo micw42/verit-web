@@ -313,6 +313,7 @@ def BIOGRID_query(G, edges_df, nodes_df, queries_id,
                       ~(edges_df["target"].isin(set(qnode_ids) - set(query_list)))) |
                      ((edges_df["target"].isin(query_list)) &
                       ~(edges_df["source"].isin(set(qnode_ids) - set(query_list))))]
+    print("links columns:", links.columns)
     links.columns = ["source_id", "target_id", "thickness"]
 
     # Keep direct-linkers to keep track

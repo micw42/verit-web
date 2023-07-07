@@ -39,10 +39,16 @@ def clean_nodes(nodes_df, layer):
             return "#d7f2c9"
         else:
             return "#f7d4ab"
+        
 
     nodes_df["color"] = nodes_df["depth"].apply(get_node_color)
     nodes_df["layer"] = layer
-
+    if layer=="reach":
+        nodes_df["display"] = "element"
+    else:
+        nodes_df["display"] = "none"
+    nodes_df["border_width"] = 2
+    nodes_df["border_color"] = "#0000FFFF"
     return nodes_df
 
 
@@ -67,7 +73,10 @@ def clean_edges(edges_df, layer):
     pal = list(sns.color_palette("coolwarm_r", as_cmap=False, n_colors=25).as_hex())
     edges_df["color"] = edges_df["color"].apply(convert_col, args=(pal,))
     edges_df["layer"] = layer
-
+    if layer=="reach":
+        edges_df["display"] = "element"
+    else:
+        edges_df["display"] = "none"    
     return edges_df
 
 
@@ -88,7 +97,7 @@ def clean_union(nodes_df, edges_df):
     union_nodes_df["layer"] = "union"
 
     union_nodes_df["border_color"] = outline_vec
-    union_nodes_df["border_width"] = 16
+    union_nodes_df["border_width"] = 50
     union_nodes_df["display"] = "none"
     
     nodes_df = pd.concat([nodes_df, union_nodes_df])
@@ -109,7 +118,7 @@ def clean_union(nodes_df, edges_df):
     union_edges_df["edge_width"] = union_edges_df["thickness"].apply(get_width)
     
     union_edges_df["layer"] = "union"
-
+    union_edges_df["display"] = "none"
     edges_df = pd.concat([edges_df, union_edges_df])
 
     return nodes_df, edges_df
@@ -144,13 +153,16 @@ def convert(nodes_df, edges_df):
         for i in range(len(nodes_layer)):
             ndrow = nodes_layer.iloc[i]
 
-            node_dict = {"data": {"id": ndrow["Id"],
+            node_dict = {"data": {"id": ndrow["Id"]+ndrow["layer"],
                                   "label": ndrow.Label,
                                   "color": ndrow.color,
                                   "KB": ndrow.KB,
                                   "display_id": ndrow.display_id,
                                   "syn": ndrow["name"],
-                                  "rank": int(ndrow["rank"])
+                                  "rank": int(ndrow["rank"]),
+                                  "layer": layer,
+                                  "display":ndrow.display,
+                                  "border_color":ndrow["border_color"], "border_width":int(ndrow["border_width"])
                                   }}
             node_dict["position"] = {"x": Xs[i], "y": Ys[i]}
 
@@ -161,12 +173,14 @@ def convert(nodes_df, edges_df):
         edges_layer["edge_id"] = edges_layer.source.str.cat(edges_layer.target)
         for i in range(len(edges_layer)):
             erow = edges_layer.iloc[i]
-            edge_dict = {"data": {"id": erow.edge_id,
-                                  "source": erow.source, "target": erow.target,
+            edge_dict = {"data": {"id": erow.edge_id+erow.layer,
+                                  "source": erow.source+erow.layer, "target": erow.target+erow.layer,
                                   "weight": float(erow.edge_width),
                                   "color": erow.color,
                                   "files": erow.files,
-                                  "thickness": int(erow.thickness)}}
+                                  "thickness": int(erow.thickness),
+                                 "layer": layer,
+                                 "display":erow.display}}
             elements.append(edge_dict)
 
     return elements
@@ -179,6 +193,7 @@ def clean(nodes_df_reach, edges_df_reach, nodes_df_bg=None, edges_df_bg=None, bi
 
         nodes_df_bg = clean_nodes(nodes_df_bg, layer="biogrid")
         edges_df_bg = clean_edges(edges_df_bg, layer="biogrid")
+        edges_df_bg.to_csv("edges_df_bg.csv", index=False)
         edges_df_bg_switched = edges_df_bg.rename(columns={"source":"target", "target":"source", "source_id":"target_id", "target_id":"source_id"})   #Bidirectional BG edges
         edges_df_bg = pd.concat([edges_df_bg, edges_df_bg_switched]).drop_duplicates()
 
@@ -186,6 +201,9 @@ def clean(nodes_df_reach, edges_df_reach, nodes_df_bg=None, edges_df_bg=None, bi
         edges_df = pd.concat([edges_df_reach, edges_df_bg])
         
         nodes_df, edges_df = clean_union(nodes_df, edges_df)
+        
+        nodes_df.to_csv("qnodes_union.csv", index=False)
+        edges_df.to_csv("qedges_union.csv", index=False)
     else:
         nodes_df = clean_nodes(nodes_df_reach, layer="reach")
         edges_df = clean_edges(edges_df_reach, layer="reach")

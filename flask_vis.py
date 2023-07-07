@@ -372,10 +372,8 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
 def single_query_result(depth, query_type, string_type, methods=["GET"]):
     global edges_df
     global nodes_df
-    global bg_G
-    global bg_edges
-    global bg_nodes
     global G
+    
     
     user_id = request.cookies.get('user_id')
     q = cache.get(f"query_dict_{user_id}")
@@ -411,7 +409,7 @@ def single_query_result(depth, query_type, string_type, methods=["GET"]):
         biogrid=string_type=="gene"
     )
     
-    return render_template("single_query_result.html", elements=elements)
+    return render_template("single_query_result.html", elements=elements, string_type=string_type)
 
 
 @app.route("/process", methods=["POST"])

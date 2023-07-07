@@ -10,14 +10,22 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.3.2/cytoscape-dagre.min.js"></script>
       <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+       <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+            integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <!-- CSS only -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+        <!-- JavaScript Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
       <title>Result</title>
    </head>
    <style>
       .reload {
       font-family: Lucida Sans Unicode
       }
+    .hiddenHeader {
+    visibility: hidden;
+    max-height: 0;
+    }
       #cy {
       width: 100%;
       height: 100%;
@@ -93,15 +101,15 @@
       width: 33%;
       font-size: large;
       }
-      #posThicknessVal {
+      #posThickness {
       float: left;
       width: 33%;
       }
-      #negThicknessVal {
+      #negThickness {
       float: left;
       width: 33%;
       }
-      #incThicknessVal {
+      #incThickness {
       float: right;
       width: 33%;
       }
@@ -135,7 +143,14 @@
           font-size: 15px;
           word-break: break-all;
         }
+            .evDiv
+        {
+            height:500px;
+            /* background-color:#CCC; */	
+            overflow:hidden;
+            overflow-y:scroll;
 
+        }
         .collapsible:hover {
           background-color: #f1f1f1;
         }
@@ -157,6 +172,25 @@
 
         li{
             word-break: break-all;
+        }
+       .loader {
+        border: 5px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 5px solid #4CAF50;
+        width: 25px;
+        height: 25px;
+        animation: spin 2s linear infinite;
+        opacity: 0;
+        }
+        .loading {
+        color:#4CAF50
+        }
+        .loader.show {
+        opacity: 1;
+        }
+        @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
         }
    </style>
    <body>
@@ -204,7 +238,7 @@
          </div>
           
 
-          <div style="padding-left:20px;" class="slidecontainer">
+          <div id="kb_div" style="padding-left:20px;" class="slidecontainer">
               <h6>Filter by knowledge base:</h6>
               
                 <form id="kb_form" action="#" style="width:82%;">
@@ -285,6 +319,29 @@
             </form>
           <br><br>
           </div>
+           <div id="layer-div" style="padding-left:20px;">
+                    <h6>Network Layer:</h6>
+                    <select id="layer-button" onchange="run_switch_layer()" class="form-select"
+                        style="margin-left:20px;width:50%;" value="reach">
+                        <option value="reach">Reach</option>
+                        <option value="biogrid">BIOGRID</option>
+                        <option value="union">Reach + BIOGRID</option>
+                    </select>
+                <p id="legend" style="color:gray;margin-left:20px;margin-top:10px;display:none">
+                    Outline color legend: <br>
+                    Blue - Reach + BIOGRID <br>
+                    Purple - Reach <br>
+                    Green - BIOGRID <br>
+                </p>
+                 <ul class="nav">
+                    <li style="display:inline">
+                        <div class="loading" id="layer_loading"></div>
+                    </li>
+                    <li style="display:inline">
+                        <div id="layer_loader" class="loader"></div>
+                    </li>
+                </ul>
+            </div>
 
          <hr>
                     
@@ -344,19 +401,17 @@
          }
          }); 
       </script>
-      <div id="myModal" class="modal">
-         <div class="modal-content" style="height:90%;">
-            <span class="close" id="closeEv">&times;</span>
-            
-            <div class="modal-header text-center" style="background-color:#a6a6a6;height:120px">
+            <div id="newModal" class="modal">
+            <div class="modal-content" style="height:85%;">
+                <span class="close">&times;</span>
+                 <div id="reachHeader" class="modal-header text-center" style="background-color:#a6a6a6;height:120px">
                  <svg  xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
                         <g>
-                            <circle id="source" cx="230" cy="45" r="30" />
-                            <text id="source_lab" x="230" y="40" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
-                            <text id="source_id" x="230" y="55" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <circle id="source" cx="230" cy="75" r="30" />
+                            <text id="source_lab" x="230" y="70" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <text id="source_id" x="230" y="85" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
                         </g>
-                    </svg>
-                                        
+                    </svg>                                      
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 100">
                         <defs>
                             <marker id="arrowhead" markerWidth="10" markerHeight="7" 
@@ -365,33 +420,81 @@
                             </marker>
                         </defs>
                         
-                        <text id="line_lab" dominant-baseline="central" text-anchor="middle" x="138" y="25" font-family="Verdana" font-size="12" fill="black"></text>
+                        <text id="line_lab" dominant-baseline="central" text-anchor="middle" x="138" y="38" font-family="Verdana" font-size="12" fill="black"></text>
                         
-                        <line id="line" x1="10" y1="35" x2="270" y2="35" stroke="#000" 
+                        <line id="line" x1="10" y1="50" x2="270" y2="50" stroke="#000" 
                             stroke-width="8" marker-end="url(#arrowhead)" />
-                    </svg>
-                    
-                    
+                    </svg>                  
                     <svg  xmlns="http://www.w3.org/2000/svg" style="overflow: visible">
                         <g>
-                            <circle id="target" cx="70" cy="45" r="30" />
-                            <text id="target_lab" x="70" y="40" dominant-baseline="central" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
-                            <text id="target_id" x="70" y="55" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <circle id="target" cx="70" cy="75" r="30" />
+                            <text id="target_lab" x="70" y="70" dominant-baseline="central" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <text id="target_id" x="70" y="85" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
                         </g>
                     </svg>
             </div>
-             
-            <div id="modalBody" class="modal-body">
-               <h2 id="posThicknessVal"></h2>
-               <h2 id="negThicknessVal"></h2>
-               <h2 id="incThicknessVal"></h2>
-               <div id="posEv"></div>
-               <div id="negEv"></div>
-               <div id="incEv"></div>
+                 <div id="BGHeader" class="modal-header text-center" style="background-color:#a6a6a6;height:120px">
+                 <svg  xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+                        <g>
+                            <circle id="sourceBG" cx="230" cy="75" r="30" />
+                            <text id="source_labBG" x="230" y="70" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <text id="source_idBG" x="230" y="85" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                        </g>
+                    </svg>                                      
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 100">
+                        
+                        <text id="line_labBG" dominant-baseline="central" text-anchor="middle" x="138" y="38" font-family="Verdana" font-size="12" fill="black"></text>
+                        
+                        <line id="lineBG" x1="0" y1="50" x2="800" y2="50" stroke="#000" 
+                            stroke-width="8" />
+                    </svg>                  
+                    <svg  xmlns="http://www.w3.org/2000/svg" style="overflow: visible">
+                        <g>
+                            <circle id="targetBG" cx="70" cy="75" r="30" />
+                            <text id="target_labBG" x="70" y="70" dominant-baseline="central" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                            <text id="target_idBG" x="70" y="85" dominant-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="15" fill="black"></text>
+                        </g>
+                    </svg>
+            </div><nav>
+			<div class="nav nav-tabs mb-3" id="nav-tab" role="tablist">
+				<button class="nav-link active" id="reach-tab" data-bs-toggle="tab" data-bs-target="#nav-reach" type="button" role="tab" aria-controls="nav-reach" aria-selected="true" style="visibility:hidden">NLP</button>
+				<button class="nav-link" id="biogrid-tab" data-bs-toggle="tab" data-bs-target="#nav-biogrid" type="button" role="tab" aria-controls="nav-biogrid" aria-selected="false" style="visibility:hidden">BIOGRID</button>
+			</div>
+		</nav>
+		<div id="tablist" class="tab-content p-3 border bg-light" id="nav-tabContent" style="height:60%;">
+			<div class="tab-pane fade" id="nav-reach" role="tabpanel" aria-labelledby="reach-tab" style="height:100%;">
+				 <div id="reachEv" class="evDiv" style="height:inherit;">
+                    <h1 id="thickness" style="font-family: Arial, Helvetica, sans-serif"></h1>
+                    <h2 id="posThickness"></h2>
+                    <h2 id="negThickness"></h2>
+                    <h2 id="incThickness"></h2>
+                    <div id="posEv"></div>
+                    <div id="negEv"></div>
+                    <div id="incEv"></div>
+                </div>
+			</div>
+			<div class="tab-pane fade" id="nav-biogrid" role="tabpanel" aria-labelledby="nav-biogrid" style="height:100%;">
+				<div id="bgEv" class="evDiv" style="height:inherit;">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">Author (year)</th>
+                          <th scope="col">Experiment type</th>
+                          <th scope="col">Evidence type</th>
+                          <th scope="col">PMC ID</th>
+                        </tr>
+                      </thead>
+                      <tbody id="bgContents">
+                          <div id="bgDiv">
+                          </div>
+                      </tbody>
+                    </table>
+                </div>
+			</div>
+		</div>
             </div>
-             
-         </div>
-      </div>
+        </div>
+       
       <div id="querier" class="modal">
          <div class="modal-content">
             <span class="close" id="closeQuery">&times;</span>
@@ -457,7 +560,10 @@
                  'background-fit': 'contain',
                  'display_id':'data(display_id)',
                  'x': 'data(x)',
-                 'y': 'data(y)'
+                 'y': 'data(y)',
+                   'display':'data(display)',
+                                               "border-width": function (ele) { return ele.data("border_width"); },
+                            "border-color": function (ele) { return ele.data("border_color"); }
                }
              }, {
                selector: 'edge',
@@ -473,7 +579,8 @@
                  'target-arrow-color': '#fcfafa',
                  'arrow-scale': 3,
                   'line-color': "data(color)",
-                 'target-arrow-color': "data(color)"
+                 'target-arrow-color': "data(color)",
+                   'display':'data(display)'
                }
              },
              {
@@ -518,6 +625,16 @@
             name:"preset"
          }
          });
+          
+
+          
+           //Disable switching layers for non-gene queries
+            {% if string_type != "gene" %}
+                document.getElementById("layer-div").style.display = "none"
+                 resetSliderMin("reach")
+            {% else %}
+                document.getElementById("layer-div").style.display = "block"
+            {% endif %}
            
          var currently_querying = false
          
@@ -526,6 +643,7 @@
                  var sel = evt.target;
                  console.log(sel.degree());
                  console.log(sel.data("KB"))
+                 console.log("layer: "+sel.data("layer"))
                  console.log(sel.id())
                  sel.addClass('large');
                  var neighbors = sel.outgoers().union(sel.incomers());
@@ -545,7 +663,10 @@
          });
              
          cy.on('click', 'node', function (evt) {
+             
            var sel = evt.target;
+             console.log("border_col"+sel.data("border_color"))
+             console.log("border_width"+sel.data("border_width"))
              sel.shift({ x: 500, y: 500 });
            if (sel.data().rank != 1000000000) {
              var modal = document.getElementById("querier");
@@ -569,42 +690,128 @@
          
          });
          
-         cy.on('click', 'edge', function (evt) {
-           var sel = evt.target;
-                 console.log(sel.data().files);
-                 
-                 function getEvidence() {
-                     var retval;
-                     $.ajaxSetup({
-                         async: false
-                     });
-                     $(function() {
-                       $.getJSON($SCRIPT_ROOT + '/_get_evidence', {
-                         files:sel.data().files
-                       }, function(data) {
-                           console.log(data.result);
-                           retval = data.result;
-                           return false;
-                       }); 
-                     });
-                     console.log(retval);
-                     return retval;
-                 }
-                 
-                 var ev = getEvidence();
-                 console.log(ev);
-                 
-                var modal = document.getElementById("myModal");
+            //Format REACH evidence modal (pos, neg inc)
+             function formatEvREACH(ev_split) {
+                var ul_pos = document.createElement("ul");
+                var ul_neg = document.createElement("ul");
+                var ul_inc = document.createElement("ul");
+                var negCount = 0;
+                var posCount = 0;
+                var incCount = 0;
+                for (var i = 0; i < ev_split.length; i++) {
+                    // Create the list item:
+                    var item = document.createElement('li');
+                    var cont = document.createElement("div");
+            
+                    var parts = ev_split[i].split("|");
+                    var text = parts[0];
+                    var act = parts[1];
+            
+            
+                    // Set its contents:
+                    item.appendChild(document.createTextNode(text));
+                    cont.appendChild(item)
+                    if (act === "Activation (Negative)") {
+                        cont.style.color = "red";
+                        negCount = negCount += 1;
+                    } else if (act === "Activation (Positive)") {
+                        cont.style.color = "blue";
+                        posCount = posCount += 1;
+                    }
+                    else {
+                        cont.style.color = "black";
+                        incCount = incCount += 1;
+                    }
+            
+                    cont.style.padding = "0px 0px 20px 0px";
+
+                    // Add it to the list:
+                    if (act === "Activation (Positive)") {
+                        ul_pos.appendChild(cont);
+                    } else if (act === "Activation (Negative)") {
+                        ul_neg.appendChild(cont);
+                    } else {
+                        ul_inc.appendChild(cont);
+                    }
+            
+                }
+
+                function createFiller() {
+            
+                    var fillerText = document.createElement("li");
+                    var fillerCont = document.createElement("div");
+            
+                    fillerText.appendChild(document.createTextNode("This is filler text"));
+                    fillerCont.appendChild(fillerText);
+                    fillerCont.style.padding = "0px 20px 0px 0px";
+                    fillerCont.style.color = "white";
+                    return fillerCont;
+                }
+            
+                var fillerPos = createFiller();
+                var fillerNeg = createFiller();
+                var fillerInc = createFiller();
+                ul_pos.appendChild(fillerPos);
+                ul_neg.appendChild(fillerNeg);
+                ul_inc.appendChild(fillerInc);
+                 var out = {
+                  "ul_pos": ul_pos,
+                  "ul_neg": ul_neg,
+                  "ul_inc": ul_inc,
+                  "posCount": posCount,
+                  "negCount": negCount,
+                  "incCount": incCount   
+                } 
+                return(out) 
+             }
+             
+             //Format biogrid ev (table with author, experiment info, etc)
+             function formatEvBG(bg_ev) {
+              // creates a <table> element and a <tbody> element
+              var tbl = document.createElement("div");
+              // creating all cells
+              for (let i = 0; i < bg_ev.length; i++) {
+                // creates a table row
+                const row = document.createElement("tr");
+                var split_ev = bg_ev[i].split("%%%")
+                for (let j = 0; j < split_ev.length; j++) {
+                  // Create a <td> element and a text node, make the text
+                  // node the contents of the <td>, and put the <td> at
+                  // the end of the table row
+                  const cell = document.createElement("td");
+                  const cellText = document.createTextNode(split_ev[j]);
+                  cell.appendChild(cellText);
+                  row.appendChild(cell);
+                }
+
+                // add the row to the end of the table body
+                tbl.appendChild(row); 
+              }
+              return(tbl)
+            }
+             
+             //Create node visualization at top of evidence modal
+             formatHeader = function(sel) {
                 var triangle = document.getElementById("triangle");
-                var line = document.getElementById("line");
                 var src_node = document.getElementById("source");
                 var source_lab = document.getElementById("source_lab");
                 var tar_node = document.getElementById("target");
                 var target_lab = document.getElementById("target_lab");
-                var line_lab = document.getElementById("line_lab");
                 var source_id_lab = document.getElementById("source_id")
-                var target_id_lab = document.getElementById("target_id")
-                
+                var target_id_lab = document.getElementById("target_id")                
+                var line = document.getElementById("line");
+                var line_lab = document.getElementById("line_lab");
+                 
+                var src_nodeBG = document.getElementById("sourceBG");
+                var source_labBG = document.getElementById("source_labBG");
+                var tar_nodeBG = document.getElementById("targetBG");
+                var target_labBG = document.getElementById("target_labBG");
+                var source_id_labBG = document.getElementById("source_idBG")
+                var target_id_labBG = document.getElementById("target_idBG")                
+                var lineBG = document.getElementById("lineBG");
+                var line_labBG = document.getElementById("line_labBG");
+               
+           
                 var sel_source = sel.source();
                 var sel_target = sel.target();
                        
@@ -620,115 +827,129 @@
                 target_lab.innerHTML = target
                 source_id_lab.innerHTML = src_lab
                 target_id_lab.innerHTML = tar_lab
+                source_labBG.innerHTML = source
+                target_labBG.innerHTML = target
+                source_id_labBG.innerHTML = src_lab
+                target_id_labBG.innerHTML = tar_lab
+                       
+                src_node.parentNode.appendChild(source_id_lab);
 
                 <!-- Visualize clicked edge/nodes -->                
-
-
                 src_node.style.fill = sel.source().data().color;
-
+                src_nodeBG.style.fill = sel.source().data().color;
                 tar_node.style.fill = sel.target().data().color;
-                
+                tar_nodeBG.style.fill = sel.target().data().color;
+                 
                 triangle.style.fill = sel.data().color;
                 line.style.stroke = sel.data().color;
-             
-                 var span = document.getElementsByClassName("close")[0];
-                 var ev_split = ev.split("%%");
-                 var ev_length = ev_split.length;
-                 line_lab.innerHTML = "Total mentions: " + ev_length;
-                 var ul_pos = document.createElement("ul");
-                 var ul_neg = document.createElement("ul");
-                 var ul_inc = document.createElement("ul");
-                 var negCount = 0;
-                 var posCount = 0;
-                 var incCount = 0;
-                 for (var i = 0; i < ev_split.length; i++) {
-                     // Create the list item:
-                     var item = document.createElement('li');
-                     var cont = document.createElement("div");
-         
-                     var parts = ev_split[i].split("|");
-                     var text = parts[0];
-                     var act = parts[1];
-         
-         
-                     // Set its contents:
-                     item.appendChild(document.createTextNode(text));
-                     cont.appendChild(item)
-                     if (act === "Activation (Negative)") {
-                         cont.style.color = "red";
-                         negCount = negCount += 1;
-                     } else if (act === "Activation (Positive)") {
-                         cont.style.color = "blue";
-                         posCount = posCount += 1;
-                     }
-                     else {
-                         cont.style.color = "black";
-                         incCount = incCount += 1;
-                     }
-         
-                     cont.style.padding = "0px 0px 20px 0px";
-         
-         
-                     // Add it to the list:
-                     if (act === "Activation (Positive)") {
-                         ul_pos.appendChild(cont);
-                     } else if (act === "Activation (Negative)") {
-                         ul_neg.appendChild(cont);
-                     } else {
-                         ul_inc.appendChild(cont);
-                     }
-         
+                lineBG.style.stroke = sel.data().color;
+                 
+                line_lab.innerHTML = "Total mentions: " + sel.data("thickness");
+                line_labBG.innerHTML = "Total mentions: " + sel.data("thickness");
+                 
+                //hide arrowhead if BG
+                 if (document.getElementById("layer-button").value=="biogrid") {
+                     document.getElementById("reachHeader").classList.add("hiddenHeader");
+                     document.getElementById("BGHeader").classList.remove("hiddenHeader");
+                 } else {
+                     document.getElementById("reachHeader").classList.remove("hiddenHeader");
+                     document.getElementById("BGHeader").classList.add("hiddenHeader");
                  }
-         
-                 function createFiller() {
-                     var fillerText = document.createElement("li");
-                     var fillerCont = document.createElement("div");
-         
-                     fillerText.appendChild(document.createTextNode("This is filler text"));
-                     fillerCont.appendChild(fillerText);
-                     fillerCont.style.padding = "0px 0px 20px 0px";
-                     fillerCont.style.color = "blue";
-         
-                     var fillerText = document.createElement("li");
-                     var fillerCont = document.createElement("div");
-         
-                     fillerText.appendChild(document.createTextNode("This is filler text"));
-                     fillerCont.appendChild(fillerText);
-                     fillerCont.style.padding = "0px 0px 20px 0px";
-                     fillerCont.style.color = "white";
-                     return fillerCont;
-                 }
-         
-                 var fillerPos = createFiller();
-                 var fillerNeg = createFiller();
-                 var fillerInc = createFiller();
-                 ul_pos.appendChild(fillerPos);
-                 ul_neg.appendChild(fillerNeg);
-                 ul_inc.appendChild(fillerInc);
-         
-                 document.getElementById("posThicknessVal").innerHTML = "Positive: " + posCount;
-                 document.getElementById("negThicknessVal").innerHTML = "Negative: " + negCount;
-                 document.getElementById("incThicknessVal").innerHTML = "Inconclusive: " + incCount;
-                 document.getElementById("posEv").innerHTML = ul_pos.innerHTML;
-                 document.getElementById("negEv").innerHTML = ul_neg.innerHTML;
-                 document.getElementById("incEv").innerHTML = ul_inc.innerHTML;
-                 modal.style.display = "block";
-         
-                 window.onclick = function (event) {
-                     if (event.target == modal) {
-                         var modalBody = document.getElementById("modalBody");
-                         modalBody.scrollTop = 0;
-                         modal.style.display = "none";
-                     }
-                 }
-         
-                 span.onclick = function () {
-                     var modalBody = document.getElementById("modalBody");
-                     modalBody.scrollTop = 0;
-                     modal.style.display = "none";
-                 } 
-         });
-           
+             }
+
+             cy.on('click', 'edge', function (evt) {     
+                var sel = evt.target;
+                console.log("layer: "+sel.data("layer"))
+                function getEvidence() {
+                    var retval;
+                    $.ajaxSetup({
+                        async: false
+                    });
+                    $(function() {
+                      $.getJSON($SCRIPT_ROOT + '/_get_evidence', {
+                        files:sel.data().files
+                      }, function(data) {
+                          console.log(data.result);
+                          retval = data.result;
+                          return false;
+                      });
+                    });
+                    console.log(retval);
+                    return retval;
+                }
+            
+                var ev = getEvidence();
+                
+                var modal = document.getElementById("newModal") 
+                var span = document.getElementsByClassName("close")[0];
+                var thickness = document.getElementById("thickness");
+                var parts = ev.split("&&&")
+                {% if string_type=="gene" %}
+                    var bg_ev = parts.slice(1)   //BG ev is everything after the &&&    
+                    var bg_ev = [...new Set(bg_ev)].filter(part => part.length > 0);
+                    var ev_split = parts[0].split("%%").filter(part => part.length > 0);
+                    bg_ev_length = bg_ev.length
+                    reach_ev_length = ev_split.length
+                    bg_tbl = formatEvBG(bg_ev)
+                    document.getElementById("bgContents").innerHTML = bg_tbl.innerHTML
+                 {% else %}
+                    var ev_split = parts.join("").split("%%").filter(part => part.length > 0); //Handle case with more than 1 file per edge
+                {% endif %}
+
+                formatHeader(sel)
+                 
+                var reach_formatted = formatEvREACH(ev_split)
+                document.getElementById("posThickness").innerHTML = "Positive: " + reach_formatted["posCount"];
+                document.getElementById("negThickness").innerHTML = "Negative: " + reach_formatted["negCount"];
+                document.getElementById("incThickness").innerHTML = "Inconclusive: " + reach_formatted["incCount"];
+                document.getElementById("posEv").innerHTML = reach_formatted["ul_pos"].innerHTML;
+                document.getElementById("negEv").innerHTML = reach_formatted["ul_neg"].innerHTML;
+                document.getElementById("incEv").innerHTML = reach_formatted["ul_inc"].innerHTML;
+                               
+                var cur_layer = document.getElementById("layer-button").value 
+                var rt = document.getElementById("reach-tab")
+                var bt = document.getElementById("biogrid-tab")
+                var navr = document.getElementById("nav-reach")
+                var navb = document.getElementById("nav-biogrid")
+                if  (cur_layer=="reach") {
+                    rt.style.visibility = 'hidden'
+                    bt.style.visibility = 'hidden'
+                    navr.classList.add('active', 'show')
+                    navb.classList.remove('active', 'show')
+                } else if (cur_layer=="biogrid") {
+                    rt.style.visibility = 'hidden'
+                    bt.style.visibility = 'hidden'
+                    navr.classList.remove('active', 'show')
+                    navb.classList.add('active', 'show')
+                } else {
+                    rt.style.visibility = 'visible'
+                    bt.style.visibility = 'visible'
+                    rt.classList.add('active')
+                    bt.classList.remove('active')
+                    navr.classList.add('active', 'show')
+                    navb.classList.remove('active', 'show')
+                    rt.innerHTML = "Reach ("+reach_ev_length+")"
+                    bt.innerHTML = "BIOGRID ("+bg_ev_length+")"
+                }
+                var reache = document.getElementById("reachEv")
+                var bge = document.getElementById("bgEv")
+
+                modal.style.display = "block";
+            
+                window.onclick = function (event) {
+                    if (event.target == modal) {
+                        reache.scrollTop = 0;
+                        bge.scrollTop = 0;
+                        modal.style.display = "none";
+                    }
+                }
+            
+                span.onclick = function () {
+                    reache.scrollTop = 0;
+                    bge.scrollTop = 0;
+                    modal.style.display = "none";
+                }
+            });
            
            cy.on('box', function (evt) {
                   var sel = evt.target
@@ -803,44 +1024,52 @@
              filteredEdges = cy.remove(filteredEdges);
              filteredNodes = cy.remove(filteredNodes);
           
-             filterEdges = function(threshold) { 
-               filteredNodes.removeClass("transp");
-               filteredEdges.restore();
+            filterEdges = function(threshold) {
+                filteredNodes.removeClass("transp");
+                filteredEdges.restore();
+                var cur_layer = document.getElementById("layer-button").value
+                
+                filteredEdges = cy.edges().filter(function(ele) {
+                    return((ele.data("thickness") < threshold) && (ele.data("layer")==cur_layer))
+                });
+                filteredEdges = cy.remove(filteredEdges);
+                filteredNodes = cy.nodes().filter(function (ele) {
+                    return ((ele.degree() == 0) && (ele.data("type") != "Query")&& (ele.data("layer")==cur_layer));
+                });
+                filteredNodes.addClass("transp");
+                rerun_layout();
+            }
          
-               filteredEdges = cy.edges().filter('[thickness < ' + threshold + ']');
-               filteredEdges = cy.remove(filteredEdges);
-               filteredNodes = cy.nodes().filter(function (ele) {
-                 return ele.degree() == 0;
-               });
-               filteredNodes.addClass("transp");
-               rerun_layout();
-             }
-         
-             var allEdges = cy.edges()  
-             var allMax = Math.ceil(getMaxWeight(allEdges))
-             var slider = document.getElementById("myRange");
-             var input_thickness = document.getElementById("input_thickness");
-             slider.max = allMax
-             var input_qty = document.getElementById("quantity");
-             input_qty.max = allMax
-             var output = document.getElementById("quantity");
-             output.innerHTML = slider.value;
-             slider.oninput = function () {
-                 console.log("filtering edges")
-                 output.innerHTML = this.value;
-                 input_qty.value = this.value
-                 threshold = this.value;
-                 filterEdges(threshold);
-                 filterKBs(selected_kbs)
-             }
-             input_thickness.onsubmit = function () {
-                 var thickness_val = document.getElementById("quantity");
-                 output.innerHTML = thickness_val.value;
-                 slider.value=thickness_val.value
-                 threshold = thickness_val.value;
-                 filterEdges(threshold);
-                 filterKBs(selected_kbs)
-             }
+            var slider = document.getElementById("myRange");
+            var allEdges = cy.edges().filter(function(ele) {return((ele.data("layer")=="reach"))})    
+            var allMax = Math.ceil(getMaxWeight(allEdges))
+            var allEdgesBG = cy.edges().filter(function(ele) {return((ele.data("layer")=="biogrid"))})    
+            var allMaxBG = Math.ceil(getMaxWeight(allEdgesBG))
+            var allEdgesUnion = cy.edges().filter(function(ele) {return((ele.data("layer")=="union"))})    
+            var allMaxUnion = Math.ceil(getMaxWeight(allEdgesUnion))
+            slider.max = allMax
+            var input_qty = document.getElementById("quantity");
+            input_qty.max = allMax
+            var output = document.getElementById("quantity");
+            output.innerHTML = slider.value;
+            var input_thickness = document.getElementById("input_thickness") 
+            slider.oninput = function () {
+                threshold = this.value;
+                filterEdges(threshold)
+                console.log("slider selected kbs: "+selected_kbs)
+                filterKBs(selected_kbs)
+                output.innerHTML = this.value;
+                input_qty.value = this.value
+            }
+            input_thickness.onsubmit = async function () {          
+                var thickness_val = document.getElementById("quantity");
+                var threshold = thickness_val.value;
+                filterEdges(threshold)
+                filterKBs(selected_kbs)
+                output.innerHTML = threshold
+                slider.value=threshold
+            }
+
           
           
             function updateCollapsible(el_id, search, nodes){
@@ -1013,32 +1242,131 @@
              });
              excludedEdges = cy.remove(excludedEdges);
              excludedNodes = cy.remove(excludedNodes);
-             console.log("excluded nodes length:"+excludedNodes.length)  
+              
              filterKBs = function(kb_list) {
-                 resetKBs()
-                 console.log("Starting filerKBs")
-                 if (kb_list.length!=0) {
-         
-                     excludedNodes = cy.nodes().filter(function(ele) {
-                         return (!((kb_list.includes(ele.data("KB")) && ele.degree()!=0) | ele.data("rank")==1000000000))
-                     });
-         
-                     excludedEdges = cy.edges().filter(function(ele) {
-                         return (ele.isEdge() && (excludedNodes.includes(ele.source()) | excludedNodes.includes(ele.target())))
-                     })  
-                     console.log(excludedEdges)
-                     excludedEdges = cy.remove(excludedEdges)
-                     excludedNodes.addClass("transp");
-                     rerun_layout();
-         
-                 }
-             } 
+                resetKBs()
+                if (kb_list.length!=0) {
+                    excludedNodes = cy.nodes().filter(function(ele) {
+                        return (!((kb_list.includes(ele.data("KB")) && ele.degree()!=0)) &&(ele.data("layer")=="reach"))
+                    });
+                    console.log("excluded nodes length:"+excludedNodes.length)     
+                    excludedNodes.addClass("transp");
+                    excludedEdges = cy.edges().filter(function(ele) {
+                        return ((excludedNodes.includes(ele.source()) | excludedNodes.includes(ele.target())))
+                    })
+                    excludedEdges = cy.remove(excludedEdges)
+                    rerun_layout();                
+                }
+            } 
              
              resetKBs = function() {
                  excludedNodes.removeClass("transp")
                  excludedEdges.restore()
                  rerun_layout();
              }
+                  
+                              //Set the min value of the thickness filter when switching layers
+            function resetSliderMin(layer) {
+                var slider = document.getElementById("myRange");
+                var input_qty = document.getElementById("quantity");
+                if (layer=="reach") {
+                    slider.value=2
+                    input_qty.value=2
+                    slider.min=2
+                    input_qty.min=2
+                } else {
+                    slider.min=1
+                    input_qty.min=1
+                    slider.value=1
+                    input_qty.value=1
+                    
+                }
+            } 
+              
+            //Set the max value of the thickness filter when switching layers      
+            resetSliderMax = function() {
+                var slider = document.getElementById("myRange");
+                var input_qty = document.getElementById("quantity");
+                var cur_layer = document.getElementById("layer-button").value
+                if (cur_layer=="reach") {
+                    slider.max = allMax
+                    input_qty.max = allMax
+                } else if (cur_layer=="biogrid") {
+                    slider.max = allMaxBG
+                    input_qty.max = allMaxBG
+                } else if (cur_layer=="union") {
+                    slider.max = allMaxUnion
+                    input_qty.max = allMaxUnion
+                }
+
+            } 
+             
+            //Switch between REACH, BG, and union
+            function switch_layer() {
+                var cur_layer = document.getElementById("layer-button").value;
+                console.log("cur_layer: "+cur_layer)
+                var biogrid_eles = cy.elements().filter(function (ele) {
+                        return((ele.data("layer")=="biogrid"))
+                    })
+                var reach_eles =  cy.elements().filter(function (ele) {
+                        return((ele.data("layer")=="reach"))
+                    })
+                var union_eles =  cy.elements().filter(function (ele) {
+                        return((ele.data("layer")=="union"))
+                    })
+                if (cur_layer=="biogrid") {
+                    reach_eles.style("display", "none")
+                    union_eles.style("display", "none")
+                    biogrid_eles.style("display", "element")
+                    document.getElementById("kb_div").style.display = "none"
+                    document.getElementById("legend").style.display = "none"
+                    cy.edges().style('target-arrow-shape', 'none')
+                } else if (cur_layer=="reach") {
+                    reach_eles.style("display", "element")
+                    union_eles.style("display", "none")
+                    biogrid_eles.style("display", "none")
+                    document.getElementById("kb_div").style.display = "block"
+                    document.getElementById("legend").style.display = "none"
+                    cy.edges().style('target-arrow-shape', 'triangle')
+                    filterKBs(selected_kbs)
+                } else {
+                    reach_eles.style("display", "none")
+                    union_eles.style("display", "element")
+                    biogrid_eles.style("display", "none")
+                    document.getElementById("kb_div").style.display = "none"
+                    document.getElementById("legend").style.display = "block"
+                    cy.edges().style('target-arrow-shape', 'triangle')
+                }
+                resetSliderMax()          
+                resetSliderMin(cur_layer)       
+                var slider = document.getElementById("myRange");
+                var threshold=slider.value
+                filterEdges(threshold)
+                rerun_layout()
+                return false
+            }
+
+            
+           //Add loader to layer switching       
+           function run_switch_layer() {
+                const status = document.querySelector('#layer_loading');
+                const loader = document.querySelector('#layer_loader');
+                const wait = (ms = 5000) => {
+                    return new Promise((resolve) => {
+                    setTimeout(() => {
+                        switch_layer()
+                        resolve();
+                    },ms)
+                  })
+                }
+                status.innerHTML = "Loading network...";
+                loader.classList.toggle('show', true);
+                wait(500)
+                .then(() => {
+                    status.innerHTML = "";
+                    loader.classList.toggle('show', false);
+                })
+            }
          
          function add_colors() {
            var x = document.getElementById("color-button");

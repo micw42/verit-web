@@ -149,7 +149,7 @@ def query(G, edges_df, nodes_df, db_df, q, depth):
 
 def BIOGRID_query(G, edges_df, nodes_df, q, depth, thresh=20):
     user_query = list(q.keys())[0]
-    edges_df["color"] = 0
+    #edges_df["color"] = 0
 
     query_list = list(q.values())
 
@@ -176,13 +176,13 @@ def BIOGRID_query(G, edges_df, nodes_df, q, depth, thresh=20):
     opp_df = qedges_df.merge(edges_df, left_on=["source", "target"], right_on=["target","source"])
 
     opp_df = opp_df.drop(
-        labels=["source_x","target_x","color_x", "thickness_x"], axis=1
+        labels=["source_x","target_x","thickness_x"], axis=1
     ).rename(
-        columns={"source_y":"source", "target_y":"target", "color_y":"color", "thickness_y":"thickness"}
+        columns={"source_y":"source", "target_y":"target", "thickness_y":"thickness"}
     )
 
     qedges_df = pd.concat([qedges_df, opp_df]).drop_duplicates(subset=["source", "target"])
-
+    qedges_df["color"] = 0
 
     # Make query nodes depth = 0, so they're in the center of the visualization
     df_dict = {"target":query_list, "depth":[0]*len(query_list)}

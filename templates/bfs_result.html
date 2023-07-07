@@ -1978,10 +1978,10 @@
                      slider.min=2
                     input_qty.min=2
                 } else {
-                    slider.value=1
-                    input_qty.value=1
                     slider.min=1
                     input_qty.min=1
+                    slider.value=1
+                    input_qty.value=1
                 }
             } 
               
@@ -2127,24 +2127,7 @@
                  layout.run();
              }
 
-            // Add listener to dynamically created buttons
-            document.addEventListener("click", function(e){
-              const target = e.target.closest("#btn_el"); // Or any other selector.
 
-              if(target){
-                target.classList.toggle("active");
-                var content = target.nextElementSibling;
-                if (content.style.maxHeight){
-                  content.style.maxHeight = null;
-                } else {
-                  content.style.maxHeight = content.scrollHeight + "px";
-                }
-              }
-            });
-             
-             $("#testButton").on("click", function() {
-                 document.getElementById("newModal").style.display = "block"
-             })
         </script>
 
     </body>
