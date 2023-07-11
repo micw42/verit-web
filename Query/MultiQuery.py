@@ -11,7 +11,7 @@ from Query import GetEv
 from functools import partial
 from joblib import Parallel, delayed
 from memory_profiler import profile, LogFile
-
+import pickle
 
 def run_nx(query_pairs, G, qtype, max_linkers):
     sources = []; targets = []
@@ -71,7 +71,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     nodes_df = nodes_df.drop_duplicates(subset='Id', keep="first")
     edges_df = edges_df.drop_duplicates(subset=['source', 'target'], keep="first")
     if query_type == "name":
-        query_list = list(queries_id.values())    # Expecting queries_id to be a dictionary. Each element is a list.       
+        query_list = list(queries_id.values())    # Expecting queries_id to be a dictionary. Each element is a list.    
         # Get all possible pairs of queries (note: each query is a list of IDs)
         li_perm = list(it.permutations(query_list, 2))
         # Get all possible pairs of element from 1st list with element from 2nd list
@@ -83,7 +83,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     elif query_type == "id":
         query_list = queries_id["QUERY_ID"].split(",")
         q_combinations = list(it.permutations(query_list, 2))
-
+        
     #recursive_ids = [(x,x) for x in query_list]
     #q_combinations.extend(query_list)
 
@@ -111,6 +111,10 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     opp_df = rel_df.merge(edges_df, left_on=["source", "target"], right_on=["target","source"])
     opp_df = opp_df.drop(labels=["source_x","target_x","color_x", "thickness_x"], axis=1).rename(columns={"source_y":"source", "target_y":"target", "color_y":"color", "thickness_y":"thickness"})
     rel_df = pd.concat([rel_df, opp_df]).drop_duplicates(subset=["source", "target"])
+    
+    # auto-regulation
+    auto_edges = edges_df[(edges_df["source"].isin(query_list)) & (edges_df["target"].isin(query_list)) & (edges_df["source"]==edges_df["target"])]
+    rel_df = pd.concat([rel_df, auto_edges]).drop_duplicates(subset=["source", "target"])
 
     # Create nodes df
     nodes = list(it.chain(*q_combinations)) # List of all query IDs
@@ -121,11 +125,9 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     nodes = pd.DataFrame({"Id": nodes})
     nodes = nodes.merge(nodes_df, on="Id", how="inner")[["Id", "Label", "KB"]]
 
-    # IDs that were found (not in original query list)
-    found_ids = set(rel_df["source"].tolist()) | set(rel_df["target"].tolist()) - set(query_list)
-
     # Get all direct connections to query nodes that were not already found by query
     # (user has option to show them in the visualization)
+    found_ids = set(pd.concat([rel_df.source, rel_df.target])) - set(query_list)
     links = edges_df[((edges_df["source"].isin(query_list)) & ~(edges_df["target"].isin(found_ids))) |
                      ((edges_df["target"].isin(query_list)) & ~(edges_df["source"].isin(found_ids)))]
 
@@ -298,12 +300,17 @@ def BIOGRID_query(G, edges_df, nodes_df, queries_id,
 
     st_dict = {"source_id": sources, "target_id": targets}
     st_df = pd.DataFrame(st_dict).drop_duplicates()
+
     # Unidirectional
     st_df = st_df.merge(
         edges_df, left_on=["source_id", "target_id"], right_on=["source", "target"]
     )[["source_id", "target_id", "thickness"]]
 
-
+    # auto-regulation
+    auto_edges = edges_df[(edges_df["source"].isin(query_list)) & (edges_df["target"].isin(query_list)) & (edges_df["source"]==edges_df["target"])]
+    auto_edges=auto_edges.rename(columns={"source":"source_id", "target":"target_id"})
+    st_df = pd.concat([st_df, auto_edges]).drop_duplicates(subset=["source_id", "target_id"])
+    
     ## Construct nodes dataframe
     # Initialize
     qnode_ids = list(set(pd.concat([st_df.source_id, st_df.target_id])))
