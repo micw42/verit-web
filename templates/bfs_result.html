@@ -460,10 +460,22 @@
                         <option value="union">Reach + BIOGRID</option>
                     </select>
                 <p id="legend" style="color:gray;margin-left:20px;margin-top:10px;display:none">
-                    Outline color legend: <br>
-                    Blue - Reach + BIOGRID <br>
-                    Purple - Reach <br>
-                    Green - BIOGRID <br>
+                    Node outline legend: <br>
+                    
+                    <svg width="20" height="20">
+                    <rect width="20" height="20" style="fill:#42a7f5;stroke-width:2;stroke:rgb(0,0,0)" />
+                    </svg>
+                    Reach + BIOGRID <br>
+                
+                    <svg width="20" height="20">
+                    <rect width="20" height="20" style="fill:#9d49f2;stroke-width:2;stroke:rgb(0,0,0)" />
+                    </svg>
+                    Reach <br>
+                    
+                    <svg width="20" height="20">
+                    <rect width="20" height="20" style="fill:#77ed40;stroke-width:2;stroke:rgb(0,0,0)" />
+                    </svg>
+                    BIOGRID <br>
                 </p>
                  <ul class="nav">
                     <li style="display:inline">
@@ -597,7 +609,7 @@
 				<button class="nav-link" id="biogrid-tab" data-bs-toggle="tab" data-bs-target="#nav-biogrid" type="button" role="tab" aria-controls="nav-biogrid" aria-selected="false" style="visibility:hidden">BIOGRID</button>
 			</div>
 		</nav>
-		<div id="tablist" class="tab-content p-3 border bg-light" id="nav-tabContent" style="height:60%;">
+		<div id="tablist" class="tab-content p-3 border bg-light" id="nav-tabContent" style="height:55%;">
 			<div class="tab-pane fade" id="nav-reach" role="tabpanel" aria-labelledby="reach-tab" style="height:100%;">
 				 <div id="reachEv" class="evDiv" style="height:inherit;">
                     <h1 id="thickness" style="font-family: Arial, Helvetica, sans-serif"></h1>

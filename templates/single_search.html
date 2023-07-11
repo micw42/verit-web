@@ -137,8 +137,8 @@
         border-top: 10px solid #04AA6D;
         /* Green */
         border-radius: 50%;
-        width: 50px;
-        height: 50px;
+        width: 30px;
+        height: 30px;
         animation: spin 1.5s linear infinite;
         margin-left: 10px;
     }
@@ -218,7 +218,6 @@
         <script>
             var form = document.getElementById("myForm");
             function move() {
-                document.getElementById("message").innerHTML = "Searching... Please do not refresh your browser.";
                 document.getElementById("loadingIcon").style.display = "block";
             }
             form.addEventListener('submit', move);
