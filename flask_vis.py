@@ -251,6 +251,7 @@ def make_bfs_query(string_type, query_type):
 
     if request.method=="POST":
         max_linkers=int(request.form["max_linkers"])
+        min_thickness=int(request.form["min_thickness"])
         qtype = request.form["qtype"]
         return redirect(
             url_for("bfs_query_result",
@@ -258,6 +259,7 @@ def make_bfs_query(string_type, query_type):
                     string_type=string_type,
                     qtype=qtype,
                     query_type=query_type,
+                    min_thickness=min_thickness,
                     get_direct_linkers=True)
         )
 
@@ -275,8 +277,8 @@ def make_single_query(query_type, string_type):
         return render_template("single_search.html")
 
 
-@app.route('/bfsresult/<max_linkers>/<qtype>/<string_type>/<query_type>/<get_direct_linkers>')
-def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_linkers):
+@app.route('/bfsresult/<max_linkers>/<qtype>/<string_type>/<query_type>/<min_thickness>/<get_direct_linkers>')
+def bfs_query_result(max_linkers, qtype, string_type, query_type, min_thickness, get_direct_linkers):
     global edges_df
     global nodes_df
     global ev_df
@@ -288,6 +290,7 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
     query = cache.get(f"query_dict_{user_id}")
 
     max_linkers=int(max_linkers)
+    min_thickness=int(min_thickness)
     if get_direct_linkers == "True":
         get_direct_linkers = True
     else:
@@ -324,7 +327,8 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
             access_key=access_key,
             secret_key=secret_key,
             bucket=bucket,
-            bg_edges=query_bg_edges
+            bg_edges=query_bg_edges,
+            min_thickness=min_thickness
         )
         
         #Change IDs back to uniprot for compatibility with biogrid       
@@ -347,7 +351,8 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, get_direct_lin
             db_df=full_df,
             access_key=access_key,
             secret_key=secret_key,
-            bucket=bucket
+            bucket=bucket,
+            min_thickness=min_thickness
         )
 
     n_edges = len(query_edges.index)
@@ -418,8 +423,7 @@ def process_data():
     query=request.form["next_query"]
     query_dict = {"QUERY_ID":query}
     cache.set(f"query_dict_{user_id}", query_dict)
-    string_type = request.form["queryType"]
-    return redirect(url_for("make_single_query", query=query_dict, query_type = "id", string_type=string_type))
+    return redirect(url_for("make_single_query", query_type = "id", string_type="id"))
 
 
 @app.route("/go_home", methods=["POST"])

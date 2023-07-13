@@ -1373,13 +1373,14 @@
                 output.innerHTML = this.value;
                 input_qty.value = this.value
             }
-            input_thickness.onsubmit = async function () {          
+            input_thickness.onsubmit = function () {          
                 var thickness_val = document.getElementById("quantity");
                 var threshold = thickness_val.value;
                 run_filter_edges(threshold)
                 filterKBs(selected_kbs)
                 output.innerHTML = threshold
                 slider.value=threshold
+                return false
             }
 
             function updatePM(tu_id) {
@@ -1645,7 +1646,6 @@
                 
                 var pathNodes = pathToJ.nodes().filter(function(ele) {return((ele.style()["display"] != "none") && 
                             (ele.style()["opacity"] != "0"))})
-                console.log("pathNodes length: "+pathNodes.length)
                 pathNodes.addClass("searched")
                 if (pathNodes.length>0) {
                     rootNode.addClass("searched")

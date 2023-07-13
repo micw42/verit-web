@@ -162,7 +162,8 @@ def convert(nodes_df, edges_df):
                                   "rank": int(ndrow["rank"]),
                                   "layer": layer,
                                   "display":ndrow.display,
-                                  "border_color":ndrow["border_color"], "border_width":int(ndrow["border_width"])
+                                  "border_color":ndrow["border_color"], "border_width":int(ndrow["border_width"]),
+                                 "depth":int(ndrow.depth)
                                   }}
             node_dict["position"] = {"x": Xs[i], "y": Ys[i]}
 

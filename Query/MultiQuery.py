@@ -67,7 +67,7 @@ def run_nx(query_pairs, G, qtype, max_linkers):
 #qtype: all_simple_paths or all_shortest_paths
 fp=open('memory_profiler_RB_E2F.log','w')
 @profile(stream=fp)
-def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get_direct_linkers, db_df, access_key, secret_key, bucket="all-abstract-ev", parallel_threshold=40, bg_edges=None):
+def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get_direct_linkers, db_df, access_key, secret_key, bucket="all-abstract-ev", parallel_threshold=40, bg_edges=None, min_thickness=20):
     nodes_df = nodes_df.drop_duplicates(subset='Id', keep="first")
     edges_df = edges_df.drop_duplicates(subset=['source', 'target'], keep="first")
     if query_type == "name":
@@ -132,7 +132,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
                      ((edges_df["target"].isin(query_list)) & ~(edges_df["source"].isin(found_ids)))]
 
     # Filter thickness of direct connections so visualization isn't crowded (arbitrarily selected threshold)
-    links = links[links["thickness"] > 20]
+    links = links[links["thickness"] > min_thickness]
     
     # Add edges found by biogrid query
     if bg_edges is not None:

@@ -631,7 +631,14 @@
                {
                  selector: 'node.mouseup',
                  style: { 'background-color': "#26ff12" }
-                     }
+                     },
+                {
+                selector: 'edge.mouseover',
+                style: {
+                    'line-color': "#26ff12",
+                    'target-arrow-color':"#26ff12"
+                }
+            }
          ],
              
         layout:{
@@ -678,15 +685,15 @@
          cy.on('click', 'node', function (evt) {
              
            var sel = evt.target;
-             console.log("border_col"+sel.data("border_color"))
+             console.log("syn"+sel.data("syn"))
              console.log("border_width"+sel.data("border_width"))
              sel.shift({ x: 500, y: 500 });
            if (sel.data().rank != 1000000000) {
              var modal = document.getElementById("querier");
              var span = document.getElementById("closeQuery");
-             var info = sel.data().label + " (" + sel.data().id + ")";
+             var info = sel.data().label + " (" + sel.data("display_id") + ")";
              var id = document.getElementById("next_query");
-             id.value = sel.data().id;
+             id.value = sel.data("display_id");
              id.style.display = "block";
              document.getElementById("nodeID").innerHTML = info;
              modal.style.display = "block";
@@ -963,6 +970,18 @@
                     modal.style.display = "none";
                 }
             });
+                  
+            cy.on('mouseover', 'edge', function (evt) {
+                   var sel = evt.target;
+                    if (sel.style()["opacity"] != "0") {
+                        sel.addClass('mouseover');
+                    }
+            });
+                  
+            cy.on('mouseout', 'edge', function (evt) {
+                   var sel = evt.target;
+                    sel.removeClass('mouseover');
+            });
            
            cy.on('box', function (evt) {
                   var sel = evt.target
@@ -1074,13 +1093,14 @@
                 output.innerHTML = this.value;
                 input_qty.value = this.value
             }
-            input_thickness.onsubmit = async function () {          
+            input_thickness.onsubmit = function () {          
                 var thickness_val = document.getElementById("quantity");
                 var threshold = thickness_val.value;
                 filterEdges(threshold)
                 filterKBs(selected_kbs)
                 output.innerHTML = threshold
                 slider.value=threshold
+                return false
             }
 
           
@@ -1090,7 +1110,7 @@
                 options.innerHTML="";
                 for(var i=0; i<nodes.length; i++) {
                     var sel = nodes[i];
-                    var syn = sel.data().syn;
+                    var syn = sel.data().syn.toLowerCase();
 
                     // String-matching part
                     if (syn.includes(search)) {
@@ -1143,7 +1163,7 @@
                 options.innerHTML=""
                 for (var i=0; i<nodes.length; i++) {
                     var sel = nodes[i]
-                    var syn = sel.data().syn;
+                    var syn = sel.data().syn
                     if (syn.includes(search)) {
                         var cont = document.createElement("div");
                         cont.setAttribute("class", "matchDiv")
@@ -1191,6 +1211,7 @@
                  var search = node_name.value.toLowerCase();
                  var nodes = cy.nodes().filter(function(ele) {return((ele.style()["display"] != "none") && 
                             (ele.style()["opacity"] != "0"))})
+                 console.log("nodes length: "+nodes.length)
                  updateCollapsible("matchOptions", search, nodes)
 
                  modal.style.display = "block";
@@ -1215,7 +1236,7 @@
           var matchForm = document.getElementById("matchForm")
           var current_query = document.getElementById("current_query");
             matchForm.onsubmit = function() {
-                var choice = document.querySelector('input[name="match"]:checked').value;
+                var choice = document.querySelector('input[name="nodeSel"]:checked').value;
                 var results_nodes = cy.nodes().filter(function(ele) {
                     return ((ele.id() === choice));})
                 var cq =  results_nodes.data().label + " ("+results_nodes.data().display_id+")"
@@ -1260,9 +1281,8 @@
                 resetKBs()
                 if (kb_list.length!=0) {
                     excludedNodes = cy.nodes().filter(function(ele) {
-                        return (!((kb_list.includes(ele.data("KB")) && ele.degree()!=0)) &&(ele.data("layer")=="reach"))
-                    });
-                    console.log("excluded nodes length:"+excludedNodes.length)     
+                        return (!((kb_list.includes(ele.data("KB")) && ele.degree()!=0)) &&(ele.data("layer")=="reach") && (ele.data("depth")!=0))
+                    });   
                     excludedNodes.addClass("transp");
                     excludedEdges = cy.edges().filter(function(ele) {
                         return ((excludedNodes.includes(ele.source()) | excludedNodes.includes(ele.target())))
