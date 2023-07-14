@@ -41,8 +41,6 @@ def multi_query(query_list, nodes, full_df, bg_nodes, string_type):
         bg_in_net["user_query"] = bg_in_net["name"]
         bg_in_net = bg_in_net.drop(columns="name").set_index("user_query")
         bg_in_net = bg_in_net.T.to_dict(orient="list")
-        with open("bg_multiSearchOut.pkl", "wb") as p:
-            pickle.dump(bg_in_net, p)
 
         unmapped = np.setdiff1d(query_list, list(full_df["Label"]))    # Unused
 
@@ -56,15 +54,14 @@ def multi_query(query_list, nodes, full_df, bg_nodes, string_type):
         in_net.columns = ["id", "PR", "name"]
         in_net["user_query"] = in_net["name"]
 
-        return in_net
+        return in_net, bg_in_net
 
     else:
         # initialize empty dataframe
         full_query = pd.DataFrame()
         for query in query_list:
             full_query = full_query.append(name_query(query, nodes, full_df, string_type))
-
-    return full_query
+        return full_query, None
 
 
 def query(query_list, nodes, full_df, uniprot_df, bg_nodes, string_type):

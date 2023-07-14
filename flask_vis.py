@@ -129,9 +129,11 @@ def validate(query_type):
                 return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
             #If the query is a text box format with name contains/begins/ends
             else:
-                results = MultiSearcher.query(query, nodes_df, full_df, uniprot_df, bg_nodes, string_type)
-                result_dict=ConvertSearch.multi_convert(results)
                 if string_type == "gene" or default_PR:
+                    results, result_bg = MultiSearcher.query(query, nodes_df, full_df, uniprot_df, bg_nodes, string_type)
+                    if result_bg is not None:
+                        cache.set(f"bg_multi_{user_id}", result_bg)
+                    result_dict=ConvertSearch.multi_convert(results)
                     query_dict = {}
                     for query_key in result_dict:
                         query_dict[query_key] = [result_dict[query_key]["max_PR"]]
@@ -140,6 +142,8 @@ def validate(query_type):
                     cache.set(f"result_dict_{user_id}", result_dict)
                     return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
                 else:
+                    results, _ = MultiSearcher.query(query, nodes_df, full_df, uniprot_df, bg_nodes, string_type)
+                    result_dict=ConvertSearch.multi_convert(results)
                     cache.set(f"result_dict_{user_id}", result_dict)
                     query = ",".join(query)
                     query=query.replace(" ","SPACE")
@@ -300,7 +304,7 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, min_thickness,
     # -- BIOGRID portion --
     if string_type == "gene":
         # Run biogrid query
-        queries_id = pd.read_pickle("bg_multiSearchOut.pkl")
+        queries_id = cache.get(f"bg_multi_{user_id}")
         query_bg_nodes, query_bg_edges = MultiQuery.BIOGRID_query(
             bg_G,
             bg_edges,

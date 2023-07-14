@@ -141,9 +141,6 @@ def query(G, edges_df, nodes_df, db_df, q, depth):
     full_df = full_df[["color", "thickness", 
                      "files", "source", "target"]]
     
-    nodes.to_csv("ref_SQ_nodes.csv", index=False)
-    full_df.to_csv("ref_SQ_edges.csv", index=False)
-    
     return nodes, full_df
 
 

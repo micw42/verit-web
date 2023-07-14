@@ -137,6 +137,8 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     # Add edges found by biogrid query
     if bg_edges is not None:
         bg_edges = bg_edges[["source", "target"]]
+        bg_switched = bg_edges.rename(columns={"source":"target", "target":"source"}) 
+        bg_edges = pd.concat([bg_edges, bg_switched])
         found_edges = bg_edges.merge(edges_df, on=["source", "target"], how="inner")
         links = pd.concat([links, found_edges]).drop_duplicates(subset=["source", "target"])
 

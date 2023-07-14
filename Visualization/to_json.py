@@ -80,7 +80,7 @@ def clean_edges(edges_df, layer):
     return edges_df
 
 
-def clean_union(nodes_df, edges_df):
+def clean_union(nodes_df, edges_df_reach, edges_df_bg):
     ## Nodes
     gb_size = nodes_df.groupby("Id").size()
     union_ids = gb_size[gb_size == 2].index
@@ -103,7 +103,10 @@ def clean_union(nodes_df, edges_df):
     nodes_df = pd.concat([nodes_df, union_nodes_df])
     
     ## Edges
-    union_edges_df = edges_df.copy()
+    edges_df_bg_switched = edges_df_bg.rename(columns={"source":"target", "target":"source", "source_id":"target_id", "target_id":"source_id"})   #Bidirectional BG edges
+    edges_df_bg_switched["files"] = edges_df_bg_switched["source"] + "_" + edges_df_bg_switched["target"] + ".txt"
+    edges_df_bg_all=pd.concat([edges_df_bg, edges_df_bg_switched]).drop_duplicates()
+    union_edges_df = pd.concat([edges_df_reach, edges_df_bg_all])
     # Sum the thicknesses together between reach and BIOGRID
     union_thickness = union_edges_df.groupby(["source", "target"]).apply(lambda x: x.thickness.sum())
     union_thickness = union_thickness.reset_index()
@@ -119,7 +122,8 @@ def clean_union(nodes_df, edges_df):
     
     union_edges_df["layer"] = "union"
     union_edges_df["display"] = "none"
-    edges_df = pd.concat([edges_df, union_edges_df])
+    
+    edges_df = pd.concat([edges_df_reach, edges_df_bg, union_edges_df])
 
     return nodes_df, edges_df
 
@@ -194,24 +198,14 @@ def clean(nodes_df_reach, edges_df_reach, nodes_df_bg=None, edges_df_bg=None, bi
 
         nodes_df_bg = clean_nodes(nodes_df_bg, layer="biogrid")
         edges_df_bg = clean_edges(edges_df_bg, layer="biogrid")
-        edges_df_bg.to_csv("edges_df_bg.csv", index=False)
-        edges_df_bg_switched = edges_df_bg.rename(columns={"source":"target", "target":"source", "source_id":"target_id", "target_id":"source_id"})   #Bidirectional BG edges
-        edges_df_bg = pd.concat([edges_df_bg, edges_df_bg_switched]).drop_duplicates()
 
         nodes_df = pd.concat([nodes_df_reach, nodes_df_bg])
-        edges_df = pd.concat([edges_df_reach, edges_df_bg])
         
-        nodes_df, edges_df = clean_union(nodes_df, edges_df)
-        
-        nodes_df.to_csv("qnodes_union.csv", index=False)
-        edges_df.to_csv("qedges_union.csv", index=False)
+        nodes_df, edges_df = clean_union(nodes_df, edges_df_reach, edges_df_bg)
     else:
         nodes_df = clean_nodes(nodes_df_reach, layer="reach")
         edges_df = clean_edges(edges_df_reach, layer="reach")
     
     elements = convert(nodes_df, edges_df)
-    
-    with open("elements.pkl", "wb") as p:
-        pickle.dump(elements, p)
     
     return elements
