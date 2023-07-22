@@ -227,7 +227,6 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
         rel_df.target_id.fillna(rel_df.target, inplace=True)
         rel_df = rel_df[["color", "thickness",
                          "files", "source", "target", "source_id", "target_id"]]
-
         display_ids = pd.merge(nodes, name_df, how="left", left_on="Id", right_on="key")["variable"].tolist()
         nodes["display_id"] = display_ids
         nodes.display_id.fillna(nodes.Id, inplace=True)

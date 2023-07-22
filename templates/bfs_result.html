@@ -252,13 +252,27 @@
             <div style="padding-left:20px;" class="slidecontainer" id="thickness_div">
                 <h2 style="padding-bottom:10px;">Parameters</h2>
                 <h6>Filter by thickness:</h6>
-                <input type="range" min="1" value="2" class="slider" id="myRange" style="width:50%;margin-left:20px">
-                <form action="#" id="input_thickness" style="display:inline;">
-                    <input type="number" id="quantity" min="1" style="width:15%" value="2">
-                    <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
-                </form>
-
-                <ul class="nav">
+             <p id="totalLabel" style="color:grey;margin-left:20px;margin-right:40px;display:none">Total thickness</p>
+            <input type="range" min="2" value="2" class="slider" id="myRange" style="width:50%;margin-left:20px">
+            <form action="#" id="input_thickness" style="display:inline;">
+               <input type="number" id="quantity" min="2" value="2" style="width:15%">
+               <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
+            </form>
+             <div id="IndFilter" style="display:none">
+             <p style="color:grey;margin-left:20px;margin-right:40px;">REACH thickness</p>
+           <input type="range" min="2" value="2" class="slider" id="myRangeR" style="width:50%;margin-left:20px">
+            <form action="#" id="input_thicknessR" style="display:inline;">
+               <input type="number" id="quantityR" min="2" value="2" style="width:15%">
+               <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
+            </form>
+             <p style="color:grey;margin-left:20px;margin-right:40px;">BIOGRID thickness</p>
+           <input type="range" min="1" value="1" class="slider" id="myRangeBG" style="width:50%;margin-left:20px">
+            <form action="#" id="input_thicknessBG" style="display:inline;">
+               <input type="number" id="quantityBG" min="1" value="1" style="width:15%">
+               <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
+            </form>
+             </div>
+          <ul class="nav">
                     <li style="display:inline;margin-left:20px;">
                         <div class="loading" id="filter_loading"></div>
                     </li>
@@ -1315,10 +1329,26 @@
             filterKBs(selected_kbs)
             console.log("KB filter threshold: "+threshold)
             filterEdges(threshold)
+            rerun_layout()
             return false
         }
 
         //
+        filterEdgesUnion = function(threshold_r, threshold_bg, threshold_total) {
+            filteredNodes.removeClass("transp");
+            filteredEdges.restore();
+
+            filteredEdges = cy.edges().filter(function(ele) {
+                return((((ele.data("thickness_r") < threshold_r) && (ele.data("thickness_bg") < threshold_bg)) |
+                      (ele.data("thickness") < threshold_total)) && (ele.data("layer")=="union"))
+            });
+            filteredEdges = cy.remove(filteredEdges);
+            filteredNodes = cy.nodes().filter(function (ele) {
+                return ((ele.degree() == 0) && (ele.data("type") != "Query")&& (ele.data("layer")=="union"));
+            });
+            filteredNodes.addClass("transp");
+        }
+                  
         function getMaxWeight(allEdges) {
             var weight_arr = []
             for (var i = 0; i < allEdges.length; i++) {
@@ -1332,6 +1362,24 @@
             var maxWeight = weight_arr.max()
             return(maxWeight)
         }
+                  
+        function getMaxWeightUnion(allEdges) {
+             var weight_arrR = []
+             var weight_arrBG = []
+             for (var i = 0; i < allEdges.length; i++) {
+                 var edgeData = (allEdges[i]).data()
+                 var weightR = edgeData.thickness_r
+                 var weightBG = edgeData.thickness_bg
+                 weight_arrR.push(weightR)
+                 weight_arrBG.push(weightBG)
+             }
+             Array.prototype.max = function() {
+               return Math.max.apply(null, this);
+             };
+             var maxWeightR = weight_arrR.max()
+             var maxWeightBG = weight_arrBG.max()
+             return([maxWeightR, maxWeightBG])
+         }  
 
             var filteredEdges = cy.edges().filter('[thickness < 0]');
             var filteredNodes = cy.nodes().filter(function (ele) {
@@ -1359,27 +1407,99 @@
             var allEdgesUnion = cy.edges().filter(function(ele) {return((ele.data("layer")=="union"))})    
             var queryMaxUnion = Math.ceil(getMaxWeight(queryEdgesUnion))
             var allMaxUnion = Math.ceil(getMaxWeight(allEdgesUnion))
+            var [maxR, maxBG] = getMaxWeightUnion(allEdgesUnion)
+            var [maxR_q, maxBG_q] = getMaxWeightUnion(queryEdgesUnion)
             slider.max = queryMax
             var input_qty = document.getElementById("quantity");
             input_qty.max = queryMax
-            var output = document.getElementById("quantity");
-            output.innerHTML = slider.value;
+            input_qty.innerHTML = slider.value;
             var input_thickness = document.getElementById("input_thickness") 
             slider.oninput = function () {
+                var cur_layer = document.getElementById("layer-button").value
                 threshold = this.value;
-                run_filter_edges(threshold)
-                console.log("slider selected kbs: "+selected_kbs)
+                if (cur_layer != "union") {
+                    run_filter_edges(threshold)
+                } else {
+                    var thresholdR = document.getElementById("quantityR").value;
+                    var thresholdBG = document.getElementById("quantityBG").value;
+                    console.log("BG: "+thresholdBG+", R: "+thresholdR+", total: "+threshold)
+                    run_filter_edges_union(thresholdR, thresholdBG, threshold)
+                }
                 filterKBs(selected_kbs)
-                output.innerHTML = this.value;
+                input_qty.innerHTML = this.value;
                 input_qty.value = this.value
             }
-            input_thickness.onsubmit = function () {          
+            input_thickness.onsubmit = function () {  
                 var thickness_val = document.getElementById("quantity");
                 var threshold = thickness_val.value;
-                run_filter_edges(threshold)
+                var cur_layer = document.getElementById("layer-button").value
+                if (cur_layer != "union") {
+                    run_filter_edges(threshold)
+                } else {
+                    var thresholdR = document.getElementById("quantityR").value;
+                    var thresholdBG = document.getElementById("quantityBG").value;
+                    run_filter_edges_union(thresholdR, thresholdBG, threshold)                    
+                }                
                 filterKBs(selected_kbs)
-                output.innerHTML = threshold
+                input_qty.innerHTML = threshold
                 slider.value=threshold
+                return false
+            }
+                  
+            var sliderR = document.getElementById("myRangeR");
+            var sliderBG = document.getElementById("myRangeBG")       
+            sliderR.max = maxR_q
+            sliderBG.max = maxBG_q    
+            var input_qtyR = document.getElementById("quantityR");
+            input_qtyR.max = maxR_q
+            input_qtyR.innerHTML = sliderR.value;
+            var input_qtyBG = document.getElementById("quantityBG");
+            input_qtyBG.max = maxBG_q
+            input_qtyBG.innerHTML = sliderBG.value;
+            var input_thicknessR = document.getElementById("input_thicknessR") 
+            var input_thicknessBG = document.getElementById("input_thicknessBG") 
+            var thresholdR = sliderR.value
+            var thresholdBG = sliderBG.value
+            sliderR.oninput = function () {
+                var thresholdR = this.value;
+                var thresholdBG = document.getElementById("quantityBG").value;
+                var thresholdTotal = document.getElementById("quantity").value
+                console.log("BG: "+thresholdBG+", R: "+thresholdR)
+                run_filter_edges_union(thresholdR, thresholdBG, thresholdTotal)
+                filterKBs(selected_kbs)
+                input_qtyR.innerHTML = this.value;
+                input_qtyR.value = this.value
+            }
+            input_thicknessR.onsubmit = function () {          
+                var thickness_valR = document.getElementById("quantityR");
+                var thresholdBG = document.getElementById("quantityBG").value
+                var thresholdTotal = document.getElementById("quantity").value
+                var thresholdR = thickness_valR.value;
+                run_filter_edges_union(thresholdR, thresholdBG, thresholdTotal)
+                filterKBs(selected_kbs)
+                input_qtyR.innerHTML = thresholdR
+                sliderR.value=thresholdR
+                return false
+            }
+            sliderBG.oninput = function () {
+                var thresholdBG = this.value;
+                var thresholdR = document.getElementById("quantityR").value
+                var thresholdTotal = document.getElementById("quantity").value
+                console.log("BG: "+thresholdBG+", R: "+thresholdR)
+                run_filter_edges_union(thresholdR, thresholdBG, thresholdTotal)
+                filterKBs(selected_kbs)
+                input_qtyBG.innerHTML = this.value;
+                input_qtyBG.value = this.value
+            }
+            input_thicknessBG.onsubmit = function () {          
+                var thickness_valBG = document.getElementById("quantityBG");
+                var thresholdTotal = document.getElementById("quantity").value
+                var thresholdR = document.getElementById("quantityR").value
+                var thresholdBG = thickness_valBG.value;
+                run_filter_edges_union(thresholdR, thresholdBG, thresholdTotal)
+                filterKBs(selected_kbs)
+                input_qtyBG.innerHTML = thresholdBG
+                sliderBG.value=thresholdBG
                 return false
             }
 
@@ -1673,7 +1793,15 @@
                 cy.edges().removeClass("searched")
                 var slider = document.getElementById("myRange");
                 var threshold=slider.value
-                filterEdges(threshold)
+                var cur_layer = document.getElementById("layer-button").value
+                if (cur_layer!="union") {
+                     filterEdges(threshold)
+                 } else {
+                    var thresholdR = document.getElementById("quantityR").value;
+                    var thresholdBG = document.getElementById("quantityBG").value;
+                     console.log("R: "+thresholdR+" BG: "+thresholdBG+" total: "+threshold)
+                    filterEdgesUnion(thresholdR, thresholdBG, threshold)                       
+                 }
                 filterKBs(selected_kbs)
                 current_query.innerHTML = "None"; 
                 current_path.innerHTML = "None"
@@ -1710,7 +1838,6 @@
                     return ((ele.degree() == 0) && (ele.data("type") != "Query")&& (ele.data("layer")==cur_layer));
                 });
                 filteredNodes.addClass("transp");
-                rerun_layout();
             }
             
             var excludedEdges = cy.edges().filter('[thickness < 0]');
@@ -1730,7 +1857,6 @@
                         return ((excludedNodes.includes(ele.source()) | excludedNodes.includes(ele.target())))
                     })
                     excludedEdges = cy.remove(excludedEdges)
-                    rerun_layout();                
                 }
             } 
             
@@ -1738,7 +1864,6 @@
                 excludedEdges.restore()
                 excludedEdges.style("display", "element")
                 excludedNodes.removeClass("transp")
-                rerun_layout();
             } 
              
             function run_filter_edges(threshold) {
@@ -1748,6 +1873,28 @@
                     return new Promise((resolve) => {
                     setTimeout(() => {
                         filterEdges(threshold)
+                        rerun_layout()
+                        resolve();
+                    },ms)
+                  })
+                }
+                status.innerHTML = "Filtering edges...&nbsp;";
+                loader.classList.toggle('show', true);
+                wait(500)
+                .then(() => {
+                    status.innerHTML = "";
+                    loader.classList.toggle('show', false);
+                })
+            }
+                  
+            function run_filter_edges_union(threshold_r, threshold_bg, threshold) {
+                const status = document.querySelector('#filter_loading');
+                const loader = document.querySelector('#filter_loader');
+                const wait = (ms = 5000) => {
+                    return new Promise((resolve) => {
+                    setTimeout(() => {
+                        filterEdgesUnion(threshold_r, threshold_bg, threshold)
+                        rerun_layout()
                         resolve();
                     },ms)
                   })
@@ -1944,7 +2091,6 @@
                     cy.nodes().filter("[type = 'Direct']").style("display", "none")
                 }
                 resetSliderMax(show)                
-                rerun_layout();
             } 
                   
                   
@@ -1957,6 +2103,7 @@
                     return new Promise((resolve) => {
                     setTimeout(() => {
                         show_direct(show);
+                        rerun_layout()
                         if (show) {
                             show = false
                         } else {
@@ -2002,6 +2149,10 @@
                 var slider = document.getElementById("myRange");
                 var input_qty = document.getElementById("quantity");
                 var cur_layer = document.getElementById("layer-button").value
+                var sliderR = document.getElementById("myRangeR")
+                var input_qtyR = document.getElementById("quantityR")
+                var sliderBG = document.getElementById("myRangeBG")
+                var input_qtyBG = document.getElementById("quantityBG")
                 if (show) {
                     if (cur_layer=="reach") {
                         slider.max = allMax
@@ -2012,6 +2163,10 @@
                     } else if (cur_layer=="union") {
                         slider.max = allMaxUnion
                         input_qty.max = allMaxUnion
+                        sliderR.max = maxR
+                        input_qtyR.max = maxR
+                        sliderBG.max = maxBG
+                        input_qtyBG.max = maxBG
                     }
                 } else {
                     if (cur_layer=="reach") {
@@ -2023,6 +2178,10 @@
                     } else if (cur_layer=="union") {
                         slider.max = queryMaxUnion
                         input_qty.max = queryMaxUnion
+                        sliderR.max = maxR_q
+                        input_qtyR.max = maxR_q
+                        sliderBG.max = maxBG_q
+                        input_qtyBG.max = maxBG_q
                     }
                 }
             } 
@@ -2039,10 +2198,14 @@
                 var union_eles =  cy.elements().filter(function (ele) {
                         return((ele.data("layer")=="union"))
                     })
+                var totalLabel = document.getElementById("totalLabel")
+                var indFilter = document.getElementById("IndFilter")
                 if (cur_layer=="biogrid") {
                     reach_eles.style("display", "none")
                     union_eles.style("display", "none")
                     biogrid_eles.style("display", "element")
+                    totalLabel.style.display = "none"
+                    indFilter.style.display="none"
                     if (show) {
                         biogrid_eles.nodes().filter(function(ele) {
                             return(ele.data("type")=="Direct") }).style("display", "none")
@@ -2054,6 +2217,8 @@
                     reach_eles.style("display", "element")
                     union_eles.style("display", "none")
                     biogrid_eles.style("display", "none")
+                    totalLabel.style.display = "none"
+                    indFilter.style.display="none"
                     if (show) {
                         reach_eles.filter(function(ele) {
                             return(ele.data("type")=="Direct") }).style("display", "none")
@@ -2065,6 +2230,8 @@
                     reach_eles.style("display", "none")
                     union_eles.style("display", "element")
                     biogrid_eles.style("display", "none")
+                    totalLabel.style.display = "block"
+                    indFilter.style.display="block"
                     if (show) {
                         union_eles.filter(function(ele) {
                             return(ele.data("type")=="Direct") }).style("display", "none")
@@ -2077,8 +2244,14 @@
                 resetSliderMin(cur_layer)
                 var slider = document.getElementById("myRange");
                 var threshold=slider.value
-                filterEdges(threshold)
-                rerun_layout()
+                if (cur_layer != "union") {
+                    filterEdges(threshold)
+                } else {
+                    var thresholdR = document.getElementById("quantityR").value;
+                    var thresholdBG = document.getElementById("quantityBG").value;
+                    console.log("BG: "+thresholdBG+", R: "+thresholdR+", total: "+threshold)
+                    filterEdgesUnion(thresholdR, thresholdBG, threshold)                    
+                }
                 return false
             }
 
@@ -2091,6 +2264,7 @@
                     return new Promise((resolve) => {
                     setTimeout(() => {
                         switch_layer()
+                        rerun_layout()
                         resolve();
                     },ms)
                   })

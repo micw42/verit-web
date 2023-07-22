@@ -118,6 +118,11 @@ def clean_union(nodes_df, edges_df_reach, edges_df_bg):
     edges_df_bg_switched["files"] = edges_df_bg_switched["source"] + "_" + edges_df_bg_switched["target"] + ".txt"
     edges_df_bg_all=pd.concat([edges_df_bg, edges_df_bg_switched]).drop_duplicates()
     union_edges_df = pd.concat([edges_df_reach, edges_df_bg_all])
+    
+    # Retain thickness for each layer separately
+    bg_thickness = union_edges_df[union_edges_df["layer"] == "biogrid"][["source", "target", "thickness"]].rename(columns={"thickness": "thickness_bg"})
+    r_thickness = union_edges_df[union_edges_df["layer"] == "reach"][["source", "target", "thickness"]].rename(columns={"thickness": "thickness_r"})
+    
     # Sum the thicknesses together between reach and BIOGRID
     union_thickness = union_edges_df.groupby(["source_id", "target_id"]).apply(lambda x: x.thickness.sum())
     union_thickness = union_thickness.reset_index()
@@ -129,11 +134,17 @@ def clean_union(nodes_df, edges_df_reach, edges_df_bg):
         columns="thickness").rename(
         columns={0: "thickness"})
 
+    # Keep separated thicknesses for union layer to separately filter
+    union_edges_df = union_edges_df.merge(r_thickness, on=["source", "target"], how="outer")
+    union_edges_df = union_edges_df.merge(bg_thickness, on=["source", "target"], how="outer")
+
+    # Create edge width from sum of thickness
     union_edges_df["edge_width"] = union_edges_df["thickness"].apply(get_width)
     
     union_edges_df["layer"] = "union"
 
     edges_df = pd.concat([edges_df_reach, edges_df_bg, union_edges_df])
+    edges_df = edges_df.replace({np.nan: 0})
 
     return nodes_df, edges_df
 
@@ -176,20 +187,36 @@ def convert(nodes_df, edges_df):
                               }}
             
             elements.append(node_dict)
+            
         # Construct edges datatable
         edges_layer["edge_id"] = edges_layer.source.str.cat(edges_layer.target)
-        for i in range(len(edges_layer)):
-            erow = edges_layer.iloc[i]
-            edge_dict = {"data": {"id": erow.edge_id+erow.layer,
-                                  "source": erow.source+erow.layer, "target": erow.target+erow.layer,
-                                  "weight": float(erow.edge_width) * (erow.layer == "reach" or erow.layer=="union") + 10,
-                                  "color": erow.color,
-                                  "files": erow.files,
-                                  "thickness": int(erow.thickness),
-                                  "layer": erow.layer,
-                                  "type":erow.type
-                                 }}
-            elements.append(edge_dict)
+        if layer == "union":
+            for i in range(len(edges_layer)):
+                erow = edges_layer.iloc[i]
+                edge_dict = {"data": {"id": erow.edge_id+erow.layer,
+                                      "source": erow.source+erow.layer, "target": erow.target+erow.layer,
+                                      "weight": float(erow.edge_width) * (erow.layer == "reach" or erow.layer=="union") + 10,
+                                      "color": erow.color,
+                                      "files": erow.files,
+                                      "thickness": int(erow.thickness),
+                                      "thickness_bg": int(erow.thickness_bg),
+                                      "thickness_r": int(erow.thickness_r),
+                                      "layer": layer,
+                                      "type":erow.type}}
+                elements.append(edge_dict)
+
+        else:
+            for i in range(len(edges_layer)):
+                erow = edges_layer.iloc[i]
+                edge_dict = {"data": {"id": erow.edge_id+erow.layer,
+                                      "source": erow.source+erow.layer, "target": erow.target+erow.layer,
+                                      "weight": float(erow.edge_width) * (erow.layer == "reach" or erow.layer=="union") + 10,
+                                      "color": erow.color,
+                                      "files": erow.files,
+                                      "thickness": int(erow.thickness),
+                                      "layer": layer,
+                                      "type":erow.type}}
+                elements.append(edge_dict)
 
     return elements
 
