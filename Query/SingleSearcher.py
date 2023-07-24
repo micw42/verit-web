@@ -23,6 +23,8 @@ def name_query(name, nodes, full_df, string_type):
 
 def single_query(query, nodes, full_df):
     # Get found and unfound queries
+    full_df["Label"] = full_df["Label"].str.upper()
+    
     mapped_ids = full_df[full_df["Label"]==query].drop_duplicates(subset="Label")
 
     # Get only IDs and PR values

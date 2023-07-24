@@ -32,6 +32,7 @@ def multi_query(query_list, nodes, full_df, bg_nodes, string_type):
     if string_type == "gene":
         # Get found and unfound queries
         # full_df in this case is uniprot_df. uniprot_df is has 1-1 correspondence between Id and Label at this stage.
+        full_df["Label"] = full_df["Label"].str.upper()
         mapped_ids = full_df[full_df["Label"].isin(query_list)].drop_duplicates(subset=["Id", "Label"])
         
         print(bg_nodes.columns)
