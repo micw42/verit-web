@@ -414,8 +414,7 @@ def single_query_result(depth, query_type, string_type, methods=["GET"]):
         query_nodes,
         query_edges,
         query_bg_nodes,
-        query_bg_edges,
-        biogrid=string_type=="gene"
+        query_bg_edges
     )
     
     return render_template("single_query_result.html", elements=elements, string_type=string_type)

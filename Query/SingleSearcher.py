@@ -21,6 +21,7 @@ def name_query(name, nodes, full_df, string_type):
     
     return in_net
 
+
 def single_query(query, nodes, full_df):
     # Get found and unfound queries
     full_df["Label"] = full_df["Label"].str.upper()
@@ -38,6 +39,7 @@ def single_query(query, nodes, full_df):
     in_net["user_query"] = in_net["name"]
 
     return in_net
+
 
 def query(name, nodes, full_df, uniprot_df, string_type):
     if string_type=="gene":

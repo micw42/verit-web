@@ -149,6 +149,10 @@ def BIOGRID_query(G, edges_df, nodes_df, q, depth, thresh=20):
     #edges_df["color"] = 0
 
     query_list = list(q.values())
+    
+    # If the ID is not found in the BIOGRID nodes...
+    if pd.Series(query_list).isin(nodes_df["Id"]).sum() == 0:
+        return None, None
 
     if depth == 1:
         qedges_df = makeQuery(edges_df, query_list, thresh=0)

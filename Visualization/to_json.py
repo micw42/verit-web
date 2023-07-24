@@ -218,8 +218,8 @@ def convert(nodes_df, edges_df):
     return elements
 
 
-def clean(nodes_df_reach, edges_df_reach, nodes_df_bg=None, edges_df_bg=None, biogrid=False):
-    if biogrid:
+def clean(nodes_df_reach, edges_df_reach, nodes_df_bg=None, edges_df_bg=None):
+    if (nodes_df_bg is not None) and (edges_df_bg is not None):
         nodes_df_reach = clean_nodes(nodes_df_reach, layer="reach")
         edges_df_reach = clean_edges(edges_df_reach, layer="reach")
 
