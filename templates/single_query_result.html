@@ -185,7 +185,7 @@
         .loading {
         color:#4CAF50
         }
-        .loader.show {
+        .loader.tc_scheme {
         opacity: 1;
         }
         @keyframes spin {
@@ -335,15 +335,33 @@
           <br><br>
           </div>
            <div id="layer-div" style="padding-left:20px;">
-                    <h6>Network Layer:</h6>
-                    <select id="layer-button" onchange="run_switch_layer()" class="form-select"
-                        style="margin-left:20px;width:50%;" value="reach">
-                        <option value="reach">Reach</option>
-                        <option value="biogrid">BIOGRID</option>
-                        <option value="union">Reach + BIOGRID</option>
-                    </select>
-                <p id="legend" style="color:gray;margin-left:20px;margin-top:10px;display:none">
-                    Node outline legend: <br>
+                <h6>Network Layer:</h6>
+               
+                <select id="layer-button" onchange="run_switch_layer()" class="form-select"
+                    style="margin-left:20px;width:50%;" value="reach">
+                    <option value="reach">Reach</option>
+                    <option value="biogrid">BIOGRID</option>
+                    <option value="union">Reach + BIOGRID</option>
+                </select>
+               
+               
+               <div style="padding-left:20px;padding-top:10px;display:none" id="color-scheme">
+
+                    <h6 style="margin-right:5px;display:inline;">Dataset edge coloring:</h6>
+
+                    <div class="form-check form-switch" style="display:inline;">
+                        <input class="form-check-input" type="checkbox" role="switch" id="cs-button" onchange="run_change_scheme()" style="display:inline">
+                        <label class="form-check-label" for="cs-button" style="display:inline"></label>
+                    </div>
+
+                    <p style="color:grey;margin-right:20px;">
+                        Description: Toggle edge color to display dataset membership.
+                    </p>
+                </div>
+
+
+                <p id="legend" style="color:gray;margin-left:20px;margin-top:0px;display:none">
+                    Dataset membership legend: <br>
                     
                     <svg width="20" height="20">
                     <rect width="20" height="20" style="fill:#42a7f5;stroke-width:2;stroke:rgb(0,0,0)" />
@@ -370,6 +388,7 @@
                     </li>
                 </ul>
             </div>
+
 
          <hr>
                     
@@ -589,9 +608,9 @@
                  'display_id':'data(display_id)',
                  'x': 'data(x)',
                  'y': 'data(y)',
-                   'display':'data(display)',
-                                               "border-width": function (ele) { return ele.data("border_width"); },
-                            "border-color": function (ele) { return ele.data("border_color"); }
+                 'display':'data(display)',
+                 "border-width": function (ele) { return ele.data("border_width"); },
+                 "border-color": function (ele) { return ele.data("border_color"); }
                }
              }, {
                selector: 'edge',
@@ -608,7 +627,7 @@
                  'arrow-scale': 3,
                   'line-color': "data(color)",
                  'target-arrow-color': "data(color)",
-                   'display':'data(display)'
+                 'display':'data(display)'
                }
              },
              {
@@ -1168,7 +1187,7 @@
             }
                   
             var sliderR = document.getElementById("myRangeR");
-            var sliderBG = document.getElementById("myRangeBG")       
+            var sliderBG = document.getElementById("myRangeBG");
             sliderR.max = maxR
             sliderBG.max = maxBG    
             var input_qtyR = document.getElementById("quantityR");
@@ -1458,8 +1477,7 @@
                     slider.max = allMaxUnion
                     input_qty.max = allMaxUnion
                 }
-
-            } 
+            }
              
             //Switch between REACH, BG, and union
             function switch_layer() {
@@ -1484,6 +1502,7 @@
                     indFilter.style.display="none"
                     document.getElementById("kb_div").style.display = "none"
                     document.getElementById("legend").style.display = "none"
+                    document.getElementById("color-scheme").style.display = "none"
                     cy.edges().style('target-arrow-shape', 'none')
                 } else if (cur_layer=="reach") {
                     reach_eles.style("display", "element")
@@ -1493,6 +1512,7 @@
                     indFilter.style.display="none"
                     document.getElementById("kb_div").style.display = "block"
                     document.getElementById("legend").style.display = "none"
+                    document.getElementById("color-scheme").style.display = "none"
                     cy.edges().style('target-arrow-shape', 'triangle')
                     filterKBs(selected_kbs)
                 } else {
@@ -1503,9 +1523,10 @@
                     indFilter.style.display="block"
                     document.getElementById("kb_div").style.display = "none"
                     document.getElementById("legend").style.display = "block"
+                    document.getElementById("color-scheme").style.display = "block"
                     cy.edges().style('target-arrow-shape', 'triangle')
                 }
-                resetSliderMax()          
+                resetSliderMax()
                 resetSliderMin(cur_layer) 
                 var slider = document.getElementById("myRange");
                 var threshold=slider.value
@@ -1553,6 +1574,52 @@
              cy.edges().removeClass("colors");
            }
          }
+        
+        let tc_scheme = true
+        function run_change_scheme() {
+            const status = document.querySelector('#layer_loading');
+            const loader = document.querySelector('#layer_loader');
+            
+            const wait = (ms = 5000) => {
+                return new Promise((resolve) => {
+                setTimeout(() => {
+                    change_scheme(tc_scheme);
+                    rerun_layout();
+                    if (tc_scheme) {
+                        tc_scheme = false
+                    } else {
+                        tc_scheme = true
+                    }
+                    resolve();
+                },ms)
+              })
+            }
+            
+            if (tc_scheme) {
+                status.innerHTML = "Coloring by dataset...";
+            } else {
+                status.innerHTML = "Coloring by evidence...";
+            }
+            
+            loader.classList.toggle('tc_scheme', true);
+            wait(500)
+            .then(() => {
+                status.innerHTML = "";
+                loader.classList.toggle('tc_scheme', false);
+            })
+        }
+
+        function change_scheme(tc_scheme=true){
+            var cur_layer = document.getElementById("layer-button").value 
+            if (tc_scheme) {
+                cy.edges().style("line-color", function (ele) { return ele.data("dataset_color"); })
+                cy.edges().style("target-arrow-color", function (ele) { return ele.data("dataset_color"); })
+            
+            } else {
+                cy.edges().style("line-color", function (ele) { return ele.data("color"); })
+                cy.edges().style("target-arrow-color", function (ele) { return ele.data("color"); })
+            }
+        }
          
          function switch_color() {
            var x = document.getElementById("current-color");

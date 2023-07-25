@@ -141,10 +141,23 @@ def clean_union(nodes_df, edges_df_reach, edges_df_bg):
     # Create edge width from sum of thickness
     union_edges_df["edge_width"] = union_edges_df["thickness"].apply(get_width)
     
+    # -- Tri-color scheme for dataset membership --
+    union_is = union_edges_df.dropna().index
+    union_edges_df.loc[union_is, "layer"] = "union"
+    union_edges_df["dataset_color"] = union_edges_df["layer"]
+
+    union_edges_df["dataset_color"] = union_edges_df["dataset_color"].replace({
+        "reach": "#9d49f2",
+        "biogrid": "#77ed40",
+        "union": "#42a7f5"
+    })
+    # --- ---
+    
     union_edges_df["layer"] = "union"
 
     edges_df = pd.concat([edges_df_reach, edges_df_bg, union_edges_df])
-    edges_df = edges_df.replace({np.nan: 0})
+    edges_df[["thickness_r", "thickness_bg"]] = edges_df[["thickness_r", "thickness_bg"]].replace({np.nan: 0})
+    edges_df["dataset_color"] = edges_df["dataset_color"].replace({np.nan: "N/A"})
 
     return nodes_df, edges_df
 
@@ -202,6 +215,7 @@ def convert(nodes_df, edges_df):
                                       "thickness_bg": int(erow.thickness_bg),
                                       "thickness_r": int(erow.thickness_r),
                                       "layer": layer,
+                                      "dataset_color": erow.dataset_color,
                                       "type":erow.type}}
                 elements.append(edge_dict)
 

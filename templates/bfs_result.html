@@ -107,6 +107,9 @@
         .loader.show {
         opacity: 1;
         }
+        .loader.tc_scheme {
+        opacity: 1;
+        }
         @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
@@ -464,17 +467,33 @@
                     </li>
                 </ul>
             </div>
+
             
             <div id="layer-div" style="padding-left:20px;">
-                    <h6>Network Layer:</h6>
-                    <select id="layer-button" onchange="run_switch_layer()" class="form-select"
-                        style="margin-left:20px;width:50%;" value="reach">
-                        <option value="reach">Reach</option>
-                        <option value="biogrid">BIOGRID</option>
-                        <option value="union">Reach + BIOGRID</option>
-                    </select>
+                <h6>Network Layer:</h6>
+                <select id="layer-button" onchange="run_switch_layer()" class="form-select"
+                    style="margin-left:20px;width:50%;" value="reach">
+                    <option value="reach">Reach</option>
+                    <option value="biogrid">BIOGRID</option>
+                    <option value="union">Reach + BIOGRID</option>
+                </select>
+
+               <div style="padding-left:20px;padding-top:10px;display:none" id="color-scheme">
+
+                    <h6 style="margin-right:5px;display:inline;">Dataset edge coloring:</h6>
+
+                    <div class="form-check form-switch" style="display:inline;">
+                        <input class="form-check-input" type="checkbox" role="switch" id="cs-button" onchange="run_change_scheme()" style="display:inline">
+                        <label class="form-check-label" for="cs-button" style="display:inline"></label>
+                    </div>
+
+                    <p style="color:grey;margin-right:20px;">
+                        Description: Toggle edge color to display dataset membership.
+                    </p>
+                </div>
+                
                 <p id="legend" style="color:gray;margin-left:20px;margin-top:10px;display:none">
-                    Node outline legend: <br>
+                    Dataset membership legend: <br>
                     
                     <svg width="20" height="20">
                     <rect width="20" height="20" style="fill:#42a7f5;stroke-width:2;stroke:rgb(0,0,0)" />
@@ -2090,10 +2109,10 @@
                     cy.edges().filter("[type = 'Direct']").style("display", "none")
                     cy.nodes().filter("[type = 'Direct']").style("display", "none")
                 }
-                resetSliderMax(show)                
-            } 
-                  
-                  
+                resetSliderMax(show)
+            }
+
+
             //Add loader to showing direct linkers
             let show = true
             function run_show_direct() {
@@ -2212,6 +2231,7 @@
                     }
                     document.getElementById("kb_div").style.display = "none"
                     document.getElementById("legend").style.display = "none"
+                    document.getElementById("color-scheme").style.display = "none"
                     cy.edges().style('target-arrow-shape', 'none')
                 } else if (cur_layer=="reach") {
                     reach_eles.style("display", "element")
@@ -2225,6 +2245,7 @@
                     }
                     document.getElementById("kb_div").style.display = "block"
                     document.getElementById("legend").style.display = "none"
+                    document.getElementById("color-scheme").style.display = "none"
                     cy.edges().style('target-arrow-shape', 'triangle')
                 } else {
                     reach_eles.style("display", "none")
@@ -2238,6 +2259,7 @@
                     }
                     document.getElementById("kb_div").style.display = "none"
                     document.getElementById("legend").style.display = "block"
+                    document.getElementById("color-scheme").style.display = "block"
                     cy.edges().style('target-arrow-shape', 'triangle')
                 }
                 resetSliderMax(show)
@@ -2252,7 +2274,8 @@
                     console.log("BG: "+thresholdBG+", R: "+thresholdR+", total: "+threshold)
                     filterEdgesUnion(thresholdR, thresholdBG, threshold)                    
                 }
-                return false
+                
+                return true
             }
 
             
@@ -2312,6 +2335,52 @@
                  var layout = eles.layout({name: "preset"});
                  layout.run();
              }
+
+        let tc_scheme = true
+        function run_change_scheme() {
+            const status = document.querySelector('#layer_loading');
+            const loader = document.querySelector('#layer_loader');
+            
+            const wait = (ms = 5000) => {
+                return new Promise((resolve) => {
+                setTimeout(() => {
+                    change_scheme(tc_scheme);
+                    rerun_layout();
+                    if (tc_scheme) {
+                        tc_scheme = false
+                    } else {
+                        tc_scheme = true
+                    }
+                    resolve();
+                },ms)
+              })
+            }
+            
+            if (tc_scheme) {
+                status.innerHTML = "Coloring by dataset...";
+            } else {
+                status.innerHTML = "Coloring by evidence...";
+            }
+            
+            loader.classList.toggle('tc_scheme', true);
+            wait(500)
+            .then(() => {
+                status.innerHTML = "";
+                loader.classList.toggle('tc_scheme', false);
+            })
+        }
+
+        function change_scheme(tc_scheme=true){
+            var cur_layer = document.getElementById("layer-button").value 
+            if (tc_scheme) {
+                cy.edges().style("line-color", function (ele) { return ele.data("dataset_color"); })
+                cy.edges().style("target-arrow-color", function (ele) { return ele.data("dataset_color"); })
+            
+            } else {
+                cy.edges().style("line-color", function (ele) { return ele.data("color"); })
+                cy.edges().style("target-arrow-color", function (ele) { return ele.data("color"); })
+            }
+        }
 
 
         </script>
