@@ -921,33 +921,33 @@
                  resetSliderMin("reach")
             {% else %}
                 document.getElementById("layer-div").style.display = "block"
-            {% endif %}
+//             {% endif %}
             
-            //Alert if network was filtered
-            {% if filtered %}
-                const filtered = true
-            {% else %}
-                const filtered = false
-            {% endif %}
-            if (filtered) {
-                var modal = document.getElementById("warnModal");
-                var span = document.getElementsByClassName("close")[2];
-                modal.style.display = "block";
+//             //Alert if network was filtered
+//             {% if filtered %}
+//                 const filtered = true
+//             {% else %}
+//                 const filtered = false
+//             {% endif %}
+//             if (filtered) {
+//                 var modal = document.getElementById("warnModal");
+//                 var span = document.getElementsByClassName("close")[2];
+//                 modal.style.display = "block";
             
-                window.onclick = function (event) {
-                    if (event.target == modal) {
-                        var modalBody = document.getElementById("modalBody");
-                        modalBody.scrollTop = 0;
-                        modal.style.display = "none";
-                    }
-                }
+//                 window.onclick = function (event) {
+//                     if (event.target == modal) {
+//                         var modalBody = document.getElementById("modalBody");
+//                         modalBody.scrollTop = 0;
+//                         modal.style.display = "none";
+//                     }
+//                 }
             
-                span.onclick = function () {
-                    var modalBody = document.getElementById("modalBody");
-                    modalBody.scrollTop = 0;
-                    modal.style.display = "none";
-                }
-            } 
+//                 span.onclick = function () {
+//                     var modalBody = document.getElementById("modalBody");
+//                     modalBody.scrollTop = 0;
+//                     modal.style.display = "none";
+//                 }
+//             } 
             
             var currently_querying = false
             

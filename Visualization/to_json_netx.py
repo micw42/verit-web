@@ -8,9 +8,10 @@ import networkx as nx
 from Visualization.layeredConcentric import layered_concentric, cluster_layered_concentric
 
 
+# Questioning
 def filter_graph():
-    nodes_df=pd.read_csv("query_nodes.csv",header = 0)
-    edges_df = pd.read_csv("query_edges.csv",header = 0)
+    nodes_df=pd.read_csv("query_nodes.csv", header = 0)
+    edges_df = pd.read_csv("query_edges.csv", header = 0)
     
     edges_df = edges_df[edges_df["thickness"] > 20]
     all_ids = list(np.union1d(edges_df["source"], edges_df["target"]))

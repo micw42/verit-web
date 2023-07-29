@@ -67,10 +67,40 @@ def run_nx(query_pairs, G, qtype, max_linkers):
 #qtype: all_simple_paths or all_shortest_paths
 fp=open('memory_profiler_RB_E2F.log','w')
 @profile(stream=fp)
-def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get_direct_linkers, db_df, access_key, secret_key, bucket="all-abstract-ev", parallel_threshold=40, bg_edges=None, min_thickness=20):
+def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get_direct_linkers, db_df,
+          access_key, secret_key, bucket="all-abstract-ev",
+          parallel_threshold=40, bg_edges=None, min_thickness=20):
+    
+    ### Debugging
+    with open("temppkl/G.pkl", "wb") as p:
+        pickle.dump(G, p)
+    with open("temppkl/edges_df.pkl", "wb") as p:
+        pickle.dump(edges_df, p)
+    with open("temppkl/nodes_df.pkl", "wb") as p:
+        pickle.dump(nodes_df, p)
+    with open("temppkl/queries_id.pkl", "wb") as p:
+        pickle.dump(queries_id, p)
+    with open("temppkl/max_linkers.pkl", "wb") as p:
+        pickle.dump(max_linkers, p)
+    with open("temppkl/qtype.pkl", "wb") as p:
+        pickle.dump(qtype, p)
+    with open("temppkl/query_type.pkl", "wb") as p:
+        pickle.dump(query_type, p)
+    with open("temppkl/get_direct_linkers.pkl", "wb") as p:
+        pickle.dump(get_direct_linkers, p)
+    with open("temppkl/db_df.pkl", "wb") as p:
+        pickle.dump(db_df, p)
+    with open("temppkl/parallel_threshold.pkl", "wb") as p:
+        pickle.dump(parallel_threshold, p)
+    with open("temppkl/min_thickness.pkl", "wb") as p:
+        pickle.dump(min_thickness, p)
+    ###
+    
+    # QA steps
     nodes_df = nodes_df.drop_duplicates(subset='Id', keep="first")
     edges_df = edges_df.drop_duplicates(subset=['source', 'target'], keep="first")
-    if query_type == "name":
+
+    if (query_type == "name") | (query_type == "gene"):
         query_list = list(queries_id.values())    # Expecting queries_id to be a dictionary. Each element is a list.    
         # Get all possible pairs of queries (note: each query is a list of IDs)
         li_perm = list(it.permutations(query_list, 2))
@@ -80,17 +110,18 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
         q_combinations = [item for sublist in q_combinations for item in sublist]
         # Unroll list of query IDs
         query_list = [item for sublist in query_list for item in sublist]
+
     elif query_type == "id":
         query_list = queries_id["QUERY_ID"].split(",")
         q_combinations = list(it.permutations(query_list, 2))
-        
-    #recursive_ids = [(x,x) for x in query_list]
-    #q_combinations.extend(query_list)
 
+    # Parallel processing if large number of queries
     if len(q_combinations) >= parallel_threshold:
         start = time.time()
-        source_targets = Parallel(n_jobs=4, require="sharedmem", verbose=10)(delayed(run_nx)(pair_chunk, G, qtype, max_linkers)
-                                            for pair_chunk in np.array_split(np.array(q_combinations), len(q_combinations)))
+        source_targets = Parallel(n_jobs=4, require="sharedmem", verbose=10)(
+            delayed(run_nx)(
+                pair_chunk, G, qtype, max_linkers) for pair_chunk in np.array_split(
+                np.array(q_combinations), len(q_combinations)))
 
         sources = [x[0] for x in source_targets]
         targets = [x[1] for x in source_targets]
@@ -101,166 +132,163 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     elif len(q_combinations) < parallel_threshold:
         sources, targets = run_nx(q_combinations, G, qtype, max_linkers)
 
+    #### ####  #### ####
+
+    # Construct qedges_df predecessor
     st_dict = {"source": sources, "target": targets}
-    st_df = pd.DataFrame(st_dict).drop_duplicates()
+    qedges_df = pd.DataFrame(st_dict).drop_duplicates()
 
-    # Making edges
-    rel_df = st_df.merge(edges_df, on=["source", "target"], how="left")
+    # Get reverse direction also (not all are expected to exist in edges_df)
+    qedges_df = pd.concat([qedges_df, qedges_df.rename(columns={"source": "target", "target": "source"})])
 
-    # Bidirectional edges
-    opp_df = rel_df.merge(edges_df, left_on=["source", "target"], right_on=["target","source"])
-    opp_df = opp_df.drop(labels=["source_x","target_x","color_x", "thickness_x"], axis=1).rename(columns={"source_y":"source", "target_y":"target", "color_y":"color", "thickness_y":"thickness"})
-    rel_df = pd.concat([rel_df, opp_df]).drop_duplicates(subset=["source", "target"])
-    
-    # auto-regulation
-    auto_edges = edges_df[(edges_df["source"].isin(query_list)) & (edges_df["target"].isin(query_list)) & (edges_df["source"]==edges_df["target"])]
-    rel_df = pd.concat([rel_df, auto_edges]).drop_duplicates(subset=["source", "target"])
+    # Get autoregulation also (not all expected to exist in edges_df)
+    autoreg_df = pd.DataFrame.from_dict({
+        "source": query_list,
+        "target": query_list
+    })
+    qedges_df = pd.concat([qedges_df, autoreg_df])
 
-    # Create nodes df
-    nodes = list(it.chain(*q_combinations)) # List of all query IDs
-    # Add found nodes
-    nodes.extend(rel_df["source"].tolist())
-    nodes.extend(rel_df["target"].tolist())
-    nodes = list(set(nodes))
-    nodes = pd.DataFrame({"Id": nodes})
-    nodes = nodes.merge(nodes_df, on="Id", how="inner")[["Id", "Label", "KB"]]
+    # only now retrieve the edges that exist and their attributes
+    qedges_df = qedges_df.merge(edges_df, how="inner")
 
-    # Get all direct connections to query nodes that were not already found by query
-    # (user has option to show them in the visualization)
-    found_ids = set(pd.concat([rel_df.source, rel_df.target])) - set(query_list)
-    links = edges_df[((edges_df["source"].isin(query_list)) & ~(edges_df["target"].isin(found_ids))) |
-                     ((edges_df["target"].isin(query_list)) & ~(edges_df["source"].isin(found_ids)))]
+    # Find direct neighbors to the query list
+    # This will include duplicates to the previous steps
+    found_ids = set(pd.concat([qedges_df.source, qedges_df.target])) - set(query_list)
+    links = edges_df[(edges_df["source"].isin(query_list)) |
+                     (edges_df["target"].isin(query_list))]
 
-    # Filter thickness of direct connections so visualization isn't crowded (arbitrarily selected threshold)
-    links = links[links["thickness"] > min_thickness]
-    
-    # Add edges found by biogrid query
-    if bg_edges is not None:
-        bg_edges = bg_edges[["source", "target"]]
-        bg_switched = bg_edges.rename(columns={"source":"target", "target":"source"}) 
-        bg_edges = pd.concat([bg_edges, bg_switched])
-        found_edges = bg_edges.merge(edges_df, on=["source", "target"], how="inner")
-        links = pd.concat([links, found_edges]).drop_duplicates(subset=["source", "target"])
+    # Add direct linkers to output edges
+    qedges_df = pd.concat([qedges_df, links])
 
-    # Nodes directly targeted by query nodes
-    targets = links[(links["source"].isin(query_list)) & ~(links["target"].isin(query_list))]
-    targets = targets[["target"]]
-    
-    # Nodes that directly target query nodes
-    sources = links[(links["target"].isin(query_list)) & ~(links["source"].isin(query_list))]
-    sources = sources[["source"]]
-    targets = targets.rename(columns = {"target":"Id"})
-    sources = sources.rename(columns = {"source":"Id"})
-    full_nodes = pd.concat([targets, sources]).drop_duplicates(subset = ["Id"])
-    full_nodes = full_nodes.merge(nodes_df, on = "Id", how = "inner")
-    full_nodes = full_nodes[["Id", "Label", "KB"]]
+    # We expect duplicates to exist
+    qedges_df = qedges_df.drop_duplicates()
 
-    # Add direct connection nodes to the rest of the nodes
-    nodes = pd.concat([nodes, full_nodes])
+    # Construct files column
+    qedges_df["files"] = qedges_df.apply(lambda x: f"{x.source}_{x.target}.txt", axis=1)
 
-    # Add direct connection edges to the rest of the edges
-    rel_df = pd.concat([rel_df, links]).drop_duplicates(subset = ["source", "target"])
-    rel_df = rel_df[["source", "target", "color", "thickness"]]
-    
-    # Add files to edges
-    rel_df["files"] = rel_df.apply(lambda x: f"{x.source}_{x.target}.txt", axis=1)
-        
-    # Add synonyms to the nodes
-    nodes = nodes.merge(db_df, left_on="Id", right_on="id", how="left")
-    nodes["name"] = nodes["name"].fillna(nodes["Label"])
-    nodes["id"] = nodes["id"].fillna(nodes["Id"])
-    nodes["name"] = nodes["name"].fillna("NAN")
+    # Retrieve nodes
+    qnodes_df = pd.DataFrame(pd.concat([qedges_df.source, qedges_df.target]).drop_duplicates(), columns=["Id"])
+    qnodes_df = qnodes_df.merge(nodes_df, on = "Id", how = "inner")
+
+    # Retrieve node synonyms
+    qnodes_df = qnodes_df.merge(db_df, left_on="Id", right_on="id", how="left")
+    qnodes_df["name"] = qnodes_df["name"].fillna(qnodes_df["Label"])
+    qnodes_df["id"] = qnodes_df["id"].fillna(qnodes_df["Id"])
+
+    # Aggregate synonyms into one column
     syn_concat = lambda x: "%%".join(x)  # Separate each synonym with %%
     aggregation_functions = {'Id': 'first', 'Label':"first", "KB":"first", "name":syn_concat}
-    nodes = nodes.groupby('id').aggregate(aggregation_functions)
-    
+    qnodes_df = qnodes_df.groupby('id').aggregate(aggregation_functions)
+
+
+    #### Unchanged ####
     # Fix the node labels to account for combined IDs (can ignore)
     if query_type == "name":
         # Make df with user queries and corresponding IDs
         name_df = pd.DataFrame([(key, var) for (key, L) in queries_id.items() for var in L],
                  columns=['key', 'variable'])
         # Fix edges table
-        src = rel_df[["source"]]
+        src = qedges_df[["source"]]
         merged_src = pd.merge(src, name_df, how="left", left_on="source", right_on = "variable")["key"].tolist()
-        tar = rel_df[["target"]]
+        tar = qedges_df[["target"]]
         merged_tar = pd.merge(tar, name_df, how="left", left_on="target", right_on = "variable")["key"].tolist()
-        rel_df["merged_source"] = merged_src
-        rel_df["merged_target"] = merged_tar
-        rel_df.merged_source.fillna(rel_df.source, inplace=True)
-        rel_df.merged_target.fillna(rel_df.target, inplace=True)
+
+        qedges_df["merged_source"] = merged_src
+        qedges_df["merged_target"] = merged_tar
+        qedges_df.merged_source.fillna(qedges_df.source, inplace=True)
+        qedges_df.merged_target.fillna(qedges_df.target, inplace=True)
         rename_dict1 = {"source":"orig_source", "target":"orig_target"}
         rename_dict2 = {"merged_source":"source", "merged_target":"target"}
-        rel_df = rel_df.rename(columns=rename_dict1).rename(columns=rename_dict2)
-        
+        qedges_df = qedges_df.rename(columns=rename_dict1).rename(columns=rename_dict2)
+
         # Fix nodes table
-        id_converted = pd.merge(nodes, name_df, how="left", left_on="Id", right_on="variable")["key"]
-        nodes["Id2"] = id_converted.tolist()
-        nodes["Label2"] = id_converted.tolist()
-        nodes.Id2.fillna(nodes.Id, inplace=True)
-        nodes.Label2.fillna(nodes.Label, inplace=True)
-        nodes = nodes.drop(labels = ["Label", "Id"], axis=1)
+        id_converted = pd.merge(qnodes_df, name_df, how="left", left_on="Id", right_on="variable")["key"]
+        qnodes_df["Id2"] = id_converted.tolist()
+        qnodes_df["Label2"] = id_converted.tolist()
+        qnodes_df.Id2.fillna(qnodes_df.Id, inplace=True)
+        qnodes_df.Label2.fillna(qnodes_df.Label, inplace=True)
+        qnodes_df = nodes.drop(labels = ["Label", "Id"], axis=1)
         rename_dict = {"Id2":"Id",
                       "Label2":"Label"}
-        nodes = nodes.rename(columns= rename_dict)
-        
+        qnodes_df = qnodes_df.rename(columns= rename_dict)
+
         # Combine synonyms again for nodes that were just fixed
         syn_concat = lambda x: "%%".join(x)
         aggregation_functions = {"Label":"first", "KB":"first", 'name': syn_concat}
-        nodes = nodes.groupby("Id").aggregate(aggregation_functions).reset_index()
+        qnodes_df = qnodes_df.groupby("Id").aggregate(aggregation_functions).reset_index()
 
         # For edges connecting nodes that correspond to multiple IDs,
         # take average of all color values (weighted by thickness)
-        rel_df = rel_df[["color", "thickness", "source", "target", "orig_source", "orig_target", "files"]]
-        rel_df["color2"] = rel_df["color"] * rel_df["thickness"]
+        qedges_df = qedges_df[["color", "thickness", "source", "target", "orig_source", "orig_target", "files"]]
+        rel_df["color2"] = qedges_df["color"] * qedges_df["thickness"]
         id_concat = lambda x: "%%".join(x) # Concat all source and target IDs of merged nodes
         aggregation_functions = {'color2': 'sum','thickness': 'sum', "orig_source":id_concat, "orig_target":id_concat, "files":id_concat}
-        rel_df = rel_df.groupby(["source", "target"]).aggregate(aggregation_functions).reset_index()
-        rel_df["color"] = rel_df["color2"]/rel_df["thickness"]
-        
+        qedges_df = rel_df.groupby(["source", "target"]).aggregate(aggregation_functions).reset_index()
+        qedges_df["color"] = qedges_df["color2"]/qedges_df["thickness"]
+
         name_df["variable"] = name_df.groupby(['key'])['variable'].transform(lambda x: ', '.join(x))
         name_df = name_df.drop_duplicates()
-        source_ids = pd.merge(rel_df, name_df, how="left", left_on="source", right_on = "key")["variable"].tolist()
-        target_ids = pd.merge(rel_df, name_df, how="left", left_on="target", right_on = "key")["variable"].tolist()
-        rel_df["source_id"] = source_ids
-        rel_df["target_id"] = target_ids
-        rel_df.source_id.fillna(rel_df.source, inplace=True)
-        rel_df.target_id.fillna(rel_df.target, inplace=True)
-        rel_df = rel_df[["color", "thickness",
+        source_ids = pd.merge(qedges_df, name_df, how="left", left_on="source", right_on = "key")["variable"].tolist()
+        target_ids = pd.merge(qedges_df, name_df, how="left", left_on="target", right_on = "key")["variable"].tolist()
+        qedges_df["source_id"] = source_ids
+        qedges_df["target_id"] = target_ids
+        qedges_df.source_id.fillna(rel_df.source, inplace=True)
+        qedges_df.target_id.fillna(rel_df.target, inplace=True)
+        qedges_df = qedges_df[["color", "thickness",
                          "files", "source", "target", "source_id", "target_id"]]
-        display_ids = pd.merge(nodes, name_df, how="left", left_on="Id", right_on="key")["variable"].tolist()
-        nodes["display_id"] = display_ids
-        nodes.display_id.fillna(nodes.Id, inplace=True)
-        nodes = nodes[["Id", "Label", "KB", "name", "display_id"]]
+        display_ids = pd.merge(qnodes_df, name_df, how="left", left_on="Id", right_on="key")["variable"].tolist()
+        qnodes_df["display_id"] = display_ids
+        qnodes_df.display_id.fillna(qnodes_df.Id, inplace=True)
+        qnodes_df = qnodes_df[["Id", "Label", "KB", "name", "display_id"]]
+
     else:
-        rel_df["source_id"] = rel_df["source"]
-        rel_df["target_id"] = rel_df["target"]
-        rel_df = rel_df[["color", "thickness",
-                 "files", "source", "target", "source_id", "target_id"]]
-        nodes["display_id"] = nodes["Id"]
-        
+        # New columns for source and target (Not sure what it does)
+        qedges_df["source_id"] = qedges_df["source"]
+        qedges_df["target_id"] = qedges_df["target"]
+
+        qnodes_df["display_id"] = qnodes_df["Id"]
+
+
     # Indicate whether each node is query (part of user query list),
     # linker (found by Netx algorithm), or direct (direct connection to query node not found by Netx)
     # For visualization
-    if query_type == "name":
-        nodes["Type"] = ["Query" if x in queries_id.keys() else ("Linker" if x in found_ids else "Direct") for x in nodes['Id']]
-    elif query_type == "id":
-        nodes["Type"] = ["Query" if x in query_list else ("Linker" if x in found_ids else "Direct") for x in nodes['Id']]
+    if (query_type == "name") :
+        qnodes_df["Type"] = ["Query" if x in queries_id.keys() 
+                         else ("Linker" if x in found_ids 
+                               else "Direct") 
+                         for x in qnodes_df['Id']]
 
-    nodes["Label"] = nodes["Label"].str.replace("SPACE", " ")
-    nodes = nodes[["Id", "Label", "KB", "name", "Type", "display_id"]]
+    elif (query_type == "id") | (query_type == "gene"):
+        qnodes_df["Type"] = ["Query" if x in query_list 
+                         else ("Linker" if x in found_ids 
+                               else "Direct") 
+                         for x in qnodes_df['Id']]
 
-    nodes_cleaned = nodes.copy()
-    edges_cleaned = rel_df.copy()
+
+    # nodes["Label"] = nodes["Label"].str.replace("SPACE", " ")
+    # nodes = nodes[["Id", "Label", "KB", "name", "Type", "display_id"]]
+
+    #### Unchanged ####
+    nodes_cleaned = qnodes_df.copy()
+    edges_cleaned = qedges_df.copy()
+
     nodes_cleaned['name'] = nodes_cleaned['name'].str.replace('%%',', ')
     nodes_cleaned = nodes_cleaned.rename(columns={"name": "Synonyms"})
+
     edges_cleaned = edges_cleaned.merge(nodes_cleaned, left_on="source", right_on="Id").drop(labels="Id", axis=1).rename(columns={"Label":"source_name"})
     edges_cleaned = edges_cleaned.merge(nodes_cleaned, left_on="target", right_on="Id").drop(labels="Id", axis=1).rename(columns={"Label":"target_name"})
     edges_cleaned = edges_cleaned.rename(columns={"color":"score", "thickness":"evidence_count"})
     edges_cleaned = edges_cleaned[["source_id", "source_name", "target_id", "target_name", "evidence_count", "score"]]
+
     nodes_cleaned = nodes_cleaned.drop(labels="Id", axis=1).rename(columns={"display_id":"Id"})
     nodes_cleaned = nodes_cleaned[["Id", "Label", "KB", "Synonyms", "Type"]]
     
-    return nodes, rel_df, nodes_cleaned, edges_cleaned    
+    with open("temppkl/qnodes_df.pkl", "wb") as p:
+        pickle.dump(qnodes_df, p)
+    with open("temppkl/qedges_df.pkl", "wb") as p:
+        pickle.dump(qedges_df, p)
+    
+    return qnodes_df, qedges_df, nodes_cleaned, edges_cleaned    
 
 
 def BIOGRID_query(G, edges_df, nodes_df, queries_id,

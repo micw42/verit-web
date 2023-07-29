@@ -111,9 +111,12 @@ def get_xy(n, n_fl_co=20, r=1050, offset_x=0, offset_y=0):
     n_fl_co = int(n_fl_co)
     r = float(r)
 
-    assert n > 0, f"{n}: Total number of nodes must be an integer > 0"
+    assert n >= 0, f"{n}: Total number of nodes must be an integer > 0"
     assert n_fl_co > 0, f"{n_fl_co}: At least 1 node in the first layer is required"
     assert r > 0, f"{r}: r must be a float > 0"
+    
+    if n == 0:
+        return None, None, None, None
 
     R_arr, n_arr = even_spacing_method(n_tot, n_fl_co, r)
     Xs, Ys = node_coords(R_arr, n_arr)
@@ -306,7 +309,8 @@ def cluster_layered_concentric(qnodes_df, qedges_df, r=500, icp=10000):
         Xs, Ys, _, _ = get_xy(clust_sizes[i]-1, offset_x=cXs[i], offset_y=cYs[i], r=r)
 
         full_Xs.append(cXs[i]); full_Ys.append(cYs[i])
-        full_Xs.extend(Xs); full_Ys.extend(Ys)
+        if Xs is not None:
+            full_Xs.extend(Xs); full_Ys.extend(Ys)
     
     qnodes_df["clc_X"] = full_Xs; qnodes_df["clc_Y"] = full_Ys
     
