@@ -368,11 +368,6 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, min_thickness,
             min_thickness=min_thickness
         )
     
-    with open("temppkl/query_edges.pkl", "wb") as p:
-        pickle.dump(query_edges, p)
-    with open("temppkl/query_nodes.pkl", "wb") as p:
-        pickle.dump(query_nodes, p)
-    
     elements = to_json_netx.clean(query_nodes, query_edges, query_bg_nodes, query_bg_edges, biogrid=string_type=="gene")        
     
     cache.set(f"nodes_cleaned_{user_id}", nodes_cleaned)
