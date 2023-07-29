@@ -250,7 +250,8 @@ def make_bfs_query(string_type, query_type):
                                 qtype="all_shortest_paths",
                                 string_type=string_type,
                                 query_type=query_type,
-                                get_direct_linkers = True)
+                                min_thickness=20,
+                                get_direct_linkers=True)
                        )
 
     if request.method=="POST":
