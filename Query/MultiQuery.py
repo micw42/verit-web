@@ -71,31 +71,6 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
           access_key, secret_key, bucket="all-abstract-ev",
           parallel_threshold=40, bg_edges=None, min_thickness=20):
     
-    ### Debugging
-    with open("temppkl/G.pkl", "wb") as p:
-        pickle.dump(G, p)
-    with open("temppkl/edges_df.pkl", "wb") as p:
-        pickle.dump(edges_df, p)
-    with open("temppkl/nodes_df.pkl", "wb") as p:
-        pickle.dump(nodes_df, p)
-    with open("temppkl/queries_id.pkl", "wb") as p:
-        pickle.dump(queries_id, p)
-    with open("temppkl/max_linkers.pkl", "wb") as p:
-        pickle.dump(max_linkers, p)
-    with open("temppkl/qtype.pkl", "wb") as p:
-        pickle.dump(qtype, p)
-    with open("temppkl/query_type.pkl", "wb") as p:
-        pickle.dump(query_type, p)
-    with open("temppkl/get_direct_linkers.pkl", "wb") as p:
-        pickle.dump(get_direct_linkers, p)
-    with open("temppkl/db_df.pkl", "wb") as p:
-        pickle.dump(db_df, p)
-    with open("temppkl/parallel_threshold.pkl", "wb") as p:
-        pickle.dump(parallel_threshold, p)
-    with open("temppkl/min_thickness.pkl", "wb") as p:
-        pickle.dump(min_thickness, p)
-    ###
-    
     # QA steps
     nodes_df = nodes_df.drop_duplicates(subset='Id', keep="first")
     edges_df = edges_df.drop_duplicates(subset=['source', 'target'], keep="first")
@@ -282,11 +257,6 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
 
     nodes_cleaned = nodes_cleaned.drop(labels="Id", axis=1).rename(columns={"display_id":"Id"})
     nodes_cleaned = nodes_cleaned[["Id", "Label", "KB", "Synonyms", "Type"]]
-    
-    with open("temppkl/qnodes_df.pkl", "wb") as p:
-        pickle.dump(qnodes_df, p)
-    with open("temppkl/qedges_df.pkl", "wb") as p:
-        pickle.dump(qedges_df, p)
     
     return qnodes_df, qedges_df, nodes_cleaned, edges_cleaned    
 
