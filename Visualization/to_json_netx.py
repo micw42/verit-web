@@ -5,12 +5,13 @@ import seaborn as sns
 from operator import itemgetter
 import networkx as nx
 
-from Visualization import layeredConcentric
+from Visualization.layeredConcentric import layered_concentric, cluster_layered_concentric
 
 
+# Questioning
 def filter_graph():
-    nodes_df=pd.read_csv("query_nodes.csv",header = 0)
-    edges_df = pd.read_csv("query_edges.csv",header = 0)
+    nodes_df=pd.read_csv("query_nodes.csv", header = 0)
+    edges_df = pd.read_csv("query_edges.csv", header = 0)
     
     edges_df = edges_df[edges_df["thickness"] > 20]
     all_ids = list(np.union1d(edges_df["source"], edges_df["target"]))
@@ -169,34 +170,27 @@ def convert(nodes_df, edges_df):
 
     for layer in layers:
         nodes_layer = nodes_df[nodes_df.layer == layer].copy()
-        nodes_layer = nodes_layer.sort_values('Type', ascending=False)
         edges_layer = edges_df[edges_df.layer == layer].copy()
 
-        vc_nodes = nodes_layer.Type.value_counts()
-
-        n_query = vc_nodes["Query"]
-        n_links = vc_nodes.sum() - vc_nodes["Query"]
-
-        # Compute X and Y for concentric layout
-        Xs = []; Ys = []
-
-        r1 = 500
-        Xs_q, Ys_q, R_arr_q, n_arr_q = layeredConcentric.get_xy(n_query, r=r1)
-        Xs.extend(Xs_q); Ys.extend(Ys_q)
-
-        r2 = 100
-        n_fl_co_d = 2 * np.pi * (R_arr_q[-1] + 3*r1) / (2 * r2)
-        Xs_d, Ys_d, R_arr_d, n_arr_d = layeredConcentric.get_xy(n_links, n_fl_co_d, r=r2)
-        Xs.extend(Xs_d); Ys.extend(Ys_d)
-
+        # Compute layered concentric and cluster layered concentric coordinates
+        nodes_layer = layered_concentric(nodes_layer)
+        nodes_layer = cluster_layered_concentric(
+            nodes_layer,
+            edges_layer,
+            r=150,
+            icp=1000
+        )
 
         # Construct nodes datatable
         for i in range(len(nodes_layer)):
             ndrow = nodes_layer.iloc[i]
-            node_dict={"data":{"id":ndrow["Id"]+ndrow["layer"], "label":ndrow.Label, "KB":ndrow.KB, "type":ndrow["Type"],
-                               "syn":ndrow["name"], "color":ndrow.Color, "classes":ndrow["class"],
-                               "display":ndrow.display, "orig_display":ndrow.display, "display_id":ndrow.display_id, 
-                               "layer":ndrow.layer, "lcX": Xs[i], "lcY": Ys[i], "border_color":ndrow["border_color"], "border_width":int(ndrow["border_width"])
+            node_dict={"data":{"id":ndrow["Id"]+ndrow["layer"], "label":ndrow.Label,
+                               "KB":ndrow.KB, "type":ndrow["Type"], "syn":ndrow["name"],
+                               "color":ndrow.Color, "classes":ndrow["class"], "display":ndrow.display,
+                               "orig_display":ndrow.display, "display_id":ndrow.display_id, "layer":ndrow.layer,
+                               "border_color":ndrow["border_color"], "border_width":int(ndrow["border_width"]),
+                               "lcX": float(ndrow.lc_X), "lcY": float(ndrow.lc_Y),
+                               "clcX": float(ndrow.clc_X), "clcY": float(ndrow.clc_Y)
                               }}
             
             elements.append(node_dict)

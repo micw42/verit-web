@@ -1,5 +1,7 @@
 import numpy as np
 import sys
+import networkx as nx
+from numpy.lib.stride_tricks import sliding_window_view
 
 
 def get_ring_coord(n, R, offset=False):
@@ -49,7 +51,7 @@ def even_number_method(n, r, layers=1):
 def even_spacing_method(n_tot, n_fl_co, r):
     '''
     Get radius values for each layer given {n_tot} nodes with {r} radius each. 
-    The first layer is guaranteed to have at most {n_fl_co} nodes.
+    The first layer is guaranteed to have at most {n_fl_co} nodes (number of first-layer cutoff).
     This method ensures each layer is tightly packed on its diameter, except the outermost one.
     
     This has the potential to be expanded on where n_fl_co is calculated with the outermost layer's
@@ -104,16 +106,212 @@ def node_coords(R_arr, n_arr):
     return Xs, Ys
 
 
-def get_xy(n, n_fl_co=20, r=1050):
+def get_xy(n, n_fl_co=20, r=1050, offset_x=0, offset_y=0):
     n_tot = int(n)
     n_fl_co = int(n_fl_co)
     r = float(r)
 
-    assert n > 0, f"{n}: Total number of nodes must be an integer > 0"
+    assert n >= 0, f"{n}: Total number of nodes must be an integer > 0"
     assert n_fl_co > 0, f"{n_fl_co}: At least 1 node in the first layer is required"
     assert r > 0, f"{r}: r must be a float > 0"
+    
+    if n == 0:
+        return None, None, None, None
 
     R_arr, n_arr = even_spacing_method(n_tot, n_fl_co, r)
     Xs, Ys = node_coords(R_arr, n_arr)
+    
+    Xs = Xs + offset_x
+    Ys = Ys + offset_y
 
     return Xs, Ys, R_arr, n_arr
+
+
+def layered_concentric(qnodes_df):
+    qnodes_df = qnodes_df.sort_values("Type", ascending=False)
+    vc_nodes = qnodes_df.Type.value_counts()
+
+    n_query = vc_nodes["Query"]
+    n_links = vc_nodes.sum() - vc_nodes["Query"]
+
+    # Compute X and Y for concentric layout
+    Xs = []; Ys = []
+
+    r1 = 500
+    Xs_q, Ys_q, R_arr_q, n_arr_q = get_xy(n_query, r=r1)
+    Xs.extend(Xs_q); Ys.extend(Ys_q)
+
+    r2 = 100
+    n_fl_co_d = 2 * np.pi * (R_arr_q[-1] + 3*r1) / (2 * r2)
+    Xs_d, Ys_d, R_arr_d, n_arr_d = get_xy(n_links, n_fl_co_d, r=r2)
+    Xs.extend(Xs_d); Ys.extend(Ys_d)
+    
+    qnodes_df["lc_X"] = Xs; qnodes_df["lc_Y"] = Ys
+    
+    return qnodes_df
+
+
+def assign_cluster(qedges_df, qnodes_df):
+    ''' Assign each node to a query "cluster"
+    Argument:
+        qedges_df (pd.DataFrame): edge dataframe for query
+        qnodes_df (pd.DataFrame): node dataframe for query
+    Returns:
+        qnodes_df (pd.DataFrame): updated nodes dataframe with extra "clust" column
+        clust_sizes(pd.Series): size of each query cluster
+    '''
+    qnodes_df = qnodes_df.reset_index(drop=True)
+    qedges_df = qedges_df.reset_index(drop=True)
+    
+    # Prepare the cluster column. Note: query nodes will have their own Id as their cluster.
+    qnodes_df["clust"] = qnodes_df["Id"]
+
+    qG = nx.from_pandas_edgelist(qedges_df, edge_attr=True, source="source_id", target="target_id", create_using=nx.Graph())
+    adj_mat = nx.adjacency_matrix(qG, nodelist=qnodes_df["Id"], weight="thickness")
+
+    # Get query and non-query nodes, construct query-non-query adjacency matrix
+    queries = qnodes_df[qnodes_df["Type"] == "Query"]["Id"]
+    q_i = np.array(queries.index)
+    nq_i = np.setdiff1d(range(len(qnodes_df)), q_i)
+    adj_mat = adj_mat[np.ix_(nq_i, q_i)]
+
+    # Divide columns by column sums to normalize over each query node's baseline "popularity"
+    colsum = np.sum(adj_mat, axis=0)
+    adj_mat = np.nan_to_num(adj_mat/colsum, 0)
+
+    # Assign each non-query node to a query node
+    assign = np.asarray(np.argmax(adj_mat, axis=1).squeeze()).squeeze()
+    assign = queries.reset_index(drop=True)[assign]    # Now want to index specific to the list of queries
+    assign.index = nq_i
+    qnodes_df.loc[nq_i,"clust"] = assign
+    
+    clust_sizes = qnodes_df.groupby("clust").size().sort_values(ascending=False)
+    
+    # Sort nodes table to be in the order of assigning X and Y coordinates
+    qnodes_df.clust = qnodes_df.clust.astype("category")
+    qnodes_df.clust = qnodes_df.clust.cat.set_categories(clust_sizes.index)
+    qnodes_df = qnodes_df.sort_values(["clust", "Type"], ascending=[True, False]).reset_index(drop=True)
+    
+    return qnodes_df, clust_sizes
+
+
+def cluster_xy(ring_R, Rs, offset=False):
+    ''' Compute the center location of clusters given the radius of the current layer and variable cluster radii
+    Arguments:
+        ring_R (float): radius of the layer that the cluster should reside along
+        Rs (arr): array of cluster radii
+        offset (bool): stagger X and Y values to help visualization
+    Returns:
+        cX, cY (arr): coordinates for each cluster at current layer
+    '''
+    # Calculate the circumference
+    circ = ring_R*2*np.pi
+    
+    # The cumulative sum of sliding window sum (of radii) corresponds to the center locations along a linearized ring
+    lin_centers = np.insert(np.cumsum(np.sum(sliding_window_view(Rs, window_shape = 2), axis = 1)), 0, 0)
+    
+    # Compute the remainder space within the layer and evenly distribute it as padding between clusters
+    remainder = circ - (lin_centers[-1]+Rs[-1]+Rs[0])
+    assert remainder >= 0, f"Layer overcrowded: remainder of {remainder}"   # Check if remainder is negative
+    remainder_pad = remainder / (len(Rs))
+    
+    # Push the centers by the remainder padding. Automatically accounts for inter-cluster padding.
+    lin_centers = [lin_centers[i] + remainder_pad*i for i in range(len(lin_centers))]
+    lin_centers = lin_centers / circ
+    lin_centers = lin_centers*2*np.pi
+    
+    # Stagger adjacent layers for readability (this is not the optimal way to do it)
+    if not offset:
+        cX = ring_R * np.cos(lin_centers)
+        cY = ring_R * np.sin(lin_centers)
+    else:
+        cX = ring_R * np.cos(lin_centers+(np.pi/2))
+        cY = -ring_R * np.sin(lin_centers+(np.pi/2))
+    
+    return cX, cY
+
+
+def cluster_layer(clust_sizes, icp=10000, n_fl_co=20, r=1050):
+    ''' Compute the coordinates for each cluster
+    Arguments:
+        clust_sizes (arr): how many nodes in each cluster
+        icp (float): inter-cluster padding. How much each cluster should be spaced out
+        **kwargs: for even_spacing_method (so, radius and number of first-layer cutoff)
+    
+    Returns:
+        cXs, cYs (arr): coordinates for each cluster
+    '''
+    assert (np.array(clust_sizes) == -np.sort(-clust_sizes)).all(), "Sort by descending first"
+    
+    prev_R_max_layer = 0
+    
+    # First retrieve each cluster's radius
+    R_maxes = []
+    for n in clust_sizes:
+        R_arr, n_arr = even_spacing_method(n, n_fl_co=n_fl_co, r=r)
+        R_maxes.append(max(R_arr))
+    R_maxes = np.array(R_maxes)
+
+    # Initialize cluster membership and radii
+    layer_assign = np.zeros(len(R_maxes))
+    layer_assign[0] = 1
+    R_arr = [0, R_maxes[0]+icp+R_maxes[1]]
+
+    # Cumulative sum is used to track how many variable-radius nodes can fit in each layer
+    layer = 2
+    csum = np.cumsum((2*R_maxes) + icp)
+    csum = csum - csum[0]
+    
+    cXs = [0]
+    cYs = [0]
+
+    offset = False    # Used to improve visibility of adjacent layers
+    prev_R_max_layer = R_maxes[1]    # Retained to push out next layer's radius
+    # While at least one cluster has not been assigned yet...
+    while np.product(layer_assign) == 0:
+        curr_circ = 2*np.pi*R_arr[-1]
+
+        # Greater than 0 because csum will be subtracted by the csum immediately exceeding current layer's capacity
+        i_fit = (csum <= curr_circ) & (csum > 0)
+        # Assign layer to the clusters that fit
+        layer_assign[i_fit] = layer
+        
+        # Record the maximum radius fitting in the current layer to update the next layer's radius
+        R_max_layer = max(R_maxes[np.where(i_fit)])
+        
+        # Get adjustment coordinate of cluster
+        cX, cY = cluster_xy(R_arr[-1], R_maxes[i_fit], offset=offset)
+        offset = not offset
+        cXs.extend(cX); cYs.extend(cY)
+        
+        R_arr.append(R_arr[-1]+prev_R_max_layer+icp+R_max_layer)
+        
+        # Dummy way of avoiding error when loop probably met exit condition
+        try:
+            i_fit_max = max(np.squeeze(np.where(i_fit)))
+            csum = csum - csum[i_fit_max]    # Update csum to account for fitting the previous layer
+        except:
+            break
+        
+        prev_R_max_layer = R_max_layer
+        layer += 1
+    
+    return cXs, cYs
+
+
+def cluster_layered_concentric(qnodes_df, qedges_df, r=500, icp=10000):
+    qnodes_df, clust_sizes = assign_cluster(qedges_df, qnodes_df)
+    cXs, cYs = cluster_layer(clust_sizes-1, r=r, icp=icp)
+
+    full_Xs = []; full_Ys = []
+    for i in range(len(clust_sizes)):
+        # First node is query node and center of cluster
+        Xs, Ys, _, _ = get_xy(clust_sizes[i]-1, offset_x=cXs[i], offset_y=cYs[i], r=r)
+
+        full_Xs.append(cXs[i]); full_Ys.append(cYs[i])
+        if Xs is not None:
+            full_Xs.extend(Xs); full_Ys.extend(Ys)
+    
+    qnodes_df["clc_X"] = full_Xs; qnodes_df["clc_Y"] = full_Ys
+    
+    return qnodes_df

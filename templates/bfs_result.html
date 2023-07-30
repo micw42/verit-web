@@ -75,7 +75,7 @@
         font-family: Arial, Helvetica, sans-serif;
         }
         .modal-body {
-        max-height: calc(100vh - 210px);
+        max-height: ca(100vh - 210px);
         overflow-y: auto;
         }
         .hiddenHeader {
@@ -325,7 +325,7 @@
                   <dl style="border:1px solid lightgrey;margin-left:20px;margin-bottom:5px;">
 
                      <dt style="margin-left:10px;padding-top:10px">
-                          <input class="allCheckbox" id="all_prot" value="all_prot" type="checkbox" />
+                          <input class="alheckbox" id="all_prot" value="all_prot" type="checkbox" />
                           <label class="allLabel" for="all_prot" style="margin-left:5px">Genes/proteins</label>
                       </dt>
 
@@ -355,7 +355,7 @@
                      </dd>
 
                      <dt style="margin-left:10px">
-                          <input class="allCheckbox" id="all_chem" value="all_chem" type="checkbox" />
+                          <input class="alheckbox" id="all_chem" value="all_chem" type="checkbox" />
                           <label class="allLabel" for="all_prot" style="margin-left:5px">Chemicals</label>
                      </dt>
 
@@ -404,9 +404,10 @@
                 <h6>Change Layout:</h6>
                 <select id="layout-button" onchange="run_switch_layout()" class="form-select"
                     style="margin-left:20px;width:50%;">
+                    <option value="lc">Layered Concentric</option>
+                    <option value="clc">Cluster Layered Concentric</option>
                     <option value="CiSE">CiSE</option>
                     <option value="fCose">fCose</option>
-                    <option value="preset">Layered Concentric</option>
                 </select>
                 <ul class="nav">
                     <li style="display:inline;margin-left:20px;margin-top:10px;">
@@ -788,6 +789,8 @@
                             "display_id":"data(display_id)",
                             "lcX": "data(lcX)",
                             "lcY": "data(lcY)",
+                            "clcX": "data(clcX)",
+                            "clcY": "data(clcY)",
                             "layer": "data(layer)",
                             "type": "data(type)",
                             "border-width": function (ele) { return ele.data("border_width"); },
@@ -893,6 +896,7 @@
              var zoomDN
              let show = true
             run_cise()
+            run_lc()
             
             findNode = function(arr, node) {
                 for (var i=0; i<arr.length; i++) {
@@ -927,33 +931,33 @@
                  resetSliderMin("reach")
             {% else %}
                 document.getElementById("layer-div").style.display = "block"
-            {% endif %}
+//             {% endif %}
             
-            //Alert if network was filtered
-            {% if filtered %}
-                const filtered = true
-            {% else %}
-                const filtered = false
-            {% endif %}
-            if (filtered) {
-                var modal = document.getElementById("warnModal");
-                var span = document.getElementsByClassName("close")[2];
-                modal.style.display = "block";
+//             //Alert if network was filtered
+//             {% if filtered %}
+//                 const filtered = true
+//             {% else %}
+//                 const filtered = false
+//             {% endif %}
+//             if (filtered) {
+//                 var modal = document.getElementById("warnModal");
+//                 var span = document.getElementsByClassName("close")[2];
+//                 modal.style.display = "block";
             
-                window.onclick = function (event) {
-                    if (event.target == modal) {
-                        var modalBody = document.getElementById("modalBody");
-                        modalBody.scrollTop = 0;
-                        modal.style.display = "none";
-                    }
-                }
+//                 window.onclick = function (event) {
+//                     if (event.target == modal) {
+//                         var modalBody = document.getElementById("modalBody");
+//                         modalBody.scrollTop = 0;
+//                         modal.style.display = "none";
+//                     }
+//                 }
             
-                span.onclick = function () {
-                    var modalBody = document.getElementById("modalBody");
-                    modalBody.scrollTop = 0;
-                    modal.style.display = "none";
-                }
-            } 
+//                 span.onclick = function () {
+//                     var modalBody = document.getElementById("modalBody");
+//                     modalBody.scrollTop = 0;
+//                     modal.style.display = "none";
+//                 }
+//             } 
             
             var currently_querying = false
             
@@ -1998,8 +2002,12 @@
                     run_fCose(idealEL=iel, nodeRep=nr);
                     document.getElementById("fCose_settings").style.display = "block";
                     document.getElementById("cise_settings").style.display = "none";
-                } else if (layout.value == "preset") {
-                    run_preset();
+                } else if (layout.value == "lc") {
+                    run_lc();
+                    document.getElementById("fCose_settings").style.display = "none";
+                    document.getElementById("cise_settings").style.display = "none";
+                } else if (layout.value == "clc") {
+                    run_clc();
                     document.getElementById("fCose_settings").style.display = "none";
                     document.getElementById("cise_settings").style.display = "none";
                 } else {
@@ -2111,8 +2119,10 @@
                     run_circle();
                 } else if (layout.value=="fCose") {
                     run_fCose(idealEL=iel, nodeRep=nr);
-                } else if (layout.value == "preset"){
-                    run_preset();
+                } else if (layout.value == "lc"){
+                    run_lc();
+                } else if (layout.value == "clc"){
+                    run_clc();
                 } else {
                     run_cise(nodeRep=cise_nr);
                 }
@@ -2478,7 +2488,7 @@
             
             
              // pass parameter to signify BIOGRID or reach layer?
-             function run_preset(){
+             function run_lc(){
                  var all_nodes = cy.nodes();    // Filter by {layer}?
                  var eles = cy.elements();    // Filter by {layer}?
                  
@@ -2487,6 +2497,24 @@
                      curr_node.positions({
                          x: curr_node.data("lcX"),
                          y: curr_node.data("lcY")
+                     });
+                 }
+             
+                 var layout = eles.layout({name: "preset"});
+                 layout.run();
+             }
+
+
+             // pass parameter to signify BIOGRID or reach layer?
+             function run_clc(){
+                 var all_nodes = cy.nodes();    // Filter by {layer}?
+                 var eles = cy.elements();    // Filter by {layer}?
+                 
+                 for (var i=0; i<all_nodes.length; i++) {
+                     var curr_node = all_nodes[i]
+                     curr_node.positions({
+                         x: curr_node.data("clcX"),
+                         y: curr_node.data("clcY")
                      });
                  }
              

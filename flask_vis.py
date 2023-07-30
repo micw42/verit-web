@@ -15,6 +15,8 @@ import random
 from memory_profiler import profile
 from flask_caching import Cache
 import uuid
+import pickle
+
 
 with open("./settings.txt") as file:
     settings = [x.strip("\n") for x in file.readlines()]
@@ -138,9 +140,12 @@ def validate(query_type):
                     for query_key in result_dict:
                         query_dict[query_key] = [result_dict[query_key]["max_PR"]]
                     result_dict = ConvertSearch.get_missing(query, query_dict, string_type)
+                    
                     cache.set(f"query_dict_{user_id}", query_dict)
                     cache.set(f"result_dict_{user_id}", result_dict)
+                    
                     return redirect(url_for("display_options", query_type=query_type, string_type=string_type))
+                
                 else:
                     results, _ = MultiSearcher.query(query, nodes_df, full_df, uniprot_df, bg_nodes, string_type)
                     result_dict=ConvertSearch.multi_convert(results)
@@ -231,6 +236,8 @@ def display_options(query_type, string_type):
         if query_type=="dijkstra":
             if string_type == "id":
                 return redirect(url_for("make_bfs_query", string_type=string_type, query_type="id"))
+            elif string_type == "gene":
+                return redirect(url_for("make_bfs_query", string_type=string_type, query_type="gene"))
             else:
                 return redirect(url_for("make_bfs_query", string_type=string_type, query_type="name"))
         elif query_type=="single":
@@ -245,12 +252,14 @@ def make_bfs_query(string_type, query_type):
     query = cache.get(f"query_dict_{user_id}")
     q_len = len(query)
     if q_len > 100:
+        print(query_type)
         return redirect(url_for("bfs_query_result",
                                 max_linkers=1,
                                 qtype="all_shortest_paths",
                                 string_type=string_type,
                                 query_type=query_type,
-                                get_direct_linkers = True)
+                                min_thickness=20,
+                                get_direct_linkers=True)
                        )
 
     if request.method=="POST":
@@ -325,7 +334,7 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, min_thickness,
             query,
             max_linkers,
             qtype,
-            query_type,
+            query_type="gene",
             get_direct_linkers=get_direct_linkers,
             db_df=full_df,
             access_key=access_key,
@@ -358,19 +367,12 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, min_thickness,
             bucket=bucket,
             min_thickness=min_thickness
         )
-
-    n_edges = len(query_edges.index)
-    filtered = False
-    if n_edges > 5000:
-        to_json_netx.filter_graph()
-        filtered = True
     
     elements = to_json_netx.clean(query_nodes, query_edges, query_bg_nodes, query_bg_edges, biogrid=string_type=="gene")        
     
     return render_template(
         "bfs_result.html",
         elements = elements,
-        filtered = filtered,
         string_type=string_type
     )
 
