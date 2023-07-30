@@ -397,8 +397,8 @@
                Note: Inaccuracies should be expected due to errors in the NLP.
             </h6>
             <br>
-            <a href="/getNodes" style="padding-right:20px;">Export nodes (.tsv)</a>
-            <a href="/getEdges">Export edges (.tsv)</a>
+            <a href="#" onclick="getNodes()" style="padding-right:20px;">Export nodes (.tsv)</a>
+            <a href="#" onclick="getEdges()" style="padding-right:20px;">Export edges (.tsv)</a>
          </div>
          <br>
       </div>
@@ -1478,6 +1478,57 @@
                     input_qty.max = allMaxUnion
                 }
             }
+            
+        const download = function (data, filename) {
+
+            // Creating a Blob for having a csv file format 
+            // and passing the data with type
+            const blob = new Blob([data], { type: 'text/csv' });
+
+            // Creating an object for downloading url
+            const url = window.URL.createObjectURL(blob)
+
+            // Creating an anchor(a) tag of HTML
+            const a = document.createElement('a')
+
+            // Passing the blob downloading url 
+            a.setAttribute('href', url)
+
+            // Setting the anchor tag attribute for downloading
+            // and passing the download file name
+            a.setAttribute('download', filename);
+
+            // Performing a download with click
+            a.click()
+        }
+          
+        function getNodes()  {
+            var eles = cy.nodes().filter(function(ele) {return((ele.style("display")=="element") & (!ele.hasClass("transp")))}).jsons()
+            var nodes_str = JSON.stringify(eles)
+            var retval;
+            $.ajaxSetup({
+                async: false
+            });
+            $.post('/getNodes', {subset_nodes: nodes_str}, function(data){
+                retval = data.nodes_df
+            });  
+            download(retval, "nodes.tsv")
+          }
+                  
+         function getEdges()  {
+            var eles = cy.edges().filter(function(ele) {
+                return((ele.source().style("display")=="element") & (ele.target().style("display")=="element") &
+                       (!ele.hasClass("transp")) & (!ele.source().hasClass("transp")) & (!ele.target().hasClass("transp")))}).jsons()
+            var edges_str = JSON.stringify(eles)
+            var retval;
+            $.ajaxSetup({
+                async: false
+            });
+            $.post('/getEdges', {subset_edges: edges_str}, function(data){
+                retval = data.edges_df
+            });
+            download(retval, "edges.tsv")
+          }
              
             //Switch between REACH, BG, and union
             function switch_layer() {

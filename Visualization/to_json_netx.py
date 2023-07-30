@@ -216,7 +216,12 @@ def convert(nodes_df, edges_df):
                                       "thickness_r": int(erow.thickness_r),
                                       "layer": layer,
                                       "dataset_color": erow.dataset_color,
-                                      "type":erow.type}}
+                                      "type":erow.type,
+                                     "source_lab":erow.source_lab,
+                                     "target_lab":erow.target_lab,
+                                     "source_DI":erow.source_id,
+                                     "target_DI":erow.target_id,
+                                     "display":erow.display}}
                 elements.append(edge_dict)
 
         else:
@@ -229,7 +234,12 @@ def convert(nodes_df, edges_df):
                                       "files": erow.files,
                                       "thickness": int(erow.thickness),
                                       "layer": layer,
-                                      "type":erow.type}}
+                                      "type":erow.type,
+                                     "source_lab":erow.source_lab,
+                                     "target_lab":erow.target_lab,
+                                     "source_DI":erow.source_id,
+                                     "target_DI":erow.target_id,
+                                     "display":erow.display}}
                 elements.append(edge_dict)
 
     return elements

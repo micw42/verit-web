@@ -14,7 +14,8 @@ def name_query(name, nodes, full_df, string_type):
         name_query = full_df.query('name.str.contains(@name, na=False)', engine='python').reset_index(drop=True)
 
     # The following nodes are in the network, but REACH likely grounds to more
-    in_net = pd.merge(nodes, name_query, left_on="Id", right_on="id", how="inner").iloc[:, 3:6].drop_duplicates().reset_index(drop=True)
+    in_net = pd.merge(nodes, name_query, left_on="Id", right_on="id", how="inner").drop_duplicates().reset_index(drop=True)
+    in_net.to_csv("in_net.csv", index=False)
 
     # Reverse search to collect all aliases
     u_ids = list(in_net["id"].drop_duplicates())

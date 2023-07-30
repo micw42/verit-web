@@ -248,19 +248,9 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
 
     nodes["Label"] = nodes["Label"].str.replace("SPACE", " ")
     nodes = nodes[["Id", "Label", "KB", "name", "Type", "display_id"]]
-
-    nodes_cleaned = nodes.copy()
-    edges_cleaned = rel_df.copy()
-    nodes_cleaned['name'] = nodes_cleaned['name'].str.replace('%%',', ')
-    nodes_cleaned = nodes_cleaned.rename(columns={"name": "Synonyms"})
-    edges_cleaned = edges_cleaned.merge(nodes_cleaned, left_on="source", right_on="Id").drop(labels="Id", axis=1).rename(columns={"Label":"source_name"})
-    edges_cleaned = edges_cleaned.merge(nodes_cleaned, left_on="target", right_on="Id").drop(labels="Id", axis=1).rename(columns={"Label":"target_name"})
-    edges_cleaned = edges_cleaned.rename(columns={"color":"score", "thickness":"evidence_count"})
-    edges_cleaned = edges_cleaned[["source_id", "source_name", "target_id", "target_name", "evidence_count", "score"]]
-    nodes_cleaned = nodes_cleaned.drop(labels="Id", axis=1).rename(columns={"display_id":"Id"})
-    nodes_cleaned = nodes_cleaned[["Id", "Label", "KB", "Synonyms", "Type"]]
-    
-    return nodes, rel_df, nodes_cleaned, edges_cleaned    
+    rel_df["source_lab"] = rel_df.merge(nodes, left_on="source_id", right_on="display_id", how="left")["Label"].tolist()
+    rel_df["target_lab"] = rel_df.merge(nodes, left_on="target_id", right_on="display_id", how="left")["Label"].tolist()
+    return nodes, rel_df 
 
 
 def BIOGRID_query(G, edges_df, nodes_df, queries_id,
@@ -371,6 +361,8 @@ def BIOGRID_query(G, edges_df, nodes_df, queries_id,
 
     # Dummy columns for consistency.
     qedges_df["color"] = 0
+    qedges_df["source_lab"] = qedges_df.merge(qnodes_df, left_on="source", right_on="Id", how="left")["Label"].tolist()
+    qedges_df["target_lab"] = qedges_df.merge(qnodes_df, left_on="target", right_on="Id", how="left")["Label"].tolist()
     
     qedges_df = qedges_df.drop_duplicates()
 

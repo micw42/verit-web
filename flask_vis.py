@@ -318,7 +318,7 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, min_thickness,
         )
 
         #Run REACH query
-        query_nodes, query_edges, nodes_cleaned, edges_cleaned = MultiQuery.query(
+        query_nodes, query_edges = MultiQuery.query(
             G,
             edges_df,
             nodes_df,
@@ -343,7 +343,7 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, min_thickness,
     else:
         query_bg_nodes = None
         query_bg_edges = None
-        query_nodes, query_edges, nodes_cleaned, edges_cleaned = MultiQuery.query(
+        query_nodes, query_edges = MultiQuery.query(
             G,
             edges_df,
             nodes_df,
@@ -367,8 +367,6 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, min_thickness,
     
     elements = to_json_netx.clean(query_nodes, query_edges, query_bg_nodes, query_bg_edges, biogrid=string_type=="gene")        
     
-    cache.set(f"nodes_cleaned_{user_id}", nodes_cleaned)
-    cache.set(f"edges_cleaned_{user_id}", edges_cleaned)
     return render_template(
         "bfs_result.html",
         elements = elements,
@@ -434,28 +432,37 @@ def go_home():
     return redirect(url_for("home"))
 
 
-@app.route("/getNodes")
+@app.route("/getNodes", methods = ['POST'])
 def getNodes():
     # with open("outputs/Adjacency.csv") as fp:
     #     csv = fp.read()
-    user_id = request.cookies.get('user_id')
-    df = cache.get(f"nodes_cleaned_{user_id}")
-    resp = make_response(df.to_csv())
-    resp.headers["Content-Disposition"] = "attachment; filename=query_nodes.csv"
-    resp.headers["Content-Type"] = "text/csv"
-    return resp
+    subset_nodes = request.form['subset_nodes']
+    subset_nodes = json.loads(subset_nodes)
+    ids = [node["data"]["display_id"] for node in subset_nodes]
+    labels = [node["data"]["label"] for node in subset_nodes]
+    node_dict = {"Id":ids, "Label":labels}
+    df = pd.DataFrame.from_dict(node_dict).to_csv(sep='\t')
+    return jsonify(nodes_df=df)
 
 
-@app.route("/getEdges")
+
+@app.route("/getEdges", methods = ['POST'])
 def getEdges():
     # with open("outputs/Adjacency.csv") as fp:
     #     csv = fp.read()
-    user_id = request.cookies.get('user_id')
-    df = cache.get(f"edges_cleaned_{user_id}")
-    resp = make_response(df.to_csv())
-    resp.headers["Content-Disposition"] = "attachment; filename=query_edges.csv"
-    resp.headers["Content-Type"] = "text/csv"
-    return resp
+    subset_edges = request.form['subset_edges']
+    subset_edges = json.loads(subset_edges)
+    source_ids = [edge["data"]["source_DI"] for edge in subset_edges]
+    target_ids = [edge["data"]["target_DI"] for edge in subset_edges]
+    source_labs = [edge["data"]["source_lab"] for edge in subset_edges]
+    target_labs = [edge["data"]["target_lab"] for edge in subset_edges]
+    thicknesses = [edge["data"]["thickness"] for edge in subset_edges]
+    colors = [edge["data"]["color"] for edge in subset_edges]
+    edge_dict = {"source_id":source_ids, "source_name":source_labs,
+                 "target_id":target_ids, "target_name":target_labs,
+                "thickness":thicknesses, "color":colors}
+    df = pd.DataFrame.from_dict(edge_dict).to_csv(sep='\t')
+    return jsonify(edges_df=df)
 
 
 if __name__=="__main__":

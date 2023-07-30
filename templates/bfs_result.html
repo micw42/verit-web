@@ -436,10 +436,10 @@
                     <p style="color:grey;margin-right:40px">Description: parameter for adjusting internodal distance.</p>
                     <ul class="nav">
                         <li style="display:inline">
-                            <div class="loading" id="nr_loading"></div>
+                            <div class="loading" id="cise_nr_loading"></div>
                         </li>
                         <li style="display:inline">
-                            <div id="nr_loader" class="loader"></div>
+                            <div id="cise_nr_loader" class="loader"></div>
                         </li>
                     </ul>
                 </div>
@@ -528,8 +528,8 @@
                     Note: Inaccuracies should be expected due to errors in the NLP.
                 </h6> <br>
 
-                <a href="/getNodes" style="padding-right:20px;">Export nodes (.tsv)</a>
-                <a href="/getEdges">Export edges (.tsv)</a>
+                <a href="#" onclick="getNodes()" style="padding-right:20px;">Export nodes (.tsv)</a>
+                <a href="#" onclick="getEdges()" style="padding-right:20px;">Export edges (.tsv)</a>
             </div>
             
         </div>
@@ -883,6 +883,15 @@
                 ]
             })
                 
+             var reachCise = {}
+             var BGCise = {}
+             var unionCise = {}
+             var reachCiseDN = {}
+             var BGCiseDN = {}
+             var unionCiseDN = {}
+             var zoom
+             var zoomDN
+             let show = true
             run_cise()
             
             findNode = function(arr, node) {
@@ -958,6 +967,7 @@
                     cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
                     cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp"); 
                 }
+                console.log("Display id: "+sel.data("display_id"))
                 console.log(sel.indegree())
             });
             
@@ -966,6 +976,8 @@
                     if (sel.style()["opacity"] != "0") {
                         sel.addClass('mouseover');
                     }
+                console.log("source lab: "+sel.data("source_lab"))
+                console.log("target lab: "+sel.data("target_lab"))
             });
             
             cy.on('mouseout', 'node', function (evt) {
@@ -1246,7 +1258,7 @@
             });
             
              
-
+            
              
             cy.on('click', 'node', function (evt) {
                 var sel = evt.target;
@@ -1367,6 +1379,60 @@
             });
             filteredNodes.addClass("transp");
         }
+                  
+                  
+        const download = function (data, filename) {
+
+            // Creating a Blob for having a csv file format 
+            // and passing the data with type
+            const blob = new Blob([data], { type: 'text/csv' });
+
+            // Creating an object for downloading url
+            const url = window.URL.createObjectURL(blob)
+
+            // Creating an anchor(a) tag of HTML
+            const a = document.createElement('a')
+
+            // Passing the blob downloading url 
+            a.setAttribute('href', url)
+
+            // Setting the anchor tag attribute for downloading
+            // and passing the download file name
+            a.setAttribute('download', filename);
+
+            // Performing a download with click
+            a.click()
+        }
+                  
+        function getNodes()  {
+            var eles = cy.nodes().filter(function(ele) {return((ele.style("display")=="element") & (!ele.hasClass("transp")))}).jsons()
+            var nodes_str = JSON.stringify(eles)
+            var retval;
+            $.ajaxSetup({
+                async: false
+            });
+            $.post('/getNodes', {subset_nodes: nodes_str}, function(data){
+                retval = data.nodes_df
+            });  
+            download(retval, "nodes.tsv")
+          }
+                  
+         function getEdges()  {
+            var eles = cy.edges().filter(function(ele) {
+                return((ele.source().style("display")=="element") & (ele.target().style("display")=="element") &
+                       (!ele.hasClass("transp")) & (!ele.source().hasClass("transp")) & (!ele.target().hasClass("transp")))}).jsons()
+            var edges_str = JSON.stringify(eles)
+            var retval;
+            $.ajaxSetup({
+                async: false
+            });
+            $.post('/getEdges', {subset_edges: edges_str}, function(data){
+                retval = data.edges_df
+            });
+            download(retval, "edges.tsv")
+          }
+            
+         
                   
         function getMaxWeight(allEdges) {
             var weight_arr = []
@@ -1892,7 +1958,6 @@
                     return new Promise((resolve) => {
                     setTimeout(() => {
                         filterEdges(threshold)
-                        rerun_layout()
                         resolve();
                     },ms)
                   })
@@ -1991,10 +2056,38 @@
             cise_nr_slider.value=9
              var cise_nr = 1e9
             cise_nr_slider.oninput = function () {
+                var status = document.querySelector('#cise_nr_loading');
+                var loader = document.querySelector('#cise_nr_loader');
                 cise_cur_nr.innerHTML = "1e"+this.value;
                 cise_nr = 10**(this.value);
-                var cur_layout = document.getElementById("layout-button").value
-                run_run_fcose(idealEL=iel, nodeRep=cise_nr, layout=cur_layout)
+                var layer = document.getElementById("layer-button").value
+                if (layer=="reach") {
+                    reachCise = {}
+                    reachCiseDN = {}
+                } else if (layer=="biogrid") {
+                    BGCise = {}
+                    BGCiseDN = {}
+                } else if (layer=="union") {
+                    unionCise = {}
+                    unionCiseDN = {}
+                }
+                const wait = (ms = 5000) => {
+                return new Promise((resolve) => {
+                setTimeout(() => {
+                    run_cise(cise_nr)
+                    resolve();
+                },ms)
+              })
+            }
+            status.innerHTML = "Changing node repulsion...";
+            loader.classList.toggle('show', true);
+            wait(500)
+            .then(() => {
+                status.innerHTML = "";
+                loader.classList.toggle('show', false);
+            })
+
+            
             }
             
             
@@ -2081,9 +2174,31 @@
                  return(edge.data("thickness"))
              }
              
+            function restorePositions(nodes, nodePositions) {
+              for (var i=0; i < nodes.length; i++) {
+                  var node = nodes[i]
+                  var pos = JSON.parse(nodePositions[node.id()])
+                node.position(pos);
+              }
+            }
+                  
+             function storePositions(nodes) {
+              var nodePositions = {};
+              for (let i = 0; i < nodes.length; i++) {
+                  var key = nodes[i].id()
+                  var pos = JSON.stringify(nodes[i].position())
+                nodePositions[key] = pos
+              }
+              return nodePositions;
+            }
+                  
+
              function run_cise(nodeRep=1e9) {
-                 var newclusters = make_clust(cy.elements())
-                 var layout = cy.layout({
+                 var cur_layer = document.getElementById("layer-button").value 
+                 var subset = cy.elements().filter(function(ele) {return(ele.data("layer")==cur_layer)})
+                 var subset_nodes = subset.nodes()
+                var newclusters = make_clust(subset)
+                var layout = subset.layout({
                     name: 'cise',               
                     animate:true,
                             animationEasing: 1,
@@ -2091,9 +2206,53 @@
                             clusters:newclusters,
                             allowNodesInsideCircle: true,
                             nodeRepulsion: nodeRep
-                    });
-                layout.run();
-                setTimeout(() => {  layout.stop(); }, 500);         
+                });
+                 if (show) {
+                     if ((Object.keys(reachCise).length != 0) & (cur_layer=="reach")) {
+                        restorePositions(subset_nodes, reachCise)
+                     } else if ((Object.keys(BGCise).length != 0) & (cur_layer=="biogrid")) {
+                         restorePositions(subset_nodes, BGCise)
+                     } else if ((Object.keys(unionCise).length != 0) & (cur_layer=="union")) {
+                         restorePositions(subset_nodes, unionCise)
+                     } else {
+                        layout.run();
+                        setTimeout(() => {  layout.stop(); }, 500);
+                        var subset = cy.elements().filter(function(ele) {return(ele.data("layer")==cur_layer)})
+                        var subset_nodes = subset.nodes()
+                        if (cur_layer=="reach") {
+                            Object.assign(reachCise, storePositions(subset_nodes))
+                        } else if (cur_layer=="biogrid") {
+                            Object.assign(BGCise, storePositions(subset_nodes))
+                        } else if (cur_layer=="union") {
+                            Object.assign(unionCise, storePositions(subset_nodes))
+                        }
+                        zoom = Object.freeze(cy.zoom())
+                     }
+                     cy.zoom(zoom)
+                 } else {
+                     if ((Object.keys(reachCiseDN).length != 0) & (cur_layer=="reach")) {
+                        restorePositions(subset_nodes, reachCiseDN)
+                     } else if ((Object.keys(BGCiseDN).length != 0) & (cur_layer=="biogrid")) {
+                         restorePositions(subset_nodes, BGCiseDN)
+                     } else if ((Object.keys(unionCiseDN).length != 0) & (cur_layer=="union")) {
+                         restorePositions(subset_nodes, unionCiseDN)
+                     } else {
+                        layout.run();
+                        setTimeout(() => {  layout.stop(); }, 500);
+                        var subset = cy.elements().filter(function(ele) {return(ele.data("layer")==cur_layer)})
+                        var subset_nodes = subset.nodes()
+                        if (cur_layer=="reach") {
+                            Object.assign(reachCiseDN, storePositions(subset_nodes))
+                        } else if (cur_layer=="biogrid") {
+                            Object.assign(BGCiseDN, storePositions(subset_nodes))
+                        } else if (cur_layer=="union") {
+                            Object.assign(unionCiseDN, storePositions(subset_nodes))
+                        }
+                         zoomDN = Object.freeze(cy.zoom())
+                     }
+                     cy.zoom(zoomDN)
+                 }
+
             }
              
             function show_direct(show=true) {
@@ -2114,7 +2273,6 @@
 
 
             //Add loader to showing direct linkers
-            let show = true
             function run_show_direct() {
                 const status = document.querySelector('#direct_loading');
                 const loader = document.querySelector('#direct_loader');
@@ -2122,12 +2280,12 @@
                     return new Promise((resolve) => {
                     setTimeout(() => {
                         show_direct(show);
-                        rerun_layout()
                         if (show) {
                             show = false
                         } else {
                             show=true
                         }
+                        rerun_layout()
                         resolve();
                     },ms)
                   })

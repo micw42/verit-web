@@ -146,6 +146,7 @@ def clean_union(nodes_df, edges_df_reach, edges_df_bg):
     union_edges_df["display"] = "none"
 
     edges_df = pd.concat([edges_df_reach, edges_df_bg, union_edges_df])
+    union_edges_df.to_csv("union_edges.csv", index=False)
     edges_df[["thickness_r", "thickness_bg"]] = edges_df[["thickness_r", "thickness_bg"]].replace({np.nan: 0})
     edges_df["dataset_color"] = edges_df["dataset_color"].replace({np.nan: "N/A"})
 
@@ -213,7 +214,11 @@ def convert(nodes_df, edges_df):
                                       "thickness_r": int(erow.thickness_r),
                                       "layer": layer,
                                       "display":erow.display,
-                                      "dataset_color": erow.dataset_color
+                                      "dataset_color": erow.dataset_color,
+                                      "source_lab":erow.source_lab,
+                                     "target_lab":erow.target_lab,
+                                     "source_DI":erow.source_DI,
+                                     "target_DI":erow.target_DI
                                      }}
                 elements.append(edge_dict)
 
@@ -227,7 +232,11 @@ def convert(nodes_df, edges_df):
                                       "files": erow.files,
                                       "thickness": int(erow.thickness),
                                       "layer": layer,
-                                      "display":erow.display}}
+                                      "display":erow.display,
+                                     "source_lab":erow.source_lab,
+                                     "target_lab":erow.target_lab,
+                                     "source_DI":erow.source_DI,
+                                     "target_DI":erow.target_DI}}
                 elements.append(edge_dict)
 
     return elements

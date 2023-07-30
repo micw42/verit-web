@@ -140,7 +140,12 @@ def query(G, edges_df, nodes_df, db_df, q, depth):
     nodes = nodes[["Id", "Label", "depth", "KB", "display_id", "name"]]
     full_df = full_df[["color", "thickness", 
                      "files", "source", "target"]]
-    
+    full_df["source_DI"] = full_df.merge(nodes, left_on="source", right_on="Id", how="left")["display_id"].tolist()
+    full_df["target_DI"] = full_df.merge(nodes, left_on="target", right_on="Id", how="left")["display_id"].tolist()
+    full_df["source_lab"] = full_df.merge(nodes, left_on="source", right_on="Id", how="left")["Label"].tolist()
+    full_df["target_lab"] = full_df.merge(nodes, left_on="target", right_on="Id", how="left")["Label"].tolist()
+    nodes.to_csv("nodesTest.csv", index=False)
+    full_df.to_csv("full_df_test.csv", index=False)
     return nodes, full_df
 
 
@@ -240,4 +245,8 @@ def BIOGRID_query(G, edges_df, nodes_df, q, depth, thresh=20):
     qnodes_df = qnodes_df[["Id", "Label", "depth", "KB", "display_id", "name"]]
     qedges_df = qedges_df[["color", "thickness", "files", "source", "target"]]
     
+    qedges_df["source_DI"] = qedges_df["source"]
+    qedges_df["target_DI"] = qedges_df["target"]
+    qedges_df["source_lab"] = qedges_df.merge(qnodes_df, left_on="source", right_on="Id", how="left")["Label"].tolist()
+    qedges_df["target_lab"] = qedges_df.merge(qnodes_df, left_on="target", right_on="Id", how="left")["Label"].tolist()
     return qnodes_df, qedges_df
