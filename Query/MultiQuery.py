@@ -314,7 +314,6 @@ def BIOGRID_query(G, edges_df, nodes_df, queries_id,
     qnodes_df = qnodes_df.merge(qnodes_syn, on="Id")
     qnodes_df["display_id"] = qnodes_df["Id"].copy()    # Equal because BG only used with gene id query
 
-    qnodes_df.to_csv("./query_nodes_BIOGRID.csv", index=False)
 
 
     ## Construct edges dataframe
@@ -337,8 +336,6 @@ def BIOGRID_query(G, edges_df, nodes_df, queries_id,
     qedges_df["target_lab"] = qedges_df.merge(qnodes_df, left_on="target", right_on="Id", how="left")["Label"].tolist()
     
     qedges_df = qedges_df.drop_duplicates()
-
-    qedges_df.to_csv("./query_edges_BIOGRID.csv", index=False)
     
     return qnodes_df, qedges_df
     
