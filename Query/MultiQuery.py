@@ -162,65 +162,42 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
         # Make df with user queries and corresponding IDs
         name_df = pd.DataFrame([(key, var) for (key, L) in queries_id.items() for var in L],
                  columns=['key', 'variable'])
-        # Fix edges table
-        src = qedges_df[["source"]]
-        merged_src = pd.merge(src, name_df, how="left", left_on="source", right_on = "variable")["key"].tolist()
-        tar = qedges_df[["target"]]
-        merged_tar = pd.merge(tar, name_df, how="left", left_on="target", right_on = "variable")["key"].tolist()
+        #Concatenate ids of compound nodes
+        name_df["combined_id"] = name_df.groupby(['key'])['variable'].transform(lambda x: ', '.join(x))
+        name_df = name_df.drop_duplicates()
+        #For concatenating rows of compound nodes/edges
+        concat = lambda x: "%%".join(x) 
 
-        qedges_df["merged_source"] = merged_src
-        qedges_df["merged_target"] = merged_tar
-        qedges_df.merged_source.fillna(qedges_df.source, inplace=True)
-        qedges_df.merged_target.fillna(qedges_df.target, inplace=True)
-        rename_dict1 = {"source":"orig_source", "target":"orig_target"}
-        rename_dict2 = {"merged_source":"source", "merged_target":"target"}
-        qedges_df = qedges_df.rename(columns=rename_dict1).rename(columns=rename_dict2)
+        #Fix edges table
+        qedges_df = qedges_df.rename(columns={"source":"orig_source", "target":"orig_target"})
+        #source_id, target_id used for display
+        #For multi-ID nodes, source_id, target_id correspond to concatenated IDs (i.e. "ID_1, ID_2")
+        #For everything else, source_id, target_id are equal to ID
+        qedges_df = pd.merge(qedges_df, name_df, how="left", left_on="orig_source", right_on = "variable").rename(columns={"key":"source", "combined_id":"source_id"}).drop(columns="variable")
+        qedges_df = pd.merge(qedges_df, name_df, how="left", left_on="orig_target", right_on = "variable").rename(columns={"key":"target", "combined_id":"target_id"}).drop(columns="variable")
+        qedges_df.source.fillna(qedges_df.orig_source, inplace=True)   #Replace IDs of non-query nodes
+        qedges_df.target.fillna(qedges_df.orig_target, inplace=True)
+        qedges_df.source_id.fillna(qedges_df.orig_source, inplace=True)
+        qedges_df.target_id.fillna(qedges_df.orig_target, inplace=True)
+        qedges_df["color2"] = qedges_df["color"] * qedges_df["thickness"]   #for weighted avg
+        aggregation_functions = {'color2': 'sum','thickness': 'sum', "files":concat, "source_id":"first", "target_id":"first"}
+        qedges_df = qedges_df.groupby(["source", "target"]).aggregate(aggregation_functions).reset_index() #Group compound edges
+        qedges_df["color"] = qedges_df["color2"]/qedges_df["thickness"]    #Weighted avg of color for compound edges
+        qedges_df.drop(columns="color2", inplace=True)
 
         # Fix nodes table
-        id_converted = pd.merge(qnodes_df, name_df, how="left", left_on="Id", right_on="variable")["key"]
-        qnodes_df["Id2"] = id_converted.tolist()
-        qnodes_df["Label2"] = id_converted.tolist()
-        qnodes_df.Id2.fillna(qnodes_df.Id, inplace=True)
+        qnodes_df = pd.merge(qnodes_df, name_df, how="left", left_on="Id", right_on="variable").drop(columns="variable").rename(columns={"key":"Id2", "combined_id":"display_id"})
+        qnodes_df["Label2"] = qnodes_df["Id2"]     #Label query nodes as what the user queried
+        qnodes_df.Id2.fillna(qnodes_df.Id, inplace=True)  #Replace non-query ids, labels
         qnodes_df.Label2.fillna(qnodes_df.Label, inplace=True)
-        qnodes_df = nodes.drop(labels = ["Label", "Id"], axis=1)
-        rename_dict = {"Id2":"Id",
-                      "Label2":"Label"}
-        qnodes_df = qnodes_df.rename(columns= rename_dict)
-
-        # Combine synonyms again for nodes that were just fixed
-        syn_concat = lambda x: "%%".join(x)
-        aggregation_functions = {"Label":"first", "KB":"first", 'name': syn_concat}
-        qnodes_df = qnodes_df.groupby("Id").aggregate(aggregation_functions).reset_index()
-
-        # For edges connecting nodes that correspond to multiple IDs,
-        # take average of all color values (weighted by thickness)
-        qedges_df = qedges_df[["color", "thickness", "source", "target", "orig_source", "orig_target", "files"]]
-        rel_df["color2"] = qedges_df["color"] * qedges_df["thickness"]
-        id_concat = lambda x: "%%".join(x) # Concat all source and target IDs of merged nodes
-        aggregation_functions = {'color2': 'sum','thickness': 'sum', "orig_source":id_concat, "orig_target":id_concat, "files":id_concat}
-        qedges_df = rel_df.groupby(["source", "target"]).aggregate(aggregation_functions).reset_index()
-        qedges_df["color"] = qedges_df["color2"]/qedges_df["thickness"]
-
-        name_df["variable"] = name_df.groupby(['key'])['variable'].transform(lambda x: ', '.join(x))
-        name_df = name_df.drop_duplicates()
-        source_ids = pd.merge(qedges_df, name_df, how="left", left_on="source", right_on = "key")["variable"].tolist()
-        target_ids = pd.merge(qedges_df, name_df, how="left", left_on="target", right_on = "key")["variable"].tolist()
-        qedges_df["source_id"] = source_ids
-        qedges_df["target_id"] = target_ids
-        qedges_df.source_id.fillna(rel_df.source, inplace=True)
-        qedges_df.target_id.fillna(rel_df.target, inplace=True)
-        qedges_df = qedges_df[["color", "thickness",
-                         "files", "source", "target", "source_id", "target_id"]]
-        display_ids = pd.merge(qnodes_df, name_df, how="left", left_on="Id", right_on="key")["variable"].tolist()
-        qnodes_df["display_id"] = display_ids
         qnodes_df.display_id.fillna(qnodes_df.Id, inplace=True)
-        qnodes_df = qnodes_df[["Id", "Label", "KB", "name", "display_id"]]
-
+        qnodes_df = qnodes_df.drop(labels = ["Label", "Id"], axis=1).rename(columns= {"Id2":"Id", "Label2":"Label"})
+        aggregation_functions = {"Label":"first", "KB":"first", 'name':concat, "display_id":"first"}
+        qnodes_df = qnodes_df.groupby("Id").aggregate(aggregation_functions).reset_index()  #Combine multi-ID nodes into one node
     else:
-        # New columns for source and target (Not sure what it does)
+        # Dummy columns for compatibility with visualization
         qedges_df["source_id"] = qedges_df["source"]
         qedges_df["target_id"] = qedges_df["target"]
-
         qnodes_df["display_id"] = qnodes_df["Id"]
 
 
@@ -239,31 +216,13 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
                                else "Direct") 
                          for x in qnodes_df['Id']]
 
-
-    # nodes["Label"] = nodes["Label"].str.replace("SPACE", " ")
-    # nodes = nodes[["Id", "Label", "KB", "name", "Type", "display_id"]]
-
-    #### Unchanged ####
-    nodes_cleaned = qnodes_df.copy()
-    edges_cleaned = qedges_df.copy()
-
-    nodes_cleaned['name'] = nodes_cleaned['name'].str.replace('%%',', ')
-    nodes_cleaned = nodes_cleaned.rename(columns={"name": "Synonyms"})
-
-    edges_cleaned = edges_cleaned.merge(nodes_cleaned, left_on="source", right_on="Id").drop(labels="Id", axis=1).rename(columns={"Label":"source_name"})
-    edges_cleaned = edges_cleaned.merge(nodes_cleaned, left_on="target", right_on="Id").drop(labels="Id", axis=1).rename(columns={"Label":"target_name"})
-    edges_cleaned = edges_cleaned.rename(columns={"color":"score", "thickness":"evidence_count"})
-    edges_cleaned = edges_cleaned[["source_id", "source_name", "target_id", "target_name", "evidence_count", "score"]]
-
-    nodes_cleaned = nodes_cleaned.drop(labels="Id", axis=1).rename(columns={"display_id":"Id"})
-    nodes_cleaned = nodes_cleaned[["Id", "Label", "KB", "Synonyms", "Type"]]
-    
-    return qnodes_df, qedges_df, nodes_cleaned, edges_cleaned    
-    nodes["Label"] = nodes["Label"].str.replace("SPACE", " ")
-    nodes = nodes[["Id", "Label", "KB", "name", "Type", "display_id"]]
-    rel_df["source_lab"] = rel_df.merge(nodes, left_on="source_id", right_on="display_id", how="left")["Label"].tolist()
-    rel_df["target_lab"] = rel_df.merge(nodes, left_on="target_id", right_on="display_id", how="left")["Label"].tolist()
-    return nodes, rel_df 
+    #Add labels to edges table For export as tsv
+    qnodes_df["Label"] = qnodes_df["Label"].str.replace("SPACE", " ")
+    qedges_df = pd.merge(qedges_df, qnodes_df, left_on="source", right_on="Id", how="left")\
+    .rename(columns={"Label":"source_lab"}).drop(columns=["Id", "KB", "name", "display_id"])
+    qedges_df = pd.merge(qedges_df, qnodes_df, left_on="target", right_on="Id", how="left")\
+    .rename(columns={"Label":"target_lab"}).drop(columns=["Id", "KB", "name", "display_id"])
+    return qnodes_df, qedges_df
 
 
 def BIOGRID_query(G, edges_df, nodes_df, queries_id,

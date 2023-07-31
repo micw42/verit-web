@@ -225,6 +225,18 @@
         li{
             word-break: break-all;
         }
+        
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
 
 </style>
 
@@ -316,7 +328,6 @@
                 </div>
                  
             </div>
-        
             
           <div style="padding-left:20px;" class="slidecontainer" id="kb_div">
               <h6>Filter by knowledge base:</h6>
@@ -325,7 +336,7 @@
                   <dl style="border:1px solid lightgrey;margin-left:20px;margin-bottom:5px;">
 
                      <dt style="margin-left:10px;padding-top:10px">
-                          <input class="alheckbox" id="all_prot" value="all_prot" type="checkbox" />
+                          <input class="allCheckbox" id="all_prot" value="all_prot" type="checkbox" />
                           <label class="allLabel" for="all_prot" style="margin-left:5px">Genes/proteins</label>
                       </dt>
 
@@ -355,7 +366,7 @@
                      </dd>
 
                      <dt style="margin-left:10px">
-                          <input class="alheckbox" id="all_chem" value="all_chem" type="checkbox" />
+                          <input class="allCheckbox" id="all_chem" value="all_chem" type="checkbox" />
                           <label class="allLabel" for="all_prot" style="margin-left:5px">Chemicals</label>
                      </dt>
 
@@ -402,13 +413,14 @@
             
             <div style="padding-left:20px">
                 <h6>Change Layout:</h6>
-                <select id="layout-button" onchange="run_switch_layout()" class="form-select"
-                    style="margin-left:20px;width:50%;">
+                <select id="layout-button"  class="form-select"
+                    style="margin-left:20px;width:50%;display:inline">
                     <option value="lc">Layered Concentric</option>
                     <option value="clc">Cluster Layered Concentric</option>
                     <option value="CiSE">CiSE</option>
                     <option value="fCose">fCose</option>
                 </select>
+                <button id="reset_clc" onclick="run_switch_layout()" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;display:inline"><span class=reload>&#x21bb;</span></button>
                 <ul class="nav">
                     <li style="display:inline;margin-left:20px;margin-top:10px;">
                         <div class="loading" id="layout_loading"></div>
@@ -419,33 +431,25 @@
                 </ul>
                 
                 <div style="padding-left:20px;display:none" class="slidecontainer" id="fCose_settings">
-                    Adjust node repulsion: <input type="range" min="3" max="18" value="9" class="slider" id="nr_slider">
-                    <p>Current node repulsion: <span id="cur_nr"></span></p>
-                    <ul class="nav">
-                        <li style="display:inline">
-                            <div class="loading" id="nr_loading"></div>
-                        </li>
-                        <li style="display:inline">
-                            <div id="nr_loader" class="loader"></div>
-                        </li>
-                    </ul>
+                    Node repulsion: <input type="range" min="3" max="18" value="9" class="slider" id="nr_slider" style="display:inline">
+                    <p style="width:15%;display:inline;font-size:16px">10<sup><input type="number" id="cur_nr" min="3" max="18" value="9" ></sup></p>
+                    <p style="color:grey;margin-right:40px">Description: parameter for adjusting internodal distance.</p>
                 </div>
                                 
-                <div style="padding-left:20px" class="slidecontainer" id="cise_settings">
+                <div style="padding-left:20px;display:none" class="slidecontainer" id="cise_settings">
                     Node repulsion: <input type="range" min="3" max="18" value="3" class="slider" id="cise_nr_slider" style="display:inline;">
-                    <p style="display:inline;"><span id="cise_cur_nr"></span></p>
+                    <p style="width:15%;display:inline;font-size:16px">10<sup><input type="number" id="cise_cur_nr" min="3" max="18" value="3" ></sup></p>
                     <p style="color:grey;margin-right:40px">Description: parameter for adjusting internodal distance.</p>
-                    <ul class="nav">
-                        <li style="display:inline">
-                            <div class="loading" id="cise_nr_loading"></div>
-                        </li>
-                        <li style="display:inline">
-                            <div id="cise_nr_loader" class="loader"></div>
-                        </li>
-                    </ul>
                 </div>
+
+                <div style="padding-left:20px;display:none" class="slidecontainer" id="clc_settings">
+                    Inter-cluster padding: <input type="range" min="10" max="100000" value="10000" class="slider" id="icp_slider" style="display:inline">
+                    <input type="number" id="quantityIcp" min="10" max="100000" value="10000" style="width:15%;display:inline;font-size:10px">
+                </div>
+            
             </div>
             
+
             <div style="padding-left:20px">
                 
                 <h6 style="margin-right:5px;display:inline;">Direct neighbors:</h6>
@@ -895,8 +899,8 @@
              var zoom
              var zoomDN
              let show = true
-            run_cise()
             run_lc()
+        
             
             findNode = function(arr, node) {
                 for (var i=0; i<arr.length; i++) {
@@ -925,13 +929,60 @@
                 neighbors.addClass("markov")
             }
             
+            var icp_slider = document.getElementById("icp_slider")
+            icp_slider.oninput = function() {
+                document.getElementById("quantityIcp").value = this.value
+            }
+            var quantityIcp = document.getElementById("quantityIcp")
+            quantityIcp.oninput = function() {
+                document.getElementById("icp_slider").value = this.value
+            }
+            rerunCLC = function() {
+                var cur_layout = document.getElementById("layout-button").value
+                var retval
+                var edges = cy.edges().filter(function(ele) {
+                    return((ele.source().style("display")=="element") & (ele.target().style("display")=="element") &
+                                (!ele.hasClass("transp")) & (!ele.source().hasClass("transp")) & (!ele.target().hasClass("transp")))})
+                var nodes = cy.nodes().filter(function(ele) {return((ele.style("display")=="element") & (!ele.hasClass("transp")))})
+                var nodes_str = JSON.stringify(nodes.jsons())
+                var edges_str = JSON.stringify(edges.jsons())
+                console.log("Nodes: "+nodes_str)
+                console.log("Edges: "+edges_str)
+                $.ajaxSetup({
+                    async: false
+                });
+
+                if (cur_layout=="clc") {
+                    var cur_icp = document.getElementById("icp_slider").value
+                    $.post('/rerunCLC', { subset_nodes:nodes_str, subset_edges:edges_str, layout:cur_layout, icp:cur_icp}, function(data){
+                        retval = data.coords
+                    });
+                    for (var i=0; i<nodes.length; i++) {
+                        var node = nodes[i]
+                        node.data('clcX', retval[node.id()].clc_X)
+                        node.data("clcY", retval[node.id()].clc_Y) 
+                    }
+                     run_clc()    
+                } else if (cur_layout=="lc") {
+                    $.post('/rerunCLC', { subset_nodes:nodes_str, subset_edges:edges_str, layout:cur_layout}, function(data){
+                        retval = data.coords
+                    });
+                    for (var i=0; i<nodes.length; i++) {
+                        var node = nodes[i]
+                        node.data('lcX', retval[node.id()].lc_X)
+                        node.data("lcY", retval[node.id()].lc_Y) 
+                    }
+                    run_lc()    
+                }
+
+                }
             //Disable switching layers for non-gene queries
             {% if string_type != "gene" %}
                 document.getElementById("layer-div").style.display = "none"
                  resetSliderMin("reach")
             {% else %}
                 document.getElementById("layer-div").style.display = "block"
-//             {% endif %}
+            {% endif %}
             
 //             //Alert if network was filtered
 //             {% if filtered %}
@@ -971,7 +1022,7 @@
                     cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
                     cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp"); 
                 }
-                console.log("Display id: "+sel.data("display_id"))
+                console.log("Position: "+JSON.stringify(sel.position()))
                 console.log(sel.indegree())
             });
             
@@ -1364,7 +1415,6 @@
             filterKBs(selected_kbs)
             console.log("KB filter threshold: "+threshold)
             filterEdges(threshold)
-            rerun_layout()
             return false
         }
 
@@ -1506,17 +1556,8 @@
             slider.oninput = function () {
                 var cur_layer = document.getElementById("layer-button").value
                 threshold = this.value;
-                if (cur_layer != "union") {
-                    run_filter_edges(threshold)
-                } else {
-                    var thresholdR = document.getElementById("quantityR").value;
-                    var thresholdBG = document.getElementById("quantityBG").value;
-                    console.log("BG: "+thresholdBG+", R: "+thresholdR+", total: "+threshold)
-                    run_filter_edges_union(thresholdR, thresholdBG, threshold)
-                }
-                filterKBs(selected_kbs)
-                input_qty.innerHTML = this.value;
-                input_qty.value = this.value
+                input_qty.innerHTML = threshold;
+                input_qty.value = threshold
             }
             input_thickness.onsubmit = function () {  
                 var thickness_val = document.getElementById("quantity");
@@ -1551,13 +1592,8 @@
             var thresholdBG = sliderBG.value
             sliderR.oninput = function () {
                 var thresholdR = this.value;
-                var thresholdBG = document.getElementById("quantityBG").value;
-                var thresholdTotal = document.getElementById("quantity").value
-                console.log("BG: "+thresholdBG+", R: "+thresholdR)
-                run_filter_edges_union(thresholdR, thresholdBG, thresholdTotal)
-                filterKBs(selected_kbs)
-                input_qtyR.innerHTML = this.value;
-                input_qtyR.value = this.value
+                input_qtyR.innerHTML = thresholdR;
+                input_qtyR.value = thresholdR
             }
             input_thicknessR.onsubmit = function () {          
                 var thickness_valR = document.getElementById("quantityR");
@@ -1572,13 +1608,8 @@
             }
             sliderBG.oninput = function () {
                 var thresholdBG = this.value;
-                var thresholdR = document.getElementById("quantityR").value
-                var thresholdTotal = document.getElementById("quantity").value
-                console.log("BG: "+thresholdBG+", R: "+thresholdR)
-                run_filter_edges_union(thresholdR, thresholdBG, thresholdTotal)
-                filterKBs(selected_kbs)
-                input_qtyBG.innerHTML = this.value;
-                input_qtyBG.value = this.value
+                input_qtyBG.innerHTML = thresholdBG;
+                input_qtyBG.value = thresholdBG
             }
             input_thicknessBG.onsubmit = function () {          
                 var thickness_valBG = document.getElementById("quantityBG");
@@ -1982,7 +2013,6 @@
                     return new Promise((resolve) => {
                     setTimeout(() => {
                         filterEdgesUnion(threshold_r, threshold_bg, threshold)
-                        rerun_layout()
                         resolve();
                     },ms)
                   })
@@ -2002,72 +2032,29 @@
                     run_fCose(idealEL=iel, nodeRep=nr);
                     document.getElementById("fCose_settings").style.display = "block";
                     document.getElementById("cise_settings").style.display = "none";
+                    document.getElementById("clc_settings").style.display = "none"
                 } else if (layout.value == "lc") {
-                    run_lc();
+                    rerunCLC();
                     document.getElementById("fCose_settings").style.display = "none";
                     document.getElementById("cise_settings").style.display = "none";
+                    document.getElementById("clc_settings").style.display = "none"
                 } else if (layout.value == "clc") {
-                    run_clc();
+                    rerunCLC();
                     document.getElementById("fCose_settings").style.display = "none";
                     document.getElementById("cise_settings").style.display = "none";
+                    document.getElementById("clc_settings").style.display = "block"
                 } else {
+                    reset_cise_pos()
                     run_cise(nodeRep=cise_nr)
                     document.getElementById("fCose_settings").style.display = "none";
                     document.getElementById("cise_settings").style.display = "block";
+                    document.getElementById("clc_settings").style.display = "none"
                 }
             }
             
-            function run_run_fcose(idealEL, nodeRep, layout) {
-                const status = document.querySelector('#nr_loading');
-                const loader = document.querySelector('#nr_loader');
-                const wait = (ms = 5000) => {
-                    return new Promise((resolve) => {
-                    setTimeout(() => {
-                        if (layout=="fCose") {
-                            run_fCose(idealEL, nodeRep)
-                        } else {
-                            run_cise(nodeRep=nodeRep)
-                        }
-                        resolve();
-                    },ms)
-                  })
-                }
-                loader.classList.toggle('show', true);
-                status.innerHTML = "Adjusting node repulsion...";
-                wait(500)
-                .then(() => {
-                    status.innerHTML = "";
-                    loader.classList.toggle('show', false);
-                })
-            } 
             
-            var nr_slider = document.getElementById("nr_slider")
-            var cur_nr = document.getElementById("cur_nr")
-            var nr = 1e9
-            if (cy.nodes().filter('[type="Linker"]').length==0) {
-                var iel = (cy.nodes().filter('[type="Query"]').length)*10+100
-            } else {
-                var iel = (cy.nodes().filter('[type="Linker"]').length)/2+100
-            }
-            cur_nr.innerHTML="1e9"
-            nr_slider.value=9
-            nr_slider.oninput = function () {
-                cur_nr.innerHTML = "1e"+this.value;
-                var nr = 10**(this.value);
-                var cur_layout = document.getElementById("layout-button").value
-                run_run_fcose(idealEL=iel, nodeRep=nr, layout=cur_layout)
-            }
-             
-            var cise_nr_slider = document.getElementById("cise_nr_slider")
-            var cise_cur_nr = document.getElementById("cise_cur_nr")
-            cise_cur_nr.innerHTML="1e9"
-            cise_nr_slider.value=9
-             var cise_nr = 1e9
-            cise_nr_slider.oninput = function () {
-                var status = document.querySelector('#cise_nr_loading');
-                var loader = document.querySelector('#cise_nr_loader');
-                cise_cur_nr.innerHTML = "1e"+this.value;
-                cise_nr = 10**(this.value);
+            // reset stored cise positions
+            function reset_cise_pos() {
                 var layer = document.getElementById("layer-button").value
                 if (layer=="reach") {
                     reachCise = {}
@@ -2079,24 +2066,37 @@
                     unionCise = {}
                     unionCiseDN = {}
                 }
-                const wait = (ms = 5000) => {
-                return new Promise((resolve) => {
-                setTimeout(() => {
-                    run_cise(cise_nr)
-                    resolve();
-                },ms)
-              })
             }
-            status.innerHTML = "Changing node repulsion...";
-            loader.classList.toggle('show', true);
-            wait(500)
-            .then(() => {
-                status.innerHTML = "";
-                loader.classList.toggle('show', false);
-            })
-
-            
+            var nr_slider = document.getElementById("nr_slider")
+            var cur_nr = document.getElementById("cur_nr")
+            var nr = 1e9
+            if (cy.nodes().filter('[type="Linker"]').length==0) {
+                var iel = (cy.nodes().filter('[type="Query"]').length)*10+100
+            } else {
+                var iel = (cy.nodes().filter('[type="Linker"]').length)/2+100
             }
+            nr_slider.oninput = function () {
+                document.getElementById("cur_nr").value = this.value;
+                nr = 10**(this.value);
+            }
+            cur_nr.oninput = function() {
+                document.getElementById("nr_slider").value = this.value
+                nr = 10**(this.value);
+            }  
+             
+            var cise_nr_slider = document.getElementById("cise_nr_slider")
+            var cise_cur_nr = document.getElementById("cise_cur_nr")
+            cise_cur_nr.value=9
+            cise_nr_slider.value=9
+             var cise_nr = 1e9
+            cise_nr_slider.oninput = function () {
+                document.getElementById("cise_cur_nr").value = this.value;
+                cise_nr = 10**(this.value);
+            }
+            cise_cur_nr.oninput = function() {
+                document.getElementById("cise_nr_slider").value = this.value
+                cise_nr = 10**(this.value);
+            }  
             
             
             function reset_slider() {
@@ -2119,11 +2119,10 @@
                     run_circle();
                 } else if (layout.value=="fCose") {
                     run_fCose(idealEL=iel, nodeRep=nr);
-                } else if (layout.value == "lc"){
-                    run_lc();
-                } else if (layout.value == "clc"){
-                    run_clc();
-                } else {
+                } else if (layout.value == "lc" | layout.value == "clc"){
+                    rerunCLC()
+                }  else {
+                    reset_cise_pos()
                     run_cise(nodeRep=cise_nr);
                 }
             }
@@ -2142,10 +2141,12 @@
                 }
                 status.innerHTML = "Rerunning layout...";
                 loader.classList.toggle('show', true);
+                loader.style.display = "block"
                 wait()
                 .then(() => {
                     status.innerHTML = "";
                     loader.classList.toggle('show', false);
+                    loader.style.display = "none"
                 })
             }
              
@@ -2295,7 +2296,6 @@
                         } else {
                             show=true
                         }
-                        rerun_layout()
                         resolve();
                     },ms)
                   })
@@ -2507,8 +2507,8 @@
 
              // pass parameter to signify BIOGRID or reach layer?
              function run_clc(){
-                 var all_nodes = cy.nodes();    // Filter by {layer}?
-                 var eles = cy.elements();    // Filter by {layer}?
+                 all_nodes = cy.nodes();
+                 eles = cy.elements();
                  
                  for (var i=0; i<all_nodes.length; i++) {
                      var curr_node = all_nodes[i]
@@ -2531,7 +2531,6 @@
                 return new Promise((resolve) => {
                 setTimeout(() => {
                     change_scheme(tc_scheme);
-                    rerun_layout();
                     if (tc_scheme) {
                         tc_scheme = false
                     } else {

@@ -141,10 +141,11 @@ def layered_concentric(qnodes_df):
     Xs_q, Ys_q, R_arr_q, n_arr_q = get_xy(n_query, r=r1)
     Xs.extend(Xs_q); Ys.extend(Ys_q)
 
-    r2 = 100
-    n_fl_co_d = 2 * np.pi * (R_arr_q[-1] + 3*r1) / (2 * r2)
-    Xs_d, Ys_d, R_arr_d, n_arr_d = get_xy(n_links, n_fl_co_d, r=r2)
-    Xs.extend(Xs_d); Ys.extend(Ys_d)
+    if n_links>0:
+        r2 = 100
+        n_fl_co_d = 2 * np.pi * (R_arr_q[-1] + 3*r1) / (2 * r2)
+        Xs_d, Ys_d, R_arr_d, n_arr_d = get_xy(n_links, n_fl_co_d, r=r2)
+        Xs.extend(Xs_d); Ys.extend(Ys_d)
     
     qnodes_df["lc_X"] = Xs; qnodes_df["lc_Y"] = Ys
     
@@ -166,7 +167,7 @@ def assign_cluster(qedges_df, qnodes_df):
     # Prepare the cluster column. Note: query nodes will have their own Id as their cluster.
     qnodes_df["clust"] = qnodes_df["Id"]
 
-    qG = nx.from_pandas_edgelist(qedges_df, edge_attr=True, source="source_id", target="target_id", create_using=nx.Graph())
+    qG = nx.from_pandas_edgelist(qedges_df, edge_attr=True, source="source", target="target", create_using=nx.Graph())
     adj_mat = nx.adjacency_matrix(qG, nodelist=qnodes_df["Id"], weight="thickness")
 
     # Get query and non-query nodes, construct query-non-query adjacency matrix

@@ -76,6 +76,27 @@ def get_evidence():
     ev = "%%".join(ev)
     return jsonify(result=ev)
 
+@app.route('/rerunCLC', methods=["POST"])
+def rerunCLC():
+    subset_nodes = request.form['subset_nodes']
+    subset_edges = request.form["subset_edges"]
+    layout = request.form["layout"]
+    subset_nodes = json.loads(subset_nodes)
+    subset_edges = json.loads(subset_edges)
+    print("Nodes:", subset_nodes)
+    node_df = pd.DataFrame.from_dict({"Id":[node["data"]["id"] for node in subset_nodes], 
+                                 "Type": [node["data"]["type"] for node in subset_nodes]})
+    node_df.to_csv("subset_nodes.csv", index=False)
+    edge_df = pd.DataFrame.from_dict({"source":[edge["data"]["source"] for edge in subset_edges],
+                                     "target":[edge["data"]["target"] for edge in subset_edges],
+                                     "thickness":[edge["data"]["thickness"] for edge in subset_edges]})
+    if layout=="clc":
+        icp = int(request.form["icp"])
+        coord_df = layeredConcentric.cluster_layered_concentric(node_df, edge_df, icp=icp).set_index('Id')
+    elif layout=="lc":
+        coord_df = layeredConcentric.layered_concentric(node_df).set_index('Id')
+    coord_dict = coord_df.to_dict(orient="index")
+    return jsonify(coords=coord_dict)
 
 @app.route('/')
 def home():
