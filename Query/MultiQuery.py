@@ -131,6 +131,7 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     found_ids = set(pd.concat([qedges_df.source, qedges_df.target])) - set(query_list)
     links = edges_df[(edges_df["source"].isin(query_list)) |
                      (edges_df["target"].isin(query_list))]
+    links = links[links["thickness"] > min_thickness]
 
     # Add direct linkers to output edges
     qedges_df = pd.concat([qedges_df, links])

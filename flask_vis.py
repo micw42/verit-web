@@ -269,17 +269,6 @@ def display_options(query_type, string_type):
 def make_bfs_query(string_type, query_type):
     user_id = request.cookies.get('user_id')
     query = cache.get(f"query_dict_{user_id}")
-    q_len = len(query)
-    if q_len > 100:
-        print(query_type)
-        return redirect(url_for("bfs_query_result",
-                                max_linkers=1,
-                                qtype="all_shortest_paths",
-                                string_type=string_type,
-                                query_type=query_type,
-                                min_thickness=20,
-                                get_direct_linkers=True)
-                       )
 
     if request.method=="POST":
         max_linkers=int(request.form["max_linkers"])
