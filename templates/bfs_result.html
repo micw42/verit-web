@@ -421,15 +421,6 @@
                     <option value="fCose">fCose</option>
                 </select>
                 <button id="reset_clc" onclick="run_switch_layout()" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;display:inline"><span class=reload>&#x21bb;</span></button>
-                <ul class="nav">
-                    <li style="display:inline;margin-left:20px;margin-top:10px;">
-                        <div class="loading" id="layout_loading"></div>
-                    </li>
-                    <li style="display:inline;margin-top:10px;">
-                        <div id="layout_loader" class="loader"></div>
-                    </li>
-                </ul>
-                
                 <div style="padding-left:20px;display:none" class="slidecontainer" id="fCose_settings">
                     Node repulsion: <input type="range" min="3" max="18" value="9" class="slider" id="nr_slider" style="display:inline">
                     <p style="width:15%;display:inline;font-size:16px">10<sup><input type="number" id="cur_nr" min="3" max="18" value="9" ></sup></p>
@@ -442,10 +433,19 @@
                     <p style="color:grey;margin-right:40px">Description: parameter for adjusting internodal distance.</p>
                 </div>
 
-                <div style="padding-left:20px;display:none" class="slidecontainer" id="clc_settings">
+                <div style="padding-left:20px;margin-top:5px;display:none" class="slidecontainer" id="clc_settings">
                     Inter-cluster padding: <input type="range" min="0" max="20000" value="500" class="slider" id="icp_slider" style="display:inline">
                     <input type="number" id="quantityIcp" min="0" max="20000" value="500" style="width:15%;display:inline;font-size:10px">
                 </div>
+                
+                <ul class="nav">
+                    <li style="display:inline;margin-left:20px;margin-top:10px;">
+                        <div class="loading" id="layout_loading"></div>
+                    </li>
+                    <li style="display:inline;margin-top:10px;">
+                        <div id="layout_loader" class="loader"></div>
+                    </li>
+                </ul>
             
             </div>
             
@@ -464,10 +464,10 @@
                 </p>
 
                 <ul class="nav">
-                    <li style="display:inline">
+                    <li style="display:inline;margin-left:20px;margin-top:10px;">
                         <div class="loading" id="direct_loading"></div>
                     </li>
-                    <li style="display:inline">
+                    <li style="display:inline;margin-top:10px;">
                         <div id="direct_loader" class="loader"></div>
                     </li>
                 </ul>
