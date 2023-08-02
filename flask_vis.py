@@ -49,7 +49,7 @@ edges_df=pd.read_pickle(f"{pickle_path}edges.pkl")
 print("Loaded edges.")
 
 print("Reading nodes...", end="\x1b[1K\r")
-nodes_df=pd.read_pickle(f"{pickle_path}nodes.pkl")
+nodes_df=pd.read_pickle(f"{pickle_path}nodes.pkl").dropna()
 print("Loaded nodes.")
 
 print("Reading databases...", end="\x1b[1K\r")

@@ -63,7 +63,7 @@ def even_spacing_method(n_tot, n_fl_co, r):
     '''
     n_fl = min(n_tot, n_fl_co)
 
-    R_arr = [big_r(n_fl, r)]
+    R_arr = [max(big_r(n_fl, r), 2*r)]
 
     n_arr = [n_fl]
     n_fitted = n_fl
@@ -270,7 +270,6 @@ def cluster_layer(clust_sizes, icp=10000, n_fl_co=20, r=1050):
     cYs = [0]
 
     offset = False    # Used to improve visibility of adjacent layers
-    prev_R_max_layer = R_maxes[1]    # Retained to push out next layer's radius
     # While at least one cluster has not been assigned yet...
     while np.product(layer_assign) == 0:
         curr_circ = 2*np.pi*R_arr[-1]
@@ -288,7 +287,7 @@ def cluster_layer(clust_sizes, icp=10000, n_fl_co=20, r=1050):
         offset = not offset
         cXs.extend(cX); cYs.extend(cY)
         
-        R_arr.append(R_arr[-1]+prev_R_max_layer+icp+R_max_layer)
+        R_arr.append(R_arr[-1]+icp+R_max_layer)
         
         # Dummy way of avoiding error when loop probably met exit condition
         try:
@@ -297,13 +296,12 @@ def cluster_layer(clust_sizes, icp=10000, n_fl_co=20, r=1050):
         except:
             break
         
-        prev_R_max_layer = R_max_layer
         layer += 1
     
     return cXs, cYs
 
 
-def cluster_layered_concentric(qnodes_df, qedges_df, r=100, icp=5000):
+def cluster_layered_concentric(qnodes_df, qedges_df, r=100, icp=500):
     qnodes_df, clust_sizes = assign_cluster(qedges_df, qnodes_df)
     cXs, cYs = cluster_layer(clust_sizes-1, r=r, icp=icp)
 

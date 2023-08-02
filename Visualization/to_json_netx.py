@@ -177,8 +177,8 @@ def convert(nodes_df, edges_df):
         nodes_layer = cluster_layered_concentric(
             nodes_layer,
             edges_layer,
-            r=150,
-            icp=1000
+            r=100,
+            icp=500
         )
 
         # Construct nodes datatable

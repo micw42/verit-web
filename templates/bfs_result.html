@@ -443,8 +443,8 @@
                 </div>
 
                 <div style="padding-left:20px;display:none" class="slidecontainer" id="clc_settings">
-                    Inter-cluster padding: <input type="range" min="10" max="100000" value="10000" class="slider" id="icp_slider" style="display:inline">
-                    <input type="number" id="quantityIcp" min="10" max="100000" value="10000" style="width:15%;display:inline;font-size:10px">
+                    Inter-cluster padding: <input type="range" min="0" max="20000" value="500" class="slider" id="icp_slider" style="display:inline">
+                    <input type="number" id="quantityIcp" min="0" max="20000" value="500" style="width:15%;display:inline;font-size:10px">
                 </div>
             
             </div>
@@ -940,23 +940,44 @@
             rerunCLC = function() {
                 var cur_layout = document.getElementById("layout-button").value
                 var retval
+                
                 var edges = cy.edges().filter(function(ele) {
-                    return((ele.source().style("display")=="element") & (ele.target().style("display")=="element") &
-                                (!ele.hasClass("transp")) & (!ele.source().hasClass("transp")) & (!ele.target().hasClass("transp")))})
-                var nodes = cy.nodes().filter(function(ele) {return((ele.style("display")=="element") & (!ele.hasClass("transp")))})
+                    return(
+                        (ele.source().style("display")=="element") & 
+                        (ele.target().style("display")=="element") &
+                        (!ele.hasClass("transp")) & 
+                        (!ele.source().hasClass("transp")) & 
+                        (!ele.target().hasClass("transp")))
+                })
+                
+                var nodes = cy.nodes().filter(function(ele) {
+                    return(
+                        (ele.style("display")=="element") & 
+                        (!ele.hasClass("transp")))
+                })
+                
                 var nodes_str = JSON.stringify(nodes.jsons())
                 var edges_str = JSON.stringify(edges.jsons())
+                
                 console.log("Nodes: "+nodes_str)
                 console.log("Edges: "+edges_str)
+                
                 $.ajaxSetup({
                     async: false
                 });
 
                 if (cur_layout=="clc") {
                     var cur_icp = document.getElementById("icp_slider").value
-                    $.post('/rerunCLC', { subset_nodes:nodes_str, subset_edges:edges_str, layout:cur_layout, icp:cur_icp}, function(data){
+                    
+                    $.post('/rerunCLC', {
+                        subset_nodes: nodes_str,
+                        subset_edges: edges_str,
+                        layout: cur_layout,
+                        icp: cur_icp
+                    }, function(data) {
                         retval = data.coords
                     });
+                    
                     for (var i=0; i<nodes.length; i++) {
                         var node = nodes[i]
                         node.data('clcX', retval[node.id()].clc_X)
@@ -972,10 +993,10 @@
                         node.data('lcX', retval[node.id()].lc_X)
                         node.data("lcY", retval[node.id()].lc_Y) 
                     }
-                    run_lc()    
+                    run_lc()
                 }
+            }
 
-                }
             //Disable switching layers for non-gene queries
             {% if string_type != "gene" %}
                 document.getElementById("layer-div").style.display = "none"
@@ -1311,9 +1332,6 @@
                     modal.style.display = "none";
                 }
             });
-            
-             
-            
              
             cy.on('click', 'node', function (evt) {
                 var sel = evt.target;
@@ -1410,11 +1428,19 @@
             var slider = document.getElementById("myRange");
             var threshold=slider.value
             var kb_select = document.getElementsByClassName('messageCheckbox');
+            
             selected_kbs = getSelectValues(kb_select);
+            
             console.log("selected kbs: "+selected_kbs)
             filterKBs(selected_kbs)
+            
             console.log("KB filter threshold: "+threshold)
+            
             filterEdges(threshold)
+            
+            var cur_layout = document.getElementById("layout-button").value
+            if(cur_layout=="clc"){rerunCLC()}
+            
             return false
         }
 
@@ -1553,12 +1579,14 @@
             input_qty.max = queryMax
             input_qty.innerHTML = slider.value;
             var input_thickness = document.getElementById("input_thickness") 
+            
             slider.oninput = function () {
                 var cur_layer = document.getElementById("layer-button").value
                 threshold = this.value;
                 input_qty.innerHTML = threshold;
                 input_qty.value = threshold
             }
+                  
             input_thickness.onsubmit = function () {  
                 var thickness_val = document.getElementById("quantity");
                 var threshold = thickness_val.value;
@@ -1573,6 +1601,7 @@
                 filterKBs(selected_kbs)
                 input_qty.innerHTML = threshold
                 slider.value=threshold
+                
                 return false
             }
                   
@@ -1590,11 +1619,13 @@
             var input_thicknessBG = document.getElementById("input_thicknessBG") 
             var thresholdR = sliderR.value
             var thresholdBG = sliderBG.value
+            
             sliderR.oninput = function () {
                 var thresholdR = this.value;
                 input_qtyR.innerHTML = thresholdR;
                 input_qtyR.value = thresholdR
             }
+            
             input_thicknessR.onsubmit = function () {          
                 var thickness_valR = document.getElementById("quantityR");
                 var thresholdBG = document.getElementById("quantityBG").value
@@ -1604,13 +1635,16 @@
                 filterKBs(selected_kbs)
                 input_qtyR.innerHTML = thresholdR
                 sliderR.value=thresholdR
+                
                 return false
             }
+            
             sliderBG.oninput = function () {
                 var thresholdBG = this.value;
                 input_qtyBG.innerHTML = thresholdBG;
                 input_qtyBG.value = thresholdBG
             }
+            
             input_thicknessBG.onsubmit = function () {          
                 var thickness_valBG = document.getElementById("quantityBG");
                 var thresholdTotal = document.getElementById("quantity").value
@@ -1620,6 +1654,7 @@
                 filterKBs(selected_kbs)
                 input_qtyBG.innerHTML = thresholdBG
                 sliderBG.value=thresholdBG
+                
                 return false
             }
 
@@ -2280,6 +2315,9 @@
                     cy.nodes().filter("[type = 'Direct']").style("display", "none")
                 }
                 resetSliderMax(show)
+                
+                cur_layout = document.getElementById("layout-button").value
+                if (cur_layout=="clc"){rerunCLC()}
             }
 
 
