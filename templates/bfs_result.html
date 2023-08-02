@@ -1591,12 +1591,13 @@
                 var thickness_val = document.getElementById("quantity");
                 var threshold = thickness_val.value;
                 var cur_layer = document.getElementById("layer-button").value
+                
                 if (cur_layer != "union") {
                     run_filter_edges(threshold)
                 } else {
                     var thresholdR = document.getElementById("quantityR").value;
                     var thresholdBG = document.getElementById("quantityBG").value;
-                    run_filter_edges_union(thresholdR, thresholdBG, threshold)                    
+                    run_filter_edges_union(thresholdR, thresholdBG, threshold)
                 }                
                 filterKBs(selected_kbs)
                 input_qty.innerHTML = threshold
@@ -2227,6 +2228,7 @@
                 node.position(pos);
               }
             }
+                
                   
              function storePositions(nodes) {
               var nodePositions = {};
