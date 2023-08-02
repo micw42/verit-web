@@ -1,5 +1,4 @@
 import numpy as np
-import sys
 import networkx as nx
 from numpy.lib.stride_tricks import sliding_window_view
 
@@ -63,7 +62,7 @@ def even_spacing_method(n_tot, n_fl_co, r):
     '''
     n_fl = min(n_tot, n_fl_co)
 
-    R_arr = [max(big_r(n_fl, r), 2*r)]
+    R_arr = [max(big_r(n_fl, r), 4*r)]
 
     n_arr = [n_fl]
     n_fitted = n_fl
@@ -246,9 +245,7 @@ def cluster_layer(clust_sizes, icp=10000, n_fl_co=20, r=1050):
         cXs, cYs (arr): coordinates for each cluster
     '''
     assert (np.array(clust_sizes) == -np.sort(-clust_sizes)).all(), "Sort by descending first"
-    
-    prev_R_max_layer = 0
-    
+      
     # First retrieve each cluster's radius
     R_maxes = []
     for n in clust_sizes:
