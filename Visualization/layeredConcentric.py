@@ -209,6 +209,9 @@ def cluster_xy(ring_R, Rs, offset=False):
     circ = ring_R*2*np.pi
     
     # The cumulative sum of sliding window sum (of radii) corresponds to the center locations along a linearized ring
+    # Handle if there is only 1 R in Rs
+    if len(Rs) == 1:
+        Rs = np.insert(Rs, -1, 0)
     lin_centers = np.insert(np.cumsum(np.sum(sliding_window_view(Rs, window_shape = 2), axis = 1)), 0, 0)
     
     # Compute the remainder space within the layer and evenly distribute it as padding between clusters
@@ -300,7 +303,7 @@ def cluster_layer(clust_sizes, icp=10000, n_fl_co=20, r=1050):
     return cXs, cYs
 
 
-def cluster_layered_concentric(qnodes_df, qedges_df, r=500, icp=10000):
+def cluster_layered_concentric(qnodes_df, qedges_df, r=100, icp=5000):
     qnodes_df, clust_sizes = assign_cluster(qedges_df, qnodes_df)
     cXs, cYs = cluster_layer(clust_sizes-1, r=r, icp=icp)
 
