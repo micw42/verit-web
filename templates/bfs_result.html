@@ -237,6 +237,12 @@
         input[type=number] {
           -moz-appearance: textfield;
         }
+        
+        .src_tar_button {
+            padding: 0;
+            border: none;
+            background: none;
+        }
 
 </style>
 
@@ -586,7 +592,7 @@
         </script>
         <button class="w3-button w3-teal w3-xlarge" onclick="w3_open()" style="z-index:2">☰</button>
             
-        <div id="newModal" class="modal">
+        <div id="newModal" class="modal" style="z-index: 9999;">
             <div class="modal-content" style="height:85%;">
                 <span class="close">&times;</span>
                  <div id="reachHeader" class="modal-header text-center" style="background-color:#a6a6a6;height:120px">
@@ -683,18 +689,33 @@
 
 
         <div id="synModal" class="modal">
+            
             <div class="modal-content" style="height:85%;width:75%;">
                 <span class="close">&times;</span>
-                
-                <div class="modal-header">
-                    <h2 id="synLabel" style="font-family: Arial, Helvetica, sans-serif;margin-left:5%;margin-right:5%;">Synonyms:</h2>
+                 <div class="modal-header">
+                    <h2 id="synLabel" style="font-family: Arial, Helvetica, sans-serif;margin-right:5%;">Synonyms:</h2>
                     <button id="markovButton" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;margin-right:5%">Get Markov neighbors</button>
                 </div>
                 
-                <div id="modalBody" class="modal-body">
-                    <h3 id="synList" style="margin-left:5%;margin-right:5%;"></h3>
-                </div>
+                <nav>
+                    <div class="nav nav-tabs mb-3" id="syn-nav-tab" role="tablist">
+                        <button class="nav-link active" id="syn-tab" data-bs-toggle="tab" data-bs-target="#nav-syn" type="button" role="tab" aria-controls="nav-syn" aria-selected="true">Synonyms</button>
+                        <button class="nav-link" id="src-tab" data-bs-toggle="tab" data-bs-target="#nav-src" type="button" role="tab" aria-controls="nav-src" aria-selected="false">Sources</button>
+                        <button class="nav-link" id="tar-tab" data-bs-toggle="tab" data-bs-target="#nav-tar" type="button" role="tab" aria-controls="nav-tar" aria-selected="false">Targets</button>
+                    </div>
+                </nav>
                 
+                <div id="tablist" class="tab-content p-3 border bg-light" id="nav-tabContent" style="height:55%;">
+                    <div class="tab-pane fade show active" id="nav-syn" role="tabpanel" aria-labelledby="syn-tab" style="height:100%;">
+                         <h3 id="synList" class="evDiv" style="margin-left:5%;margin-right:5%;height:inherit"></h3>
+                    </div>
+                    <div class="tab-pane fade" id="nav-src" role="tabpanel" aria-labelledby="src-tab" style="height:100%;">
+                        <h3 id="srcList" class="evDiv" style="margin-left:5%;margin-right:5%;height:inherit"></h3>
+                    </div>
+                    <div class="tab-pane fade" id="nav-tar" role="tabpanel" aria-labelledby="tar-tab" style="height:100%;">
+                        <h3 id="tarList" class="evDiv" style="margin-left:5%;margin-right:5%;height:inherit"></h3>
+                    </div>
+              </div>  
             </div>
         </div>
             
@@ -1238,11 +1259,10 @@
                      document.getElementById("BGHeader").classList.add("hiddenHeader");
                  }
              }
-
-             cy.on('click', 'edge', function (evt) {     
-                var sel = evt.target;
-            
-                function getEvidence() {
+             
+             format_edge = function(sel) {
+                 console.log("sel id: "+sel.id())
+                 function getEvidence() {
                     var retval;
                     $.ajaxSetup({
                         async: false
@@ -1318,20 +1338,47 @@
 
                 modal.style.display = "block";
             
-                window.onclick = function (event) {
-                    if (event.target == modal) {
-                        reache.scrollTop = 0;
-                        bge.scrollTop = 0;
-                        modal.style.display = "none";
-                    }
-                }
-            
                 span.onclick = function () {
                     reache.scrollTop = 0;
                     bge.scrollTop = 0;
                     modal.style.display = "none";
                 }
-            });
+            }
+             
+
+             cy.on('click', 'edge', function (evt) {     
+                var sel = evt.target;
+                format_edge(sel) }
+                ); 
+                  
+            format_item = function(text) {
+                var item = document.createElement('li');
+                var cont = document.createElement("div");
+
+                // Set its contents:
+                item.appendChild(document.createTextNode(text));
+                cont.appendChild(item);
+                cont.style.padding = "0px 0px 20px 0px";
+                
+                return(cont)
+            } 
+                  
+            get_edgeData_from_id = function(edge_id) {
+                var edge = cy.$id(edge_id);
+                format_edge(edge)
+            }  
+   
+            format_button = function(text, edge) {
+                var element = document.createElement("li");
+                var cont = document.createElement('a'); 
+                var edge_id = edge.id()
+                cont.setAttribute("value", edge_id)
+                cont.setAttribute("href", "#")
+                cont.setAttribute("onclick", "get_edgeData_from_id('"+edge_id+"')");
+                cont.innerHTML = text
+                element.appendChild(cont);
+                return(element)  
+            }      
              
             cy.on('click', 'node', function (evt) {
                 var sel = evt.target;
@@ -1341,43 +1388,72 @@
                 console.log("width: "+sel.data('border_width'))
                 var modal = document.getElementById("synModal");
                 var synLabel = document.getElementById("synLabel");
-                synLabel.innerHTML = "Synonyms for "+sel.data("label")
+                synLabel.innerHTML = sel.data("label") + " (" + sel.data("display_id") + ")"
                 var span = document.getElementsByClassName("close")[1];
                 var syn = sel.data().syn;
                 var syn_split = syn.split("%%");
                 syn_split = [...new Set(syn_split)];
                 var syn_list = document.createElement("ul")
                 for (var i = 0; i < syn_split.length; i++) {
-                    // Create the list item:
-                    var item = document.createElement('li');
-                    var cont = document.createElement("div");
-
-                    var text = syn_split[i];
-
-                    // Set its contents:
-                    item.appendChild(document.createTextNode(text));
-                    cont.appendChild(item);
-                    cont.style.padding = "0px 0px 20px 0px";
-            
-                    // Add it to the list:
+                    var text = syn_split[i];                   
+                    var cont = format_item(text)
                     syn_list.appendChild(cont);
                 }
-            
                 document.getElementById("synList").innerHTML = syn_list.innerHTML;
-                modal.style.display = "block";
-            
-                window.onclick = function (event) {
-                    if (event.target == modal) {
-                        var modalBody = document.getElementById("modalBody");
-                        modalBody.scrollTop = 0;
-                        modal.style.display = "none";
+                
+                var edges = sel.connectedEdges()
+                var src_list = document.createElement("ul")
+                var tar_list = document.createElement("ul")
+                for (var i=0; i<edges.length; i++) {
+                    var edge = edges[i]
+                    if (edge.source().id()==sel.id()) {
+                        var lab = edge.target().data("label")
+                        var id = edge.target().data("display_id")
+                        var text = lab + " (" + id + ")"
+                        var cont = format_button(text, edge)
+                        if (edge.target().data("type")=="Query" | !show) {
+                            tar_list.appendChild(cont)
+                        }
+                    } else if (edge.target().id()==sel.id()) {
+                        var lab = edge.source().data("label")
+                        var id = edge.source().data("display_id")
+                        var text = lab + " (" + id + ")"
+                        var cont = format_button(text, edge)
+                        if (edge.source().data("type")=="Query" | !show) {
+                            src_list.appendChild(cont)
+                        }
                     }
                 }
-            
+                document.getElementById("srcList").innerHTML = src_list.innerHTML
+                document.getElementById("tarList").innerHTML = tar_list.innerHTML;
+                
+                modal.style.display = "block";
+                
+                var synList = document.getElementById("synList")
+                var srcList = document.getElementById("srcList")
+                var tarList = document.getElementById("tarList")
+                
+                var synTab = document.getElementById("syn-tab")
+                var srcTab = document.getElementById("src-tab")
+                var tarTab = document.getElementById("tar-tab")
+                
+                var navSyn = document.getElementById("nav-syn")
+                var navSrc = document.getElementById("nav-src")
+                var navTar = document.getElementById("nav-tar")
+                
                 span.onclick = function () {
                     var modalBody = document.getElementById("modalBody");
                     modalBody.scrollTop = 0;
+                    synList.scrollTop = 0;
+                    srcList.scrollTop = 0;
+                    tarList.scrollTop = 0
                     modal.style.display = "none";
+                    synTab.classList.add('active')
+                    srcTab.classList.remove('active')
+                    tarTab.classList.remove('active')
+                    navSyn.classList.add('active', 'show')
+                    navSrc.classList.remove('active', 'show')
+                    navTar.classList.remove('active', 'show')
                 }
                 
                 var markovButton = document.getElementById("markovButton");
@@ -1705,11 +1781,12 @@
                         input_el.id = sel.id();
 
                         options.appendChild(input_el);
-
+                        
                         // Making the button
                         var btn_el = document.createElement("button");
-                        btn_el.className = "collapsible";
-                        btn_el.id = "btn_el";
+//                         btn_el.type = "button";
+                        btn_el.classList.add("collapsible");
+                        btn_el.id = sel.id()+"_btn"
                         btn_el.innerHTML = sel.data().label + " ("+sel.data().display_id+")";
 
                         options.appendChild(btn_el);
@@ -1717,6 +1794,8 @@
                         // Making the div to contain the synonyms (parent of ul_el)
                         var div_el = document.createElement("div");
                         div_el.className = "content";
+                        
+                        
 
                         // Making the ul to contain the synonyms (parent of li_el)
                         var ul_el = document.createElement("ul");
@@ -1735,6 +1814,7 @@
                         div_el.appendChild(ul_el);
 
                         options.appendChild(div_el);
+                        return false
                     }
                 }
             }
@@ -1815,14 +1895,6 @@
 
                 modal.style.display = "block";
             
-                window.onclick = function (event) {
-                    if (event.target == modal) {
-                        var modalBody = document.getElementById("modalBody");
-                        modalBody.scrollTop = 0;
-                        modal.style.display = "none";
-                    }
-                }
-            
                 span.onclick = function () {
                     var modalBody = document.getElementById("modalBody");
                     modalBody.scrollTop = 0;
@@ -1839,17 +1911,23 @@
                 var results_nodes = cy.nodes().filter(function(ele) {
                     return ((ele.id() === choice));})
                 var cq =  results_nodes.data().label + " ("+results_nodes.data().display_id+")"
+                
                 current_query.innerHTML = cq; 
                 results_nodes.addClass('searched')
+                
                 var neighbors = results_nodes.outgoers().union(results_nodes.incomers());
                 var results_edges = results_nodes.connectedEdges()
                 var results_nodes = results_nodes.union(neighbors)
+                
                 cy.nodes().difference(results_nodes).addClass('transp');
                 cy.edges().difference(results_edges).addClass('transp');
+                
                 var modal = document.getElementById("searchModal")
                 var modalBody = document.getElementById("modalBody");
+                
                 modalBody.scrollTop = 0;
                 modal.style.display = "none";
+                
                 return false
             }
              
@@ -1873,14 +1951,6 @@
                 updateCollapsible("options2", node2, nodes, "options2")
                 
                modal.style.display = "block";
-            
-                window.onclick = function (event) {
-                    if (event.target == modal) {
-                        var modalBody = document.getElementById("modalBody");
-                        modalBody.scrollTop = 0;
-                        modal.style.display = "none";
-                    }
-                }
             
                 span.onclick = function () {
                     var modalBody = document.getElementById("modalBody");
