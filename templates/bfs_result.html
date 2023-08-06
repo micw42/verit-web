@@ -1767,16 +1767,16 @@
                 options.innerHTML = "";
                 for(var i=0; i<nodes.length; i++) {
                     var sel = nodes[i];
-                    var syn = sel.data().syn;
+                    var syn = sel.data().syn.toLowerCase();
                     
                     // String-matching part
-                    if (syn.toLowerCase().includes(search)) {
+                    if (syn.includes(search)) {
                         // Content: append other stuff to this for the scrolling menu
                         // Making the input radio
                         var input_el = document.createElement("input");
                         input_el.type = "radio";
                         input_el.style.display = "inline";
-                        input_el.name = name;
+                        input_el.name = "nodeSel";
                         input_el.value = sel.id();
                         input_el.id = sel.id();
 
@@ -1784,18 +1784,16 @@
                         
                         // Making the button
                         var btn_el = document.createElement("button");
-//                         btn_el.type = "button";
-                        btn_el.classList.add("collapsible");
-                        btn_el.id = sel.id()+"_btn"
+                        btn_el.className = "collapsible";
+                        btn_el.id = "btn_el";
+                        btn_el.type = "button";
                         btn_el.innerHTML = sel.data().label + " ("+sel.data().display_id+")";
 
                         options.appendChild(btn_el);
 
                         // Making the div to contain the synonyms (parent of ul_el)
                         var div_el = document.createElement("div");
-                        div_el.className = "content";
-                        
-                        
+                        div_el.className = "content"; 
 
                         // Making the ul to contain the synonyms (parent of li_el)
                         var ul_el = document.createElement("ul");
@@ -1814,7 +1812,6 @@
                         div_el.appendChild(ul_el);
 
                         options.appendChild(div_el);
-                        return false
                     }
                 }
             }
@@ -2676,6 +2673,21 @@
                 cy.edges().style("target-arrow-color", function (ele) { return ele.data("color"); })
             }
         }
+                  
+        // Add listener to dynamically created buttons
+        document.addEventListener("click", function(e){
+        const target = e.target.closest("#btn_el"); // Or any other selector.
+
+        if(target){
+          target.classList.toggle("active");
+          var content = target.nextElementSibling;
+          if (content.style.maxHeight){
+            content.style.maxHeight = null;
+          } else {
+            content.style.maxHeight = content.scrollHeight + "px";
+          }
+        }
+        });
 
 
         </script>

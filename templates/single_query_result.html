@@ -1268,6 +1268,7 @@
                         var btn_el = document.createElement("button");
                         btn_el.className = "collapsible";
                         btn_el.id = "btn_el";
+                        btn_el.type = "button"
                         btn_el.innerHTML = sel.data().label + " ("+sel.data().display_id+")";
 
                         options.appendChild(btn_el);
@@ -1343,14 +1344,18 @@
                  var modal = document.getElementById("searchModal")
                  var span = document.getElementsByClassName("close")[2];
                  reset_button.style="background-color:#4CAF50;"
+                 
                  //cy.nodes().removeClass("transp");
                  cy.edges().removeClass("transp");
                  cy.nodes().removeClass("searched");
+                 
                  var node_name = document.getElementById("node_name");
                  var search = node_name.value.toLowerCase();
                  var nodes = cy.nodes().filter(function(ele) {return((ele.style()["display"] != "none") && 
                             (ele.style()["opacity"] != "0"))})
+                 
                  console.log("nodes length: "+nodes.length)
+                 
                  updateCollapsible("matchOptions", search, nodes)
 
                  modal.style.display = "block";
