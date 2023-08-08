@@ -238,7 +238,7 @@ def pick_query(query, query_type):
 
     else:
         if query_type=="single":
-            return render_template("pick_results_single-test.html", result_dict=result_dict)
+            return render_template("pick_results_single.html", result_dict=result_dict)
         else:
             not_in=list(set([q.lower() for q in user_query])-set([k["Display"].lower() for k in result_dict.values()]))
             return render_template("pick_results_multi.html", query=query, result_dict=result_dict, not_in=not_in)
