@@ -767,13 +767,13 @@
                         <h6>Node 1:</h6>
                         
                         <div class="itemconfiguration">
-                            <div style="margin-left:3%;" id="options1"></div>
+                            <div style="margin-left:3%;"  id="options1"></div>
                         </div>
                         
                         <h6>Node 2:</h6>
                         
                         <div class="itemconfiguration">
-                            <div style="margin-left:3%;" id="options2"></div>
+                            <div style="margin-left:3%;"  id="options2"></div>
                         </div>
                         
                          <button type="submit" id="submitPath" class="btn btn-primary" style="background-color:#4CAF50;float:right"><span class=reload>&#x21bb;</span></button>
@@ -1762,13 +1762,14 @@
 //     <ul>
 // </div>
 
-            function updateCollapsible(el_id, search, nodes, name){
+            function updateCollapsible(el_id, search, nodes, name="nodeSel"){
                 var options = document.getElementById(el_id);
                 options.innerHTML = "";
                 for(var i=0; i<nodes.length; i++) {
                     var sel = nodes[i];
                     var syn = sel.data().syn.toLowerCase();
-                    
+                    console.log("search: "+search)
+                    console.log("syn: "+syn)
                     // String-matching part
                     if (syn.includes(search)) {
                         // Content: append other stuff to this for the scrolling menu
@@ -1776,7 +1777,7 @@
                         var input_el = document.createElement("input");
                         input_el.type = "radio";
                         input_el.style.display = "inline";
-                        input_el.name = "nodeSel";
+                        input_el.name = name;
                         input_el.value = sel.id();
                         input_el.id = sel.id();
 
@@ -1816,79 +1817,24 @@
                 }
             }
             
-            function updateOptions(ele_id, search, nodes, name="match") {
-                // You first go get the thing you want to update by its ID (a div)
-                var options = document.getElementById(ele_id)
-                // options.innerHTML=""
-                for (var i=0; i<nodes.length; i++) {
-                    var sel = nodes[i]
-                    var syn = sel.data().syn;
-                    if (syn.includes(search)) {
-                        // Content: append other stuff to this for the scrolling menu
-                        var cont = document.createElement("div");
-                        cont.setAttribute("class", "matchDiv")
-                        
-                        // Header: the button that the user will select
-                        var header = document.createElement("input");
-                        header.setAttribute('value', sel.id());
-                        header.setAttribute('type', 'radio');
-                        header.setAttribute('name', name);
-                        header.setAttribute("id", sel.id());
-                        cont.appendChild(header);
-
-                        // Header's label: ID label for the button
-                        var newlabel = document.createElement("Label");
-                        newlabel.setAttribute("for", sel.id());
-                        var labelText = sel.data().label + " ("+sel.data().display_id+")";
-                        console.log(sel.data().label + " ("+sel.data().display_id+")")
-                        console.log(sel.data().label + " ("+sel.data().display_id+")")
-                        newlabel.innerHTML = labelText;
-                        cont.appendChild(newlabel);
-                        
-                        // Synonyms: Synonyms that need to be turned into a dropdown
-                        // [[Button goes here?]]
-                        // Create a list from a long string punctuated by '%%'
-                        var syn_split = syn.split("%%");
-                        syn_split = [...new Set(syn_split)];    // Turn split into array
-
-                        // HTML-formatted synonyms to append to
-                        var syn_list = document.createElement("ul");
-                        for (var j = 0; j < syn_split.length; j++) {
-                            var item = document.createElement('li');
-                            var subcont = document.createElement("div");                            
-                            var text = syn_split[j];
-
-                            // TODO: Handle if search === ""
-                            if (text.includes(search)) {
-                                item.appendChild(document.createTextNode(text));
-                                subcont.appendChild(item);
-                                subcont.style.padding = "0px 0px 3px 0px";
-                                syn_list.appendChild(subcont);
-                            }
-                        }
-
-                        cont.appendChild(syn_list)  // APPEND syn_list TO cont
-                        options.appendChild(cont)  // APPEND cont TO options
-                    }
-                }
-            }
             
             var node_search = document.getElementById("node_search");
             var current_query = document.getElementById("current_query");
             var reset_button = document.getElementById("reset");
             node_search.onsubmit = function () {
+                cy.nodes().removeClass("searched");
+                cy.edges().removeClass("searched")
+                cy.nodes().filter(function(ele) {return((ele.degree()>0) | (ele.data("type")=="Query"))}).removeClass("transp");
+                cy.edges().removeClass("transp");
                 var modal = document.getElementById("searchModal")
                 var span = document.getElementsByClassName("close")[3];
                 reset_button.style="background-color:#4CAF50;"
-                //cy.nodes().removeClass("transp");
-                cy.edges().removeClass("transp");
-                cy.nodes().removeClass("searched");
                 var node_name = document.getElementById("node_name");
                 var search = node_name.value.toLowerCase();
                 var nodes = cy.nodes().filter(function(ele) {return((ele.style()["display"] != "none") && 
                             (ele.style()["opacity"] != "0"))})
 
-                updateCollapsible("matchOptions", search, nodes, "match")
+                updateCollapsible("matchOptions", search, nodes)
 
                 modal.style.display = "block";
             
@@ -1904,7 +1850,7 @@
             
             var matchForm = document.getElementById("matchForm")
             matchForm.onsubmit = function() {
-                var choice = document.querySelector('input[name="match"]:checked').value;
+                var choice = document.querySelector('input[name="nodeSel"]:checked').value;
                 var results_nodes = cy.nodes().filter(function(ele) {
                     return ((ele.id() === choice));})
                 var cq =  results_nodes.data().label + " ("+results_nodes.data().display_id+")"
@@ -1930,13 +1876,12 @@
              
             var path_finding =  document.getElementById("path_finding");
             path_finding.onsubmit = function() {
+                cy.nodes().removeClass("searched");
+                cy.edges().removeClass("searched")
+                cy.nodes().filter(function(ele) {return((ele.degree()>0) | (ele.data("type")=="Query"))}).removeClass("transp");
+                cy.edges().removeClass("transp");
                 var modal = document.getElementById("pathModal")
                 var span = document.getElementsByClassName("close")[4];
-                
-                //cy.nodes().removeClass("transp");
-                cy.edges().removeClass("transp");
-                cy.edges().removeClass("searched");
-                cy.nodes().removeClass("searched");
                 
                 var node1 = document.getElementById("node1").value.toLowerCase();
                 var node2 = document.getElementById("node2").value.toLowerCase();
@@ -1944,8 +1889,8 @@
                 var nodes = cy.nodes().filter(function(ele) {return((ele.style()["display"] != "none") && 
                             (ele.style()["opacity"] != "0"))})
                 
-                updateCollapsible("options1", node1, nodes, "options1")
-                updateCollapsible("options2", node2, nodes, "options2")
+                updateCollapsible("options1", node1, nodes, name="options1")
+                updateCollapsible("options2", node2, nodes, name="options2")
                 
                modal.style.display = "block";
             
@@ -2008,12 +1953,17 @@
             }
              
             function reset_query() {
-                var node_name = document.getElementById("node_name");
-                currently_querying = false;
+                document.getElementById("node_name").value=""
+                document.getElementById("node1").value = ""
+                document.getElementById("node2").value = ""
                 cy.nodes().removeClass("transp");
                 cy.edges().removeClass("transp");
                 cy.nodes().removeClass("searched");
                 cy.edges().removeClass("searched")
+                current_query.innerHTML = "None"; 
+                current_path.innerHTML = "None"
+                reset_button.style.display = "None"
+                reset_path.style.display="None"
                 var slider = document.getElementById("myRange");
                 var threshold=slider.value
                 var cur_layer = document.getElementById("layer-button").value
@@ -2026,13 +1976,6 @@
                     filterEdgesUnion(thresholdR, thresholdBG, threshold)                       
                  }
                 filterKBs(selected_kbs)
-                current_query.innerHTML = "None"; 
-                current_path.innerHTML = "None"
-                node_name.value=""
-                document.getElementById("node1").value = ""
-                document.getElementById("node2").value = ""
-                reset_button.style.display = "None"
-                reset_path.style.display="None"
             }
             
             display_loading = async function(elem_id) {
@@ -2549,7 +2492,7 @@
                     console.log("BG: "+thresholdBG+", R: "+thresholdR+", total: "+threshold)
                     filterEdgesUnion(thresholdR, thresholdBG, threshold)                    
                 }
-                
+                reset_query()
                 return true
             }
 
