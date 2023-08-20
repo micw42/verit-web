@@ -458,6 +458,7 @@
 
             <div style="padding-left:20px">
                 
+                
                 <h6 style="margin-right:5px;display:inline;">Direct neighbors:</h6>
 
                 <div class="form-check form-switch" style="display:inline;">
@@ -466,9 +467,22 @@
                 </div>
                 
                 <p style="color:grey;margin-right:20px;">
-                    Description: Toggle showing direct neighbors to the query nodes. Only edges with >20 thickness are retrieved to limit network size.
+                    Toggle showing direct neighbors to the query nodes. Only edges with >20 thickness are retrieved to limit network size.
                 </p>
 
+
+                <h6 style="margin-right:5px;display:inline;">Linkers:</h6>
+                
+                <div class="form-check form-switch" style="display:inline;">
+                    <input class="form-check-input" type="checkbox" role="switch" id="linker-button" onchange="run_show_linker()" style="display:inline">
+                    <label class="form-check-label" for="linker-button" style="display:inline"></label>
+                </div>
+
+                <p style="color:grey;margin-right:20px;">
+                    Toggle showing linkers between query nodes. If a node is both a direct neighbor and linker, the linker attribute will take priority. Only works if "Edges between endpoints" parameter >1.
+                </p>
+
+                
                 <ul class="nav">
                     <li style="display:inline;margin-left:20px;margin-top:10px;">
                         <div class="loading" id="direct_loading"></div>
@@ -477,7 +491,11 @@
                         <div id="direct_loader" class="loader"></div>
                     </li>
                 </ul>
+                
+
             </div>
+            
+
 
             
             <div id="layer-div" style="padding-left:20px;">
@@ -818,7 +836,7 @@
                             "clcY": "data(clcY)",
                             "layer": "data(layer)",
                             "type": "data(type)",
-                            "border-width": function (ele) { return ele.data("border_width"); },
+                            "border-width": "5px", // function (ele) { return ele.data("border_width"); }
                             "border-color": function (ele) { return ele.data("border_color"); }
                         },
                         position: {
@@ -920,6 +938,8 @@
              var zoom
              var zoomDN
              let show = true
+             let showl = true
+             
             run_lc()
         
             
@@ -2313,6 +2333,7 @@
 
             }
              
+            
             function show_direct(show=true) {
                 var cur_layer = document.getElementById("layer-button").value 
                 if (show) {
@@ -2325,6 +2346,26 @@
                 } else {
                     cy.edges().filter("[type = 'Direct']").style("display", "none")
                     cy.nodes().filter("[type = 'Direct']").style("display", "none")
+                }
+                resetSliderMax(show)
+                
+                cur_layout = document.getElementById("layout-button").value
+                if (cur_layout=="clc"){rerunCLC()}
+            }
+                  
+            
+            function show_linker(showl=true) {
+                var cur_layer = document.getElementById("layer-button").value 
+                if (showl) {
+                    cy.edges().filter(function(ele) {
+                        return((ele.data("type")=="Linker") && (ele.data("layer")==cur_layer))
+                    }).style("display", "element")
+                    cy.nodes().filter(function(ele) {
+                        return((ele.data("type")=="Linker") && (ele.data("layer")==cur_layer))
+                    }).style("display", "element")  
+                }  else {
+                    cy.edges().filter("[type = 'Linker']").style("display", "none")
+                    cy.nodes().filter("[type = 'Linker']").style("display", "none")
                 }
                 resetSliderMax(show)
                 
@@ -2354,6 +2395,37 @@
                     status.innerHTML = "Loading direct neighbors...";
                 } else {
                     status.innerHTML = "Hiding direct neighbors...";
+                }
+                loader.classList.toggle('show', true);
+                wait(500)
+                .then(() => {
+                    status.innerHTML = "";
+                    loader.classList.toggle('show', false);
+                })
+            }
+                  
+                
+            //Add loader to showing direct linkers
+            function run_show_linker() {
+                const status = document.querySelector('#direct_loading');
+                const loader = document.querySelector('#direct_loader');
+                const wait = (ms = 5000) => {
+                    return new Promise((resolve) => {
+                    setTimeout(() => {
+                        show_linker(showl);
+                        if (showl) {
+                            showl = false
+                        } else {
+                            showl=true
+                        }
+                        resolve();
+                    },ms)
+                  })
+                }
+                if (showl) {
+                    status.innerHTML = "Showing linker nodes...";
+                } else {
+                    status.innerHTML = "Hiding linker nodes...";
                 }
                 loader.classList.toggle('show', true);
                 wait(500)
