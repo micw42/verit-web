@@ -26,7 +26,7 @@ def clean_nodes(nodes_df, layer):
         if query_type == "Query":
             return "#fc0800"
         else:
-            return "#99beff"
+            return "#2EB67D"
 
     def get_class(query_type):
         if query_type == "Query":
@@ -35,7 +35,7 @@ def clean_nodes(nodes_df, layer):
             return "level0"
 
     def get_display(query_type, layer):
-        if query_type=="Direct" or layer=="biogrid":
+        if query_type!="Query" or layer=="biogrid":
             return "none"
         else:
             return "element"
@@ -167,6 +167,9 @@ def clean_union(nodes_df, edges_df_reach, edges_df_bg):
 def convert(nodes_df, edges_df):
     elements=[]
     layers = list(nodes_df.layer.unique())
+    
+    nodes_df.to_csv("query_nodes.csv", index=False)
+    edges_df.to_csv("query_edges.csv", index=False)
 
     for layer in layers:
         nodes_layer = nodes_df[nodes_df.layer == layer].copy()
