@@ -90,7 +90,7 @@ def rerunCLC():
                                      "thickness":[edge["data"]["thickness"] for edge in subset_edges]})
     if layout=="clc":
         icp = int(request.form["icp"])
-        coord_df = layeredConcentric.cluster_layered_concentric(node_df, edge_df, icp=icp).set_index('Id')
+        coord_df = layeredConcentric.cluster_layered_concentric(node_df, edge_df, icp=icp, arr_family=True).set_index('Id')
     elif layout=="lc":
         coord_df = layeredConcentric.layered_concentric(node_df).set_index('Id')
     coord_dict = coord_df.to_dict(orient="index")

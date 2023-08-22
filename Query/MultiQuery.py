@@ -223,6 +223,8 @@ def query(G, edges_df, nodes_df, queries_id, max_linkers, qtype, query_type, get
     .rename(columns={"Label":"source_lab"}).drop(columns=["Id", "KB", "name", "display_id"])
     qedges_df = pd.merge(qedges_df, qnodes_df, left_on="target", right_on="Id", how="left")\
     .rename(columns={"Label":"target_lab"}).drop(columns=["Id", "KB", "name", "display_id"])
+    qnodes_df.to_csv("qnodes.csv", index=False)
+    qedges_df.to_csv("qedges.csv", index=False)
     return qnodes_df, qedges_df
 
 

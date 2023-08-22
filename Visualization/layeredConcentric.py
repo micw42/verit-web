@@ -1,6 +1,7 @@
 import numpy as np
 import networkx as nx
 from numpy.lib.stride_tricks import sliding_window_view
+import math
 
 
 def get_ring_coord(n, R, offset=False):
@@ -195,17 +196,36 @@ def assign_cluster(qedges_df, qnodes_df):
     return qnodes_df, clust_sizes
 
 
-def cluster_xy(ring_R, Rs, offset=False):
+def cluster_xy(ring_R, Rs, offset=False, arr_family=False, denom=4):
     ''' Compute the center location of clusters given the radius of the current layer and variable cluster radii
     Arguments:
         ring_R (float): radius of the layer that the cluster should reside along
         Rs (arr): array of cluster radii
         offset (bool): stagger X and Y values to help visualization
+        arr_family (bool): arrange clusters by family (avoids monotonic decreasing cluster size)
+        denom (int): consider 1/{denom} of the total clusters as big (only applicable if gini coefficient not above threshold)
     Returns:
         cX, cY (arr): coordinates for each cluster at current layer
     '''
     # Calculate the circumference
     circ = ring_R*2*np.pi
+    
+    # Calculate number of nodes counted as big in family assignment
+    gc = gini_coefficient(Rs)
+    if gc > 0.3:
+        n_big = np.sum(Rs > np.mean(Rs))
+    else:
+        n_big = math.floor(max(denom, len(Rs))/denom) #minimum of 1 big node
+    
+    #Get index for family-sorted Rs
+    if arr_family:
+        family = assign_family(Rs, n_big=n_big)
+        family_idx = np.argsort(family)
+    else: 
+        family_idx = np.arange(len(Rs))
+
+    # Sort Rs by family
+    Rs = Rs[family_idx]
     
     # The cumulative sum of sliding window sum (of radii) corresponds to the center locations along a linearized ring
     # Handle if there is only 1 R in Rs
@@ -220,8 +240,11 @@ def cluster_xy(ring_R, Rs, offset=False):
     
     # Push the centers by the remainder padding. Automatically accounts for inter-cluster padding.
     lin_centers = [lin_centers[i] + remainder_pad*i for i in range(len(lin_centers))]
-    lin_centers = lin_centers / circ
+    lin_centers = np.array(lin_centers) / circ
     lin_centers = lin_centers*2*np.pi
+    
+    # Restore original order
+    lin_centers = lin_centers[np.argsort(-Rs)]
     
     # Stagger adjacent layers for readability (this is not the optimal way to do it)
     if not offset:
@@ -234,7 +257,7 @@ def cluster_xy(ring_R, Rs, offset=False):
     return cX, cY
 
 
-def cluster_layer(clust_sizes, icp=10000, n_fl_co=20, r=1050):
+def cluster_layer(clust_sizes, icp=10000, n_fl_co=20, r=1050, arr_family=False, denom=4):
     ''' Compute the coordinates for each cluster
     Arguments:
         clust_sizes (arr): how many nodes in each cluster
@@ -280,7 +303,7 @@ def cluster_layer(clust_sizes, icp=10000, n_fl_co=20, r=1050):
         R_max_layer = max(R_maxes[np.where(i_fit)])
         
         # Get adjustment coordinate of cluster
-        cX, cY = cluster_xy(R_arr[-1], R_maxes[i_fit], offset=offset)
+        cX, cY = cluster_xy(R_arr[-1], R_maxes[i_fit], offset=offset, arr_family=arr_family, denom=denom)
         offset = not offset
         cXs.extend(cX); cYs.extend(cY)
         
@@ -297,10 +320,30 @@ def cluster_layer(clust_sizes, icp=10000, n_fl_co=20, r=1050):
     
     return cXs, cYs
 
+def gini_coefficient(x):
+    """Compute Gini coefficient of array of values"""
+    diffsum = 0
+    for i, xi in enumerate(x[:-1], 1):
+        diffsum += np.sum(np.abs(xi - x[i:]))
+    return diffsum / (len(x)**2 * np.mean(x))
 
-def cluster_layered_concentric(qnodes_df, qedges_df, r=100, icp=500):
+def assign_family(clust_sizes, n_big=3):
+    ''' Assigns each cluster to a family
+    Arguments:
+        clust_sizes (arr): how many nodes in each cluster, sorted increasing to decreasing
+        n_big (int): top n nodes to consider as "big"
+    
+    Returns:
+        family (arr): int representing the family each cluster belongs to
+    '''
+    n_big = min(n_big, len(clust_sizes))
+    n_tile = math.ceil(len(clust_sizes)/n_big)
+    family = np.tile(np.arange(n_big), n_tile)[:len(clust_sizes)]
+    return family
+
+def cluster_layered_concentric(qnodes_df, qedges_df, r=100, icp=500, arr_family=False, denom=4):
     qnodes_df, clust_sizes = assign_cluster(qedges_df, qnodes_df)
-    cXs, cYs = cluster_layer(clust_sizes-1, r=r, icp=icp)
+    cXs, cYs = cluster_layer(clust_sizes-1, r=r, icp=icp, arr_family=arr_family, denom=denom)
 
     full_Xs = []; full_Ys = []
     for i in range(len(clust_sizes)):
