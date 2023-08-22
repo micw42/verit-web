@@ -486,7 +486,7 @@
             <div style="padding-left:20px">
                 
                 <h6>Node/Edge Toggles:</h6>
-                <div style="margin-right:50%;margin-bottom:10px;margin-left:20px">
+                <div style="margin-right:40%;margin-bottom:10px;margin-left:20px">
                     <div class="hover-text" style="margin-right:5px;display:inline;">Direct Neighbors:
                         <span class="tooltip-text" style="left:0px;top:-150px;">Toggle showing direct neighbors to the query nodes. Only edges with >20 thickness are retrieved to limit network size.</span>
                     </div>
@@ -496,7 +496,7 @@
                     </div>
                 </div>
 
-                <div style="margin-right:50%;margin-bottom:10px;margin-left:20px">
+                <div style="margin-right:40%;margin-bottom:10px;margin-left:20px">
                     <div class="hover-text" style="margin-right:5px;display:inline;">Linkers:
                         <span class="tooltip-text" style="left:0px;top:-200px;">Toggle showing linkers between query nodes. If a node is both a direct neighbor and linker, the linker attribute will take priority. Only works if "Edges between endpoints" parameter >1.</span>
                     </div>
@@ -506,13 +506,23 @@
                     </div>
                 </div>
 
-                <div style="margin-right:50%;margin-bottom:10px;margin-left:20px">
+                <div style="margin-right:40%;margin-bottom:10px;margin-left:20px">
                     <div class="hover-text" style="margin-right:5px;display:inline;">Hide edges:
                         <span class="tooltip-text" style="left:0px;top:-130px;">Toggle showing edges. Click on a node to view its edges. Useful when a high density of edges is obstructive.</span>
                     </div>
                     <div class="form-check form-switch" style="display:inline;float:right;">
                         <input class="form-check-input" type="checkbox" role="switch" id="edges-button" onchange="run_hide_edges()" style="display:inline">
                         <label class="form-check-label" for="edges-button" style="display:inline"></label>
+                    </div>
+                </div>
+                
+                <div style="margin-right:40%;margin-bottom:10px;margin-left:20px">
+                    <div class="hover-text" style="margin-right:5px;display:inline;">Hide query orphans:
+                        <span class="tooltip-text" style="left:0px;top:-115px;">Toggle showing orphaned query nodes with a degree of 0. Autoregulation counts as 1 degree.</span>
+                    </div>
+                    <div class="form-check form-switch" style="display:inline;float:right;">
+                        <input class="form-check-input" type="checkbox" role="switch" id="orphan-button" onchange="run_hide_orphans()" style="display:inline">
+                        <label class="form-check-label" for="orphan-button" style="display:inline"></label>
                     </div>
                 </div>
 
@@ -970,6 +980,7 @@
              let show = true
              let showl = true
              let hide = true
+             let hideo = true
              
             run_lc()
         
@@ -2526,7 +2537,62 @@
                     loader.classList.toggle('show', false);
                 })
             }
+                  
+                  
+            function hide_orphans(hideo=false) {
+                var cur_layer = document.getElementById("layer-button").value 
+                if (hideo) {
+                    cy.nodes().filter(function(ele){
+                        return((ele.connectedEdges(":visible").size() === 0) && 
+                               (ele.data("layer")==cur_layer) && 
+                               (ele.data("type") == "Query")
+                              )
+                    }).style("display", "none")
+                }  else {
+                    cy.nodes().filter(function(ele){
+                        return((ele.connectedEdges(":visible").size() === 0) && 
+                               (ele.data("layer")==cur_layer) && 
+                               (ele.data("type") == "Query")
+                              )
+                    }).style("display", "element")
+                }
+                resetSliderMax(show)
+                
+                cur_layout = document.getElementById("layout-button").value
+                // if (cur_layout=="clc"){rerunCLC()}
+            }
 
+
+            //Add loader to showing direct linkers
+            function run_hide_orphans() {
+                const status = document.querySelector('#direct_loading');
+                const loader = document.querySelector('#direct_loader');
+                const wait = (ms = 5000) => {
+                    return new Promise((resolve) => {
+                    setTimeout(() => {
+                        hide_orphans(hideo);
+                        if (hideo) {
+                            hideo = false
+                        } else {
+                            hideo = true
+                        }
+                        resolve();
+                    },ms)
+                  })
+                }
+                if (hideo) {
+                    status.innerHTML = "Hiding query orphans...";
+                } else {
+                    status.innerHTML = "Showing query orphans...";
+                }
+                loader.classList.toggle('show', true);
+                wait(500)
+                .then(() => {
+                    status.innerHTML = "";
+                    loader.classList.toggle('show', false);
+                })
+            }
+                  
 
             //Set the min value of the thickness filter when switching layers
             function resetSliderMin(layer) {
