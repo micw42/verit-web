@@ -2,6 +2,7 @@ import numpy as np
 import networkx as nx
 from numpy.lib.stride_tricks import sliding_window_view
 import math
+import pandas as pd
 
 
 def get_ring_coord(n, R, offset=False):
@@ -126,6 +127,27 @@ def get_xy(n, n_fl_co=20, r=1050, offset_x=0, offset_y=0):
 
     return Xs, Ys, R_arr, n_arr
 
+def SQ_layered_concentric(qnodes_df, qedges_df):
+     # Sort the nodes by thickness to be arranged polarly
+    query_id = qnodes_df[qnodes_df["depth"] == 0].iloc[0]["Id"]
+
+    nq1 = qedges_df[qedges_df.source == query_id][["target", "thickness"]].rename(columns={"target": "Id"})
+    nq2 = qedges_df[qedges_df.target == query_id][["source", "thickness"]].rename(columns={"source": "Id"})
+
+    nq_df = pd.concat([nq1, nq2])
+    nq_df = nq_df.groupby("Id").max().reset_index()
+    qnodes_df = qnodes_df.merge(nq_df, on="Id", how="left")
+    qnodes_df = qnodes_df.sort_values(["depth", "thickness"], ascending=[True, False])
+
+    # Calculate x, y coordinates for each node
+    Xs, Ys, _, __ = get_xy(len(qnodes_df)-1, n_fl_co=20, r=1050)
+    Xs = [0] + list(Xs)    # First index is 0 because it's the query node
+    Ys = [0] + list(Ys)
+    
+    qnodes_df["lc_X"] = Xs; qnodes_df["lc_Y"] = Ys
+    
+    return qnodes_df
+    
 
 def layered_concentric(qnodes_df):
     qnodes_df = qnodes_df.sort_values("Type", ascending=False)

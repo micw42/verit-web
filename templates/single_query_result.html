@@ -1029,10 +1029,38 @@
           
            <!-- Need to recalculate positions for new eles -->
            rerun_layout = function() {
-             var eles = cy.elements().filter(function (ele) {
-                 return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0"));
-             });
-             var layout = eles.layout({name: 'preset'});
+                var edges = cy.edges().filter(function(ele) {
+                    return(
+                        (ele.source().style("display")=="element") & 
+                        (ele.target().style("display")=="element") &
+                        (!ele.hasClass("transp")) & 
+                        (!ele.source().hasClass("transp")) & 
+                        (!ele.target().hasClass("transp")))
+                })
+                
+                var nodes = cy.nodes().filter(function(ele) {
+                    return(
+                        (ele.style("display")=="element") & 
+                        (!ele.hasClass("transp")))
+                })
+                
+                var nodes_str = JSON.stringify(nodes.jsons())
+                var edges_str = JSON.stringify(edges.jsons())
+                
+                $.ajaxSetup({
+                    async: false
+                });
+
+               $.post('/rerunSingle', { subset_nodes:nodes_str, subset_edges:edges_str, layout:"lc"}, function(data){
+                        retval = data.coords
+                    });
+               
+            for (var i=0; i<nodes.length; i++) {
+                var node = nodes[i]
+                node.position('x', retval[node.id()].lc_X);
+                node.position('y', retval[node.id()].lc_Y)
+            }
+             var layout = cy.layout({name: 'preset'});
              layout.run();
            }
          
@@ -1059,6 +1087,7 @@
              filterKBs(selected_kbs)
              console.log("KB filter threshold: "+threshold)
              filterEdges(threshold)
+             rerun_layout()
              return false
          } 
           
@@ -1115,7 +1144,6 @@
                     return ((ele.degree() == 0) && (ele.data("type") != "Query")&& (ele.data("layer")==cur_layer));
                 });
                 filteredNodes.addClass("transp");
-                rerun_layout();
             }
                   
             filterEdgesUnion = function(threshold_r, threshold_bg, threshold_total) {
@@ -1131,9 +1159,8 @@
                     return ((ele.degree() == 0) && (ele.data("type") != "Query")&& (ele.data("layer")=="union"));
                 });
                 filteredNodes.addClass("transp");
-                rerun_layout();
             }
-                              var slider = document.getElementById("myRange");
+            var slider = document.getElementById("myRange");
             var queryEdges = cy.edges().filter(function (ele) {
                 return ((ele.style()["display"] != "none") && (ele.style()["opacity"] != "0") && (ele.data("layer")=="reach"));
             });
@@ -1182,7 +1209,7 @@
                 filterKBs(selected_kbs)
                 input_qty.innerHTML = threshold
                 slider.value=threshold
-                
+                rerun_layout()
                 return false
             }
                   
@@ -1216,7 +1243,7 @@
                 filterKBs(selected_kbs)
                 input_qtyR.innerHTML = thresholdR
                 sliderR.value=thresholdR
-                
+                rerun_layout()
                 return false
             }
             
@@ -1235,7 +1262,7 @@
                 filterKBs(selected_kbs)
                 input_qtyBG.innerHTML = thresholdBG
                 sliderBG.value=thresholdBG
-                
+                rerun_layout()
                 return false
             }
           
@@ -1435,15 +1462,13 @@
                     excludedEdges = cy.edges().filter(function(ele) {
                         return ((excludedNodes.includes(ele.source()) | excludedNodes.includes(ele.target())))
                     })
-                    excludedEdges = cy.remove(excludedEdges)
-                    rerun_layout();                
+                    excludedEdges = cy.remove(excludedEdges)             
                 }
             } 
              
              resetKBs = function() {
                  excludedNodes.removeClass("transp")
                  excludedEdges.restore()
-                 rerun_layout();
              }
                   
                               //Set the min value of the thickness filter when switching layers

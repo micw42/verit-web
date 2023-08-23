@@ -96,6 +96,21 @@ def rerunCLC():
     coord_dict = coord_df.to_dict(orient="index")
     return jsonify(coords=coord_dict)
 
+@app.route('/rerunSingle', methods=["POST"])
+def rerunSingle():
+    subset_nodes = request.form['subset_nodes']
+    subset_edges = request.form["subset_edges"]
+    subset_nodes = json.loads(subset_nodes)
+    subset_edges = json.loads(subset_edges)
+    node_df = pd.DataFrame.from_dict({"Id":[node["data"]["id"] for node in subset_nodes], 
+                                 "depth": [node["data"]["depth"] for node in subset_nodes]})
+    edge_df = pd.DataFrame.from_dict({"source":[edge["data"]["source"] for edge in subset_edges],
+                                 "target":[edge["data"]["target"] for edge in subset_edges],
+                                 "thickness":[edge["data"]["thickness"] for edge in subset_edges]})
+    coord_df = layeredConcentric.SQ_layered_concentric(node_df, edge_df).set_index('Id')
+    coord_dict = coord_df.to_dict(orient="index")
+    return jsonify(coords=coord_dict)
+
 @app.route('/')
 def home():
     resp = make_response(render_template('home.html'))

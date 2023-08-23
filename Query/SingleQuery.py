@@ -90,6 +90,8 @@ def query(G, edges_df, nodes_df, db_df, q, depth):
     }
     
     nodes = nodes.groupby('id').aggregate(aggregation_functions)
+    nodes["Type"] = ["Query" if x in query_list else "Direct"
+             for x in nodes['Id']]
     
     # If the user selected multiple IDs, merge them all into one node
     if user_query != "QUERY_ID":
@@ -116,6 +118,7 @@ def query(G, edges_df, nodes_df, db_df, q, depth):
         "Label":"first",
         "KB":"first",
         "display_id":"first",
+        "Type":"first",
         'name': syn_concat
     }
     
@@ -137,7 +140,7 @@ def query(G, edges_df, nodes_df, db_df, q, depth):
     
     full_df["files"] = full_df.apply(lambda x: formatter(x.orig_source, x.orig_target), axis=1)
     
-    nodes = nodes[["Id", "Label", "depth", "KB", "display_id", "name"]]
+    nodes = nodes[["Id", "Label", "depth", "KB", "display_id", "name", "Type"]]
     full_df = full_df[["color", "thickness", 
                      "files", "source", "target"]]
     full_df["source_DI"] = full_df.merge(nodes, left_on="source", right_on="Id", how="left")["display_id"].tolist()

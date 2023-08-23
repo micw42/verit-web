@@ -4,7 +4,7 @@ import seaborn as sns
 import math
 import pickle
 
-from .layeredConcentric import get_xy
+from .layeredConcentric import SQ_layered_concentric
 
 
 def clean_nodes(nodes_df, layer):
@@ -162,22 +162,26 @@ def convert(nodes_df, edges_df):
         nodes_layer = nodes_df[nodes_df.layer == layer].copy()
         edges_layer = edges_df[edges_df.layer == layer].copy()
         
-        # Sort the nodes by thickness to be arranged polarly
-        query_id = nodes_layer[nodes_layer["depth"] == 0].iloc[0]["Id"]
+        nodes_layer = SQ_layered_concentric(nodes_layer, edges_layer)
+        Xs = nodes_layer["lc_X"].tolist()
+        Ys = nodes_layer["lc_Y"].tolist()
+        
+#         # Sort the nodes by thickness to be arranged polarly
+#         query_id = nodes_layer[nodes_layer["depth"] == 0].iloc[0]["Id"]
 
-        nq1 = edges_layer[edges_layer.source == query_id][["target", "thickness"]].rename(columns={"target": "Id"})
-        nq2 = edges_layer[edges_layer.target == query_id][["source", "thickness"]].rename(columns={"source": "Id"})
+#         nq1 = edges_layer[edges_layer.source == query_id][["target", "thickness"]].rename(columns={"target": "Id"})
+#         nq2 = edges_layer[edges_layer.target == query_id][["source", "thickness"]].rename(columns={"source": "Id"})
 
-        nq_df = pd.concat([nq1, nq2])
-        nq_df = nq_df.groupby("Id").max().reset_index()
-        nodes_layer = nodes_layer.merge(nq_df, on="Id", how="left")
-        nodes_layer = nodes_layer.sort_values(["depth", "thickness"], ascending=[True, False])
+#         nq_df = pd.concat([nq1, nq2])
+#         nq_df = nq_df.groupby("Id").max().reset_index()
+#         nodes_layer = nodes_layer.merge(nq_df, on="Id", how="left")
+#         nodes_layer = nodes_layer.sort_values(["depth", "thickness"], ascending=[True, False])
 
 
-        # Calculate x, y coordinates for each node
-        Xs, Ys, _, __ = get_xy(len(nodes_layer)-1, n_fl_co=20, r=1050)
-        Xs = [0] + list(Xs)    # First index is 0 because it's the query node
-        Ys = [0] + list(Ys)
+#         # Calculate x, y coordinates for each node
+#         Xs, Ys, _, __ = get_xy(len(nodes_layer)-1, n_fl_co=20, r=1050)
+#         Xs = [0] + list(Xs)    # First index is 0 because it's the query node
+#         Ys = [0] + list(Ys)
 
         for i in range(len(nodes_layer)):
             ndrow = nodes_layer.iloc[i]
@@ -192,7 +196,8 @@ def convert(nodes_df, edges_df):
                                   "layer": layer,
                                   "display":ndrow.display,
                                   "border_color":ndrow["border_color"], "border_width":int(ndrow["border_width"]),
-                                 "depth":int(ndrow.depth)
+                                 "depth":int(ndrow.depth),
+                                  "type":ndrow.Type
                                   }}
             node_dict["position"] = {"x": Xs[i], "y": Ys[i]}
 
