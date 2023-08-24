@@ -900,9 +900,8 @@
                             'text-background-color': 'yellow',
                             'text-background-opacity': 0.4,
                             'target-arrow-shape': 'triangle',
-                            'control-point-step-size': '140px',
+                            'control-point-step-size': '30px',
                             'curve-style': 'bezier',
-                            'control-point-step-size': 300,
                             'line-color': "#fcfafa",
                             'target-arrow-color': '#fcfafa',
                             "overlay-opacity": "0.1",
@@ -2608,30 +2607,13 @@
             function hide_unlinked(hideul=false) {
                 var cur_layer = document.getElementById("layer-button").value 
                 if (hideul) {
-                    // First temporarily remove autoregulation edges from sight to compute non-self degree
-                    cy.edges().filter(function(ele){
-                        return((ele.source() === ele.target()) && 
-                               (ele.data("layer")==cur_layer)
-                              )
+                    cy.nodes("[type = 'Linker']").filter(function(ele){
+                        return (ele.neighborhood("node[type = 'Query']")).length < 2
                     }).style("display", "none")
-                    cy.nodes().filter(function(ele){
-                        return((ele.connectedEdges(":visible").size() <= 1) && 
-                               (ele.data("layer")==cur_layer) && 
-                               (ele.data("type") == "Linker")
-                              )
-                    }).style("display", "none")
-                    // Add autoregulation back
-                    cy.edges().filter(function(ele){
-                        return((ele.source() === ele.target()) && 
-                               (ele.data("layer")==cur_layer)
-                              )
-                    }).style("display", "element")
+                    
                 }  else {
-                    cy.nodes().filter(function(ele){
-                        return((ele.connectedEdges(":visible").size() <= 1) && 
-                               (ele.data("layer")==cur_layer) && 
-                               (ele.data("type") == "Linker")
-                              )
+                    cy.nodes("[type = 'Linker']").filter(function(ele){
+                        return (ele.neighborhood("node[type = 'Query']")).length < 2
                     }).style("display", "element")
                 }
                 resetSliderMax(show)
