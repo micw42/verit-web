@@ -4,6 +4,7 @@ import math
 import seaborn as sns
 from operator import itemgetter
 import networkx as nx
+import pickle
 
 from Visualization.layeredConcentric import layered_concentric, cluster_layered_concentric
 
@@ -50,11 +51,11 @@ def clean_nodes(nodes_df, layer):
     return nodes_df
 
 
-def get_width(x):
-    if x < 50:
+def get_width(x, intercept=2):
+    if x < intercept:
         return x
     else:
-        return math.log(x, 10) + 50
+        return math.log(x, 2)**1.2 + intercept
 
 
 def clean_edges(nodes_df, edges_df, layer):
@@ -205,7 +206,7 @@ def convert(nodes_df, edges_df):
                 erow = edges_layer.iloc[i]
                 edge_dict = {"data": {"id": erow.edge_id+erow.layer,
                                       "source": erow.source+erow.layer, "target": erow.target+erow.layer,
-                                      "weight": float(erow.edge_width) * (erow.layer == "reach" or erow.layer=="union") + 10,
+                                      "weight": float(erow.edge_width) * (erow.layer == "reach" or erow.layer=="union") + 3,
                                       "color": erow.color,
                                       "files": erow.files,
                                       "thickness": int(erow.thickness),
@@ -226,7 +227,7 @@ def convert(nodes_df, edges_df):
                 erow = edges_layer.iloc[i]
                 edge_dict = {"data": {"id": erow.edge_id+erow.layer,
                                       "source": erow.source+erow.layer, "target": erow.target+erow.layer,
-                                      "weight": float(erow.edge_width) * (erow.layer == "reach" or erow.layer=="union") + 10,
+                                      "weight": float(erow.edge_width) * (erow.layer == "reach" or erow.layer=="union") + 3,
                                       "color": erow.color,
                                       "files": erow.files,
                                       "thickness": int(erow.thickness),
@@ -258,5 +259,8 @@ def clean(nodes_df_reach, edges_df_reach, nodes_df_bg=None, edges_df_bg=None, bi
         edges_df = clean_edges(nodes_df_reach, edges_df_reach, layer="reach")
     
     elements = convert(nodes_df, edges_df)
+    with open("elements.pkl", "wb") as p:
+        pickle.dump(elements, p)
+    
 
     return elements

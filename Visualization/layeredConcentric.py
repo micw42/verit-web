@@ -159,7 +159,7 @@ def layered_concentric(qnodes_df):
     # Compute X and Y for concentric layout
     Xs = []; Ys = []
 
-    r1 = 500
+    r1 = 250
     Xs_q, Ys_q, R_arr_q, n_arr_q = get_xy(n_query, r=r1)
     Xs.extend(Xs_q); Ys.extend(Ys_q)
 

@@ -329,38 +329,7 @@
                     </li>
                 </ul>
             </div>
-
-
-            <div style="padding-left:20px;">
-                <h6>Search for a node:</h6>
-                <form action="#" id="node_search" style="display:inline;">
-                    <input type="text" id="node_name" style="width:66%;margin-left:20px;">
-                    <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
-                </form>
-                <button id="reset" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;"><span class=reload>&#171;</span></button>
-                <p style="color:grey;margin-left:20px;">Current search: <span id="current_query">None</span></p>
-            </div>
-
-             <div style="padding-left:20px;padding-bottom:10px">
-
-                <h6>Find all paths between two nodes:</h6>
-
-                <form action="#" id="path_finding" style="display:inline;">
-                    <div style="padding-left:20px;display:inline;">
-                        <input id="node1" name="path" type="text" placeholder="Node 1" style="width:27%;display:inline;">
-                        <p style="display:inline;margin-left:3%;margin-right:3%;"> to </p>
-                        <input id="node2" name="path" type="text" placeholder="Node 2" style="width:27%;display:inline;">
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;display:inline"><span class="reload">&#x21bb;</span></button>
-                </form>
-
-                <button id="reset_path" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;"><span class=reload>&#171;</span></button>
-
-                 <div style="clear:both;">
-                    <p style="color:grey;margin-left:20px;margin-right:100px">Current path: <span id="current_path">None</span></p>
-                </div>
-                 
-            </div>
+            
             
           <div style="padding-left:20px;" class="slidecontainer" id="kb_div">
               <h6>Filter by knowledge base:</h6>
@@ -442,47 +411,9 @@
                 <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;float:right;margin-bottom:20px;"><span class=reload>&#x21bb;</span></button>
             </form>
           <br><br>
-          </div>            
+          </div>
             
-            <div style="padding-left:20px">
-                <h6>Change Layout:</h6>
-                <select id="layout-button"  class="form-select"
-                    style="margin-left:20px;width:50%;display:inline">
-                    <option value="lc">Layered Concentric</option>
-                    <option value="clc">Cluster Layered Concentric</option>
-                    <option value="CiSE">CiSE</option>
-                    <option value="fCose">fCose</option>
-                </select>
-                <button id="reset_clc" onclick="run_switch_layout()" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;display:inline"><span class=reload>&#x21bb;</span></button>
-                <div style="padding-left:20px;display:none" class="slidecontainer" id="fCose_settings">
-                    Node repulsion: <input type="range" min="3" max="18" value="9" class="slider" id="nr_slider" style="display:inline">
-                    <p style="width:15%;display:inline;font-size:16px">10<sup><input type="number" id="cur_nr" min="3" max="18" value="9" ></sup></p>
-                    <p style="color:grey;margin-right:40px">Description: parameter for adjusting internodal distance.</p>
-                </div>
-                                
-                <div style="padding-left:20px;display:none" class="slidecontainer" id="cise_settings">
-                    Node repulsion: <input type="range" min="3" max="18" value="3" class="slider" id="cise_nr_slider" style="display:inline;">
-                    <p style="width:15%;display:inline;font-size:16px">10<sup><input type="number" id="cise_cur_nr" min="3" max="18" value="3" ></sup></p>
-                    <p style="color:grey;margin-right:40px">Description: parameter for adjusting internodal distance.</p>
-                </div>
-
-                <div style="padding-left:20px;margin-top:5px;display:none" class="slidecontainer" id="clc_settings">
-                    Inter-cluster padding: <input type="range" min="0" max="20000" value="500" class="slider" id="icp_slider" style="display:inline">
-                    <input type="number" id="quantityIcp" min="0" max="20000" value="500" style="width:15%;display:inline;font-size:10px">
-                </div>
-                
-                <ul class="nav">
-                    <li style="display:inline;margin-left:20px;margin-top:10px;">
-                        <div class="loading" id="layout_loading"></div>
-                    </li>
-                    <li style="display:inline;margin-top:10px;">
-                        <div id="layout_loader" class="loader"></div>
-                    </li>
-                </ul>
             
-            </div>
-            
-
             <div style="padding-left:20px">
                 
                 <h6>Node/Edge Toggles:</h6>
@@ -528,7 +459,7 @@
                 
                 
                 <div style="margin-right:40%;margin-bottom:10px;margin-left:20px">
-                    <div class="hover-text" style="margin-right:5px;display:inline;">Hide unlinked nodes:
+                    <div class="hover-text" style="margin-right:5px;display:inline;">Hide unlinked linkers:
                         <span class="tooltip-text" style="left:0px;top:-150px;">Toggle showing nodes that no longer function as linkers between at least two query nodes. Usually used after filtering thickness.</span>
                     </div>
                     <div class="form-check form-switch" style="display:inline;float:right;">
@@ -546,6 +477,77 @@
                         <div id="direct_loader" class="loader"></div>
                     </li>
                 </ul>
+            </div>
+
+
+            <div style="padding-left:20px;">
+                <h6>Search for a node:</h6>
+                <form action="#" id="node_search" style="display:inline;">
+                    <input type="text" id="node_name" style="width:66%;margin-left:20px;">
+                    <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
+                </form>
+                <button id="reset" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;"><span class=reload>&#171;</span></button>
+                <p style="color:grey;margin-left:20px;">Current search: <span id="current_query">None</span></p>
+            </div>
+
+             <div style="padding-left:20px;padding-bottom:10px">
+
+                <h6>Find all paths between two nodes:</h6>
+
+                <form action="#" id="path_finding" style="display:inline;">
+                    <div style="padding-left:20px;display:inline;">
+                        <input id="node1" name="path" type="text" placeholder="Node 1" style="width:27%;display:inline;">
+                        <p style="display:inline;margin-left:3%;margin-right:3%;"> to </p>
+                        <input id="node2" name="path" type="text" placeholder="Node 2" style="width:27%;display:inline;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;display:inline"><span class="reload">&#x21bb;</span></button>
+                </form>
+
+                <button id="reset_path" onclick="reset_query()" class="btn btn-primary" style="display:none;background-color:#4CAF50;"><span class=reload>&#171;</span></button>
+
+                 <div style="clear:both;">
+                    <p style="color:grey;margin-left:20px;margin-right:100px">Current path: <span id="current_path">None</span></p>
+                </div>
+                 
+            </div>
+
+            
+            <div style="padding-left:20px">
+                <h6>Change Layout:</h6>
+                <select id="layout-button"  class="form-select"
+                    style="margin-left:20px;width:50%;display:inline">
+                    <option value="lc">Layered Concentric</option>
+                    <option value="clc">Cluster Layered Concentric</option>
+                    <option value="CiSE">CiSE</option>
+                    <option value="fCose">fCose</option>
+                </select>
+                <button id="reset_clc" onclick="run_switch_layout()" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;display:inline"><span class=reload>&#x21bb;</span></button>
+                <div style="padding-left:20px;display:none" class="slidecontainer" id="fCose_settings">
+                    Node repulsion: <input type="range" min="3" max="18" value="9" class="slider" id="nr_slider" style="display:inline">
+                    <p style="width:15%;display:inline;font-size:16px">10<sup><input type="number" id="cur_nr" min="3" max="18" value="9" ></sup></p>
+                    <p style="color:grey;margin-right:40px">Description: parameter for adjusting internodal distance.</p>
+                </div>
+                                
+                <div style="padding-left:20px;display:none" class="slidecontainer" id="cise_settings">
+                    Node repulsion: <input type="range" min="3" max="18" value="3" class="slider" id="cise_nr_slider" style="display:inline;">
+                    <p style="width:15%;display:inline;font-size:16px">10<sup><input type="number" id="cise_cur_nr" min="3" max="18" value="3" ></sup></p>
+                    <p style="color:grey;margin-right:40px">Description: parameter for adjusting internodal distance.</p>
+                </div>
+
+                <div style="padding-left:20px;margin-top:5px;display:none" class="slidecontainer" id="clc_settings">
+                    Inter-cluster padding: <input type="range" min="0" max="20000" value="500" class="slider" id="icp_slider" style="display:inline">
+                    <input type="number" id="quantityIcp" min="0" max="20000" value="500" style="width:15%;display:inline;font-size:10px">
+                </div>
+                
+                <ul class="nav">
+                    <li style="display:inline;margin-left:20px;margin-top:10px;">
+                        <div class="loading" id="layout_loading"></div>
+                    </li>
+                    <li style="display:inline;margin-top:10px;">
+                        <div id="layout_loader" class="loader"></div>
+                    </li>
+                </ul>
+            
             </div>
 
             
@@ -983,11 +985,13 @@
              var unionCiseDN = {}
              var zoom
              var zoomDN
-             let show = true
-             let showl = true
-             let hide = true
-             let hideo = true
-             let hideul = true
+             
+             // Track if toggles have been chan
+             let show = true;
+             let showl = true;
+             let hide = true;
+             let hideo = true;
+             let hideul = true;
              
             run_lc()
         
@@ -2465,6 +2469,8 @@
                         show_linker(showl);
                         if (showl) {
                             showl = false
+                            hideul = true
+                            document.getElementById("unlinked-button").checked = false
                         } else {
                             showl=true
                         }
