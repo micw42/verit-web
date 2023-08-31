@@ -306,20 +306,33 @@
                <input type="number" id="quantity" min="2" value="2" style="width:15%">
                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
             </form>
-             <div id="IndFilter" style="display:none">
-             <p style="color:grey;margin-left:20px;margin-right:40px;">REACH thickness</p>
-           <input type="range" min="2" value="2" class="slider" id="myRangeR" style="width:50%;margin-left:20px">
-            <form action="#" id="input_thicknessR" style="display:inline;">
-               <input type="number" id="quantityR" min="2" value="2" style="width:15%">
-               <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
-            </form>
-             <p style="color:grey;margin-left:20px;margin-right:40px;">BIOGRID thickness</p>
-           <input type="range" min="1" value="1" class="slider" id="myRangeBG" style="width:50%;margin-left:20px">
-            <form action="#" id="input_thicknessBG" style="display:inline;">
-               <input type="number" id="quantityBG" min="1" value="1" style="width:15%">
-               <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
-            </form>
-             </div>
+            <div id="IndFilter" style="display:none">
+                <p style="color:grey;margin-left:20px;margin-right:40px;">REACH thickness</p>
+                <input type="range" min="2" value="2" class="slider" id="myRangeR" style="width:50%;margin-left:20px">
+                <form action="#" id="input_thicknessR" style="display:inline;">
+                <input type="number" id="quantityR" min="2" value="2" style="width:15%">
+                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
+                </form>
+                <p style="color:grey;margin-left:20px;margin-right:40px;">BIOGRID thickness</p>
+                <input type="range" min="1" value="1" class="slider" id="myRangeBG" style="width:50%;margin-left:20px">
+                <form action="#" id="input_thicknessBG" style="display:inline;">
+                <input type="number" id="quantityBG" min="1" value="1" style="width:15%">
+                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
+                </form>
+                
+                
+                <select id="comb_mode"  class="form-select"
+                    style="margin-left:20px;width:100px;display:inline">
+                    <option value="r">Reach</option>
+                    <option value="bg">BIOGRID</option>
+                    <option value="and">AND</option>
+                    <option value="or">OR</option>
+                </select>
+                <form action="#" id="input_dual_filter" style="display:inline;">
+                    <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
+                </form>
+                
+            </div>
           <ul class="nav">
                     <li style="display:inline;margin-left:20px;">
                         <div class="loading" id="filter_loading"></div>
@@ -819,10 +832,6 @@
                 
             </div>
         </div>
-            
-       
-            
-
 
        <div id="pathModal" class="modal" style="width:30%;">
             <div class="modal-content" style="height:95%;">
@@ -907,7 +916,8 @@
                             "display": "data(display)",
                             'width': 'data(weight)',
                             'line-color': "data(color)",
-                            'target-arrow-color': "data(color)"
+                            'target-arrow-color': "data(color)",
+                            'arrow-scale': 2
                         }
                     },
                     
@@ -1594,14 +1604,37 @@
         }
 
         //
-        filterEdgesUnion = function(threshold_r, threshold_bg, threshold_total) {
+        function filterEdgesUnion(threshold_r, threshold_bg, threshold_total) {
+            var comb_mode = document.getElementById("comb_mode").value
             filteredNodes.removeClass("transp");
             filteredEdges.restore();
-
-            filteredEdges = cy.edges().filter(function(ele) {
-                return((((ele.data("thickness_r") < threshold_r) && (ele.data("thickness_bg") < threshold_bg)) |
-                      (ele.data("thickness") < threshold_total)) && (ele.data("layer")=="union"))
-            });
+            
+            if (comb_mode == "bg"){
+                filteredEdges = cy.edges().filter(function(ele) {
+                    return((ele.data("thickness_bg") < threshold_bg) && (ele.data("layer")=="union"))
+                });
+            } else if (comb_mode == "r"){
+                filteredEdges = cy.edges().filter(function(ele) {
+                    return((ele.data("thickness_r") < threshold_r) && (ele.data("layer")=="union"))
+                });
+            } else if (comb_mode == "and"){
+                // Note: Although this is coded with a pipe for "or", the "and" refers to the requirement
+                // that an edge must meet both the Reach AND the BIOGRID minimum threshold.
+                filteredEdges = cy.edges().filter(function(ele) {
+                    return(
+                        ((ele.data("thickness_bg") < threshold_bg) | (ele.data("thickness_r") < threshold_r)) && 
+                        (ele.data("layer")=="union")
+                    )
+                });
+            } else if (comb_mode == "or"){
+                filteredEdges = cy.edges().filter(function(ele) {
+                    return(
+                        (ele.data("thickness_bg") < threshold_bg) && (ele.data("thickness_r") < threshold_r) && 
+                        (ele.data("layer")=="union")
+                    )
+                });
+            }
+            
             filteredEdges = cy.remove(filteredEdges);
             filteredNodes = cy.nodes().filter(function (ele) {
                 return ((ele.degree() == 0) && (ele.data("type") != "Query")&& (ele.data("layer")=="union"));
@@ -1804,6 +1837,17 @@
                 filterKBs(selected_kbs)
                 input_qtyBG.innerHTML = thresholdBG
                 sliderBG.value=thresholdBG
+                
+                return false
+            }
+                  
+            input_dual_filter.onsubmit = function () {          
+                var thickness_valBG = document.getElementById("quantityBG");
+                var thresholdTotal = document.getElementById("quantity").value
+                var thresholdR = document.getElementById("quantityR").value
+                var thresholdBG = thickness_valBG.value;
+                run_filter_edges_union(thresholdR, thresholdBG, thresholdTotal)
+                filterKBs(selected_kbs)
                 
                 return false
             }
@@ -2898,18 +2942,47 @@
             })
         }
 
+
         function change_scheme(tc_scheme=true){
             var cur_layer = document.getElementById("layer-button").value 
-            if (tc_scheme) {
-                cy.edges().style("line-color", function (ele) { return ele.data("dataset_color"); })
-                cy.edges().style("target-arrow-color", function (ele) { return ele.data("dataset_color"); })
+            var bg_thresh = document.getElementById("quantityBG").value
+            var r_thresh = document.getElementById("quantityR").value
             
+            if (tc_scheme) {
+                var u_pass = cy.edges().filter(function(ele){
+                    return(
+                        (ele.data("thickness_bg") >= bg_thresh) && 
+                        (ele.data("thickness_r") >= r_thresh)
+                    )
+                })
+                
+                var r_pass = cy.edges().filter(function(ele){
+                    return(
+                        (ele.data("thickness_bg") < bg_thresh) && 
+                        (ele.data("thickness_r") >= r_thresh)
+                    )
+                })
+                
+                var bg_pass = cy.edges().filter(function(ele){
+                    return(
+                        (ele.data("thickness_bg") >= bg_thresh) && 
+                        (ele.data("thickness_r") < r_thresh)
+                    )
+                })
+                
+                u_pass.style("line-color", "#42a7f5")
+                u_pass.style("target-arrow-color", "#42a7f5")
+                r_pass.style("line-color", "#9d49f2")
+                r_pass.style("target-arrow-color", "#9d49f2")
+                bg_pass.style("line-color", "#77ed40")
+                bg_pass.style("target-arrow-color", "#77ed40")
+
             } else {
                 cy.edges().style("line-color", function (ele) { return ele.data("color"); })
                 cy.edges().style("target-arrow-color", function (ele) { return ele.data("color"); })
             }
         }
-                  
+
         // Add listener to dynamically created buttons
         document.addEventListener("click", function(e){
         const target = e.target.closest("#btn_el"); // Or any other selector.
