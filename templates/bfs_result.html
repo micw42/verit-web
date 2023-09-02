@@ -300,39 +300,43 @@
             <div style="padding-left:20px;" class="slidecontainer" id="thickness_div">
                 <h2 style="padding-bottom:10px;">Parameters</h2>
                 <h6>Filter by thickness:</h6>
-             <p id="totalLabel" style="color:grey;margin-left:20px;margin-right:40px;display:none">Total thickness</p>
-            <input type="range" min="2" value="2" class="slider" id="myRange" style="width:50%;margin-left:20px">
-            <form action="#" id="input_thickness" style="display:inline;">
-               <input type="number" id="quantity" min="2" value="2" style="width:15%">
-               <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
-            </form>
-            <div id="IndFilter" style="display:none">
-                <p style="color:grey;margin-left:20px;margin-right:40px;">REACH thickness</p>
-                <input type="range" min="2" value="2" class="slider" id="myRangeR" style="width:50%;margin-left:20px">
-                <form action="#" id="input_thicknessR" style="display:inline;">
-                <input type="number" id="quantityR" min="2" value="2" style="width:15%">
-                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
-                </form>
-                <p style="color:grey;margin-left:20px;margin-right:40px;">BIOGRID thickness</p>
-                <input type="range" min="1" value="1" class="slider" id="myRangeBG" style="width:50%;margin-left:20px">
-                <form action="#" id="input_thicknessBG" style="display:inline;">
-                <input type="number" id="quantityBG" min="1" value="1" style="width:15%">
-                <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
-                </form>
-                
-                
-                <select id="comb_mode"  class="form-select"
-                    style="margin-left:20px;width:100px;display:inline">
-                    <option value="r">Reach</option>
-                    <option value="bg">BIOGRID</option>
-                    <option value="and">AND</option>
-                    <option value="or">OR</option>
-                </select>
-                <form action="#" id="input_dual_filter" style="display:inline;">
+                <div id="thickness_single">
+                    <p id="totalLabel" style="color:grey;margin-left:20px;margin-right:40px;display:none">Total thickness</p>
+                    <input type="range" min="2" value="2" class="slider" id="myRange" style="width:50%;margin-left:20px">
+                    <form action="#" id="input_thickness" style="display:inline;">
+                    <input type="number" id="quantity" min="2" value="2" style="width:15%">
                     <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
-                </form>
+                    </form>
+                </div>
                 
-            </div>
+                <div id="IndFilter" style="display:none;margin-right:20%;">
+                    <p style="color:grey;margin-left:20px;margin-right:40px;">REACH thickness</p>
+                    <input type="range" min="2" value="2" class="slider" id="myRangeR" style="width:70%;margin-left:20px">
+                    <form action="#" id="input_thicknessR" style="display:inline;">
+                    <input type="number" id="quantityR" min="2" value="2" style="width:15%;float:right;">
+                    </form>
+                    <p style="color:grey;margin-left:20px;margin-right:40px;">BIOGRID thickness</p>
+                    <input type="range" min="1" value="1" class="slider" id="myRangeBG" style="width:70%;margin-left:20px">
+                    <form action="#" id="input_thicknessBG" style="display:inline;">
+                    <input type="number" id="quantityBG" min="1" value="1" style="width:15%;float:right;">
+                    </form>
+                    
+                    <br><br>
+
+                    <div style="float:right;" class="hover-text">
+                        <select id="comb_mode" class="form-select" style="margin-left:20px;width:100px;display:inline;">
+                            <option value="r">Reach</option>
+                            <option value="bg">BIOGRID</option>
+                            <option value="and">AND</option>
+                            <option value="and_strict">AND - strict</option>
+                            <option value="or">OR</option>
+                        </select>
+                        <form action="#" id="input_dual_filter" style="display:inline;">
+                            <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
+                        </form>
+                        <span class="tooltip-text" style="left:0px;top:-75px;">Select how the filters will be used/combined.</span>
+                    </div>
+                </div>
           <ul class="nav">
                     <li style="display:inline;margin-left:20px;">
                         <div class="loading" id="filter_loading"></div>
@@ -343,6 +347,7 @@
                 </ul>
             </div>
             
+            <br>
             
           <div style="padding-left:20px;" class="slidecontainer" id="kb_div">
               <h6>Filter by knowledge base:</h6>
@@ -432,7 +437,7 @@
                 <h6>Node/Edge Toggles:</h6>
                 <div style="margin-right:40%;margin-bottom:10px;margin-left:20px">
                     <div class="hover-text" style="margin-right:5px;display:inline;">Direct Neighbors:
-                        <span class="tooltip-text" style="left:0px;top:-150px;">Toggle showing direct neighbors to the query nodes. Only edges with >20 thickness are retrieved to limit network size.</span>
+                        <span class="tooltip-text" style="left:0px;top:-130px;">Toggle showing direct neighbors to the query nodes. Only edges with >20 thickness are retrieved to limit network size.</span>
                     </div>
                     <div class="form-check form-switch" style="display:inline;float:right;">
                         <input class="form-check-input" type="checkbox" role="switch" id="direct-button" onchange="run_show_direct()" style="display:inline">
@@ -1606,6 +1611,7 @@
         //
         function filterEdgesUnion(threshold_r, threshold_bg, threshold_total) {
             var comb_mode = document.getElementById("comb_mode").value
+            
             filteredNodes.removeClass("transp");
             filteredEdges.restore();
             
@@ -1622,8 +1628,17 @@
                 // that an edge must meet both the Reach AND the BIOGRID minimum threshold.
                 filteredEdges = cy.edges().filter(function(ele) {
                     return(
-                        ((ele.data("thickness_bg") < threshold_bg) | (ele.data("thickness_r") < threshold_r)) && 
-                        (ele.data("layer")=="union")
+                        (((ele.data("thickness_bg") < threshold_bg) | (ele.data("thickness_r") < threshold_r)) && 
+                        (ele.data("thickness_bg") < 0) && (ele.data("thickness_r") < 0) &&
+                        (ele.data("layer")=="union")) | 
+                        
+                        ((ele.data("thickness_bg") < threshold_bg) && 
+                        (ele.data("thickness_r") == 0) &&
+                        (ele.data("layer")=="union")) |
+                        
+                        ((ele.data("thickness_r") < threshold_r) && 
+                        (ele.data("thickness_bg") == 0) &&
+                        (ele.data("layer")=="union"))
                     )
                 });
             } else if (comb_mode == "or"){
@@ -1633,13 +1648,26 @@
                         (ele.data("layer")=="union")
                     )
                 });
+            } else if (comb_mode == "and_strict"){
+                filteredEdges = cy.edges().filter(function(ele) {
+                    return(
+                        ((ele.data("thickness_bg") < threshold_bg) | (ele.data("thickness_r") < threshold_r)) && 
+                        (ele.data("layer")=="union")
+                    )
+                });
             }
             
             filteredEdges = cy.remove(filteredEdges);
+            
             filteredNodes = cy.nodes().filter(function (ele) {
                 return ((ele.degree() == 0) && (ele.data("type") != "Query")&& (ele.data("layer")=="union"));
             });
             filteredNodes.addClass("transp");
+            
+            if (!tc_scheme){
+                tc_scheme = !tc_scheme
+                run_change_scheme();
+            } // if scheme was toggled
         }
                   
                   
@@ -2772,6 +2800,7 @@
                 var union_eles =  cy.elements().filter(function (ele) {
                         return((ele.data("layer")=="union"))
                     })
+                
                 var totalLabel = document.getElementById("totalLabel")
                 var indFilter = document.getElementById("IndFilter")
                 if (cur_layer=="biogrid") {
@@ -2784,10 +2813,15 @@
                         biogrid_eles.nodes().filter(function(ele) {
                             return(ele.data("type")=="Direct") }).style("display", "none")
                     }
+                    if (showl){
+                        biogrid_eles.nodes().filter(function(ele) {
+                            return(ele.data("type")=="Linker") }).style("display", "none")
+                    }
                     document.getElementById("kb_div").style.display = "none"
                     document.getElementById("legend").style.display = "none"
                     document.getElementById("color-scheme").style.display = "none"
                     cy.edges().style('target-arrow-shape', 'none')
+                    document.getElementById("thickness_single").style.display = "block"
                 } else if (cur_layer=="reach") {
                     reach_eles.style("display", "element")
                     union_eles.style("display", "none")
@@ -2798,10 +2832,15 @@
                         reach_eles.filter(function(ele) {
                             return(ele.data("type")=="Direct") }).style("display", "none")
                     }
+                    if (showl){
+                        reach_eles.nodes().filter(function(ele) {
+                            return(ele.data("type")=="Linker") }).style("display", "none")
+                    }
                     document.getElementById("kb_div").style.display = "block"
                     document.getElementById("legend").style.display = "none"
                     document.getElementById("color-scheme").style.display = "none"
                     cy.edges().style('target-arrow-shape', 'triangle')
+                    document.getElementById("thickness_single").style.display = "block"
                 } else {
                     reach_eles.style("display", "none")
                     union_eles.style("display", "element")
@@ -2812,10 +2851,15 @@
                         union_eles.filter(function(ele) {
                             return(ele.data("type")=="Direct") }).style("display", "none")
                     }
+                    if (showl){
+                        union_eles.nodes().filter(function(ele) {
+                            return(ele.data("type")=="Linker") }).style("display", "none")
+                    }
                     document.getElementById("kb_div").style.display = "none"
                     document.getElementById("legend").style.display = "block"
                     document.getElementById("color-scheme").style.display = "block"
                     cy.edges().style('target-arrow-shape', 'triangle')
+                    document.getElementById("thickness_single").style.display = "none"
                 }
                 resetSliderMax(show)
                 resetSliderMin(cur_layer)
