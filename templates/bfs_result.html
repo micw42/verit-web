@@ -313,23 +313,23 @@
                     <p style="color:grey;margin-left:20px;margin-right:40px;">REACH thickness</p>
                     <input type="range" min="2" value="2" class="slider" id="myRangeR" style="width:70%;margin-left:20px">
                     <form action="#" id="input_thicknessR" style="display:inline;">
-                    <input type="number" id="quantityR" min="2" value="2" style="width:15%;float:right;">
+                    <input type="number" id="quantityR" min="0" value="2" style="width:15%;float:right;">
                     </form>
                     <p style="color:grey;margin-left:20px;margin-right:40px;">BIOGRID thickness</p>
                     <input type="range" min="1" value="1" class="slider" id="myRangeBG" style="width:70%;margin-left:20px">
                     <form action="#" id="input_thicknessBG" style="display:inline;">
-                    <input type="number" id="quantityBG" min="1" value="1" style="width:15%;float:right;">
+                    <input type="number" id="quantityBG" min="0" value="1" style="width:15%;float:right;">
                     </form>
                     
                     <br><br>
 
                     <div style="float:right;" class="hover-text">
                         <select id="comb_mode" class="form-select" style="margin-left:20px;width:100px;display:inline;">
+                            <option value="and">AND</option>
                             <option value="r">Reach</option>
                             <option value="bg">BIOGRID</option>
-                            <option value="and">AND</option>
-                            <option value="and_strict">AND - strict</option>
                             <option value="or">OR</option>
+                            <option value="and_strict">AND - strict</option>
                         </select>
                         <form action="#" id="input_dual_filter" style="display:inline;">
                             <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;"><span class="reload">&#x21bb;</span></button>
