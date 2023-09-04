@@ -454,6 +454,17 @@
                         <label class="form-check-label" for="linker-button" style="display:inline"></label>
                     </div>
                 </div>
+                
+                
+                <div style="margin-right:40%;margin-bottom:10px;margin-left:20px;display:none;" id="unlinked-linkers">
+                    <div class="hover-text" style="margin-right:5px;display:inline;">Hide unlinked linkers:
+                        <span class="tooltip-text" style="left:0px;top:-150px;">Toggle showing nodes that no longer function as linkers between at least two query nodes. Usually used after filtering thickness.</span>
+                    </div>
+                    <div class="form-check form-switch" style="display:inline;float:right;">
+                        <input class="form-check-input" type="checkbox" role="switch" id="unlinked-button" onchange="run_hide_unlinked()" style="display:inline">
+                        <label class="form-check-label" for="unlinked-button" style="display:inline"></label>
+                    </div>
+                </div>
 
                 <div style="margin-right:40%;margin-bottom:10px;margin-left:20px">
                     <div class="hover-text" style="margin-right:5px;display:inline;">Hide edges:
@@ -476,13 +487,13 @@
                 </div>
                 
                 
-                <div style="margin-right:40%;margin-bottom:10px;margin-left:20px">
-                    <div class="hover-text" style="margin-right:5px;display:inline;">Hide unlinked linkers:
-                        <span class="tooltip-text" style="left:0px;top:-150px;">Toggle showing nodes that no longer function as linkers between at least two query nodes. Usually used after filtering thickness.</span>
+                <div style="margin-right:40%;margin-bottom:10px;margin-left:20px;display:none;" id="color-scheme">
+                    <div class="hover-text" style="margin-right:5px;display:inline;">Color edges by dataset:
+                        <span class="tooltip-text" style="left:0px;top:-80px;">Toggle edge colors to be dataset-based. Off for evidence-based.</span>
                     </div>
                     <div class="form-check form-switch" style="display:inline;float:right;">
-                        <input class="form-check-input" type="checkbox" role="switch" id="unlinked-button" onchange="run_hide_unlinked()" style="display:inline">
-                        <label class="form-check-label" for="unlinked-button" style="display:inline"></label>
+                        <input class="form-check-input" type="checkbox" role="switch" id="cs-button" onchange="run_change_scheme()" style="display:inline">
+                        <label class="form-check-label" for="cs-button" style="display:inline"></label>
                     </div>
                 </div>
 
@@ -577,21 +588,7 @@
                     <option value="biogrid">BIOGRID</option>
                     <option value="union">Reach + BIOGRID</option>
                 </select>
-
-               <div style="padding-left:20px;padding-top:10px;display:none" id="color-scheme">
-
-                    <h6 style="margin-right:5px;display:inline;">Dataset edge coloring:</h6>
-
-                    <div class="form-check form-switch" style="display:inline;">
-                        <input class="form-check-input" type="checkbox" role="switch" id="cs-button" onchange="run_change_scheme()" style="display:inline">
-                        <label class="form-check-label" for="cs-button" style="display:inline"></label>
-                    </div>
-
-                    <p style="color:grey;margin-right:20px;">
-                        Description: Toggle edge color to display dataset membership.
-                    </p>
-                </div>
-                
+               
                 <p id="legend" style="color:gray;margin-left:20px;margin-top:10px;display:none">
                     Dataset membership legend: <br>
                     
@@ -1664,10 +1661,16 @@
             });
             filteredNodes.addClass("transp");
             
+            // if hiding unlinked linkers was toggled
+            if (!hideul){
+                hideul = !hideul
+                run_hide_unlinked();
+            }
+            // if scheme was toggled
             if (!tc_scheme){
                 tc_scheme = !tc_scheme
                 run_change_scheme();
-            } // if scheme was toggled
+            }
         }
                   
                   
@@ -2519,10 +2522,13 @@
                     }).style("display", "element")
                     cy.nodes().filter(function(ele) {
                         return((ele.data("type")=="Linker") && (ele.data("layer")==cur_layer))
-                    }).style("display", "element")  
+                    }).style("display", "element")
+                    
+                    document.getElementById("unlinked-linkers").style.display = "block"
                 }  else {
                     cy.edges().filter("[type = 'Linker']").style("display", "none")
                     cy.nodes().filter("[type = 'Linker']").style("display", "none")
+                    document.getElementById("unlinked-linkers").style.display = "none"
                 }
                 resetSliderMax(show)
                 
@@ -2682,14 +2688,25 @@
             function hide_unlinked(hideul=false) {
                 var cur_layer = document.getElementById("layer-button").value 
                 if (hideul) {
+                    if (!showl){    // The booleans are flipped for some reason...
+                        cy.edges().filter(function(ele) {
+                            return((ele.data("type")=="Linker") && (ele.data("layer")==cur_layer))
+                        }).style("display", "element")
+                        cy.nodes().filter(function(ele) {
+                            return((ele.data("type")=="Linker") && (ele.data("layer")==cur_layer))
+                        }).style("display", "element") 
+                    }
                     cy.nodes("[type = 'Linker']").filter(function(ele){
-                        return (ele.neighborhood("node[type = 'Query']")).length < 2
+                        return ((ele.neighborhood("node[type = 'Query']")).length < 2) && 
+                            (ele.data("layer") == cur_layer)
                     }).style("display", "none")
-                    
                 }  else {
-                    cy.nodes("[type = 'Linker']").filter(function(ele){
-                        return (ele.neighborhood("node[type = 'Query']")).length < 2
-                    }).style("display", "element")
+                    if (!showl){
+                        cy.nodes("[type = 'Linker']").filter(function(ele){
+                            return ((ele.neighborhood("node[type = 'Query']")).length < 2) && 
+                                (ele.data("layer") == cur_layer)
+                        }).style("display", "element")
+                    }
                 }
                 resetSliderMax(show)
                 
@@ -2955,8 +2972,8 @@
 
         let tc_scheme = true
         function run_change_scheme() {
-            const status = document.querySelector('#layer_loading');
-            const loader = document.querySelector('#layer_loader');
+            const status = document.querySelector('#direct_loading');
+            const loader = document.querySelector('#direct_loader');
             
             const wait = (ms = 5000) => {
                 return new Promise((resolve) => {
