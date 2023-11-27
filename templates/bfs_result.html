@@ -2152,14 +2152,22 @@
                     return ((ele.degree() == 0) && (ele.data("type") != "Query")&& (ele.data("layer")==cur_layer));
                 });
                 filteredNodes.addClass("transp");
+                
+                // if hiding unlinked linkers was toggled
+                if (!hideul){
+                    hideul = !hideul
+                    run_hide_unlinked();
+                }
             }
             
             var excludedEdges = cy.edges().filter('[thickness < 0]');
             var excludedNodes = cy.nodes().filter(function (ele) {
                 return ele.degree() == -2;
             });
+                  
             excludedEdges = cy.remove(excludedEdges);
             excludedNodes = cy.remove(excludedNodes);
+                  
             filterKBs = function(kb_list) {
                 resetKBs()
                 if (kb_list.length!=0) {
