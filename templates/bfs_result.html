@@ -521,7 +521,12 @@
 
              <div style="padding-left:20px;padding-bottom:10px">
 
-                <h6>Find all paths between two nodes:</h6>
+                <h6>Find all                
+                    <select id="path_type"  class="form-select"
+                        style="margin-left:5px;width:35%;display:inline">
+                        <option value="paths">paths</option>
+                        <option value="shortest_paths">shortest paths</option>
+                    </select> with maximum <input type="number" id="max_linkers" min="1" value="1" style="width:15%"> edges between two nodes:</h6>
 
                 <form action="#" id="path_finding" style="display:inline;">
                     <div style="padding-left:20px;display:inline;">
@@ -529,6 +534,7 @@
                         <p style="display:inline;margin-left:3%;margin-right:3%;"> to </p>
                         <input id="node2" name="path" type="text" placeholder="Node 2" style="width:27%;display:inline;">
                     </div>
+                    
                     <button type="submit" class="btn btn-primary" style="background-color:#4CAF50;padding-left:10px;display:inline"><span class="reload">&#x21bb;</span></button>
                 </form>
 
@@ -1149,8 +1155,12 @@
                     cy.nodes().difference(neighbors).not(sel).addClass('semitransp');
                     cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp"); 
                 }
-                console.log("Position: "+JSON.stringify(sel.position()))
-                console.log(sel.indegree())
+                console.log(sel.data("type"))
+                var outgoers = sel.successors()
+                for (var i = 0; i < outgoers.length; i++) {
+                    var outgoer = outgoers[i]
+                    console.log("successor id:"+outgoer.id())
+                }
             });
             
             cy.on('mouseover', 'edge', function (evt) {
@@ -2052,9 +2062,28 @@
             }
             
              function findPaths(src,dest) {
-                let successors = src.successors();
-                let predecessors = dest.predecessors();
-                return successors.intersection(predecessors);
+//                 let successors = src.successors();
+//                 let predecessors = dest.predecessors();
+//                 return successors.intersection(predecessors);
+                   var eles = cy.edges().filter(function(ele) {
+                            return((ele.source().style("display")=="element") & (ele.target().style("display")=="element") &
+                                   (!ele.hasClass("transp")) & (!ele.source().hasClass("transp")) & (!ele.target().hasClass("transp")))}).jsons()
+                   var edges_str = JSON.stringify(eles)
+                   var ids;
+                   $.ajaxSetup({
+                        async: false
+                    });
+                   $.post('/findPath', {
+                       path_type: document.getElementById("path_type").value,
+                       max_linkers: document.getElementById("max_linkers").value,
+                        src_id: src.id(),
+                        dest_id: dest.id(),
+                       subset_edges: edges_str
+                    }, function(data){
+                           ids = data.result
+                    }); 
+                     console.log("ids: "+ids) 
+                    return ids; 
             }
              
             var pathForm = document.getElementById("pathForm")
@@ -2076,21 +2105,22 @@
                 var rootNode = cy.$id(choice1)
                 var targetNode = cy.$id(choice2)
                 
-                //var dijkstra = cy.elements().dijkstra(rootNode);
-                //var pathToJ = dijkstra.pathTo(targetNode);
-                var pathToJ = findPaths(rootNode, targetNode)
+                var ele_ids = findPaths(rootNode, targetNode)
+//                 console.log("ele_ids")
                 
-                var pathNodes = pathToJ.nodes().filter(function(ele) {return((ele.style()["display"] != "none") && 
-                            (ele.style()["opacity"] != "0"))})
+                var pathNodes = cy.nodes().filter(function(ele) {return((ele.style()["display"] != "none") && 
+                            (ele.style()["opacity"] != "0") &&
+                            (ele_ids.includes(ele.id())))})
                 pathNodes.addClass("searched")
                 if (pathNodes.length>0) {
                     rootNode.addClass("searched")
                     targetNode.addClass("searched")
                 }
-                var pathEdges = pathToJ.edges().filter(function(ele) {return((ele.source().style()["display"] != "none") && 
+                var pathEdges = cy.edges().filter(function(ele) {return((ele.source().style()["display"] != "none") && 
                             (ele.source().style()["opacity"] != "0") && (ele.target().style()["display"] != "none") &&
                                                                             (ele.target().style()["opacity"] != "0") &&
-                                                                            (ele.source().id() != ele.target().id()))})
+                                                                            (ele.source().id() != ele.target().id()) &&
+                                                                       (ele_ids.includes(ele.id())))})
                 pathEdges.addClass("searched")
                 
                 var modal = document.getElementById("pathModal")

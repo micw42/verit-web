@@ -46,6 +46,7 @@ def run_nx(query_pairs, G, qtype, max_linkers):
 
         elif qtype == "all_shortest_paths" and max_linkers >= 3:
             try:
+                print("here")
                 path = list(nx.all_shortest_paths(G, source, target))
                 path = [x for x in path if (len(x)-1)<=max_linkers]
                 for ind in path:

@@ -16,7 +16,8 @@ from memory_profiler import profile
 from flask_caching import Cache
 import uuid
 import pickle
-
+import re
+import itertools as it
 
 with open("./settings.txt") as file:
     settings = [x.strip("\n") for x in file.readlines()]
@@ -391,7 +392,7 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, min_thickness,
             min_thickness=min_thickness
         )
     
-    elements = to_json_netx.clean(query_nodes, query_edges, query_bg_nodes, query_bg_edges, biogrid=string_type=="gene")        
+    elements = to_json_netx.clean(query_nodes, query_edges, query_bg_nodes, query_bg_edges, biogrid=string_type=="gene")  
     
     return render_template(
         "bfs_result.html",
@@ -399,6 +400,31 @@ def bfs_query_result(max_linkers, qtype, string_type, query_type, min_thickness,
         string_type=string_type
     )
 
+@app.route("/findPath", methods = ['POST'])
+def find_path():
+    subset_edges = request.form['subset_edges']
+    subset_edges = json.loads(subset_edges)
+    subset_edges_df = pd.DataFrame.from_dict({"id":[x["data"]["id"] for x in subset_edges],
+                                              "source":[x["data"]["source"] for x in subset_edges],
+                                            "target":[x["data"]["target"] for x in subset_edges]})
+    subset_edges_df.to_csv("subset_edges_df.csv", index=False)
+    src_id = request.form['src_id']
+    dest_id = request.form['dest_id']
+    path_type = request.form["path_type"]
+    max_linkers = int(request.form["max_linkers"])
+    query_G = nx.from_pandas_edgelist(subset_edges_df, source="source", target="target", create_using=nx.DiGraph())
+    if path_type=="paths":
+        path_list = list(nx.all_simple_paths(query_G, src_id, dest_id, cutoff=max_linkers))
+    elif path_type=="shortest_paths":
+        path_list = list(nx.all_shortest_paths(query_G, src_id, dest_id))
+        path_list = [x for x in path_list if (len(x)-1)<=max_linkers]
+    path_list = [(x[i], x[i+1]) for x in path_list for i in range(len(x)-1)]
+    result_df = pd.DataFrame.from_dict({"source":[x[0] for x in path_list],
+                                       "target":[x[1] for x in path_list]})
+    result_edges = pd.merge(subset_edges_df, result_df, on=["source", "target"])["id"].tolist()
+    result_nodes = list(set(it.chain(*path_list)))
+    result = result_edges + result_nodes
+    return jsonify(result=result)
 
 @app.route('/singleresult/<depth>/<query_type>/<string_type>')
 def single_query_result(depth, query_type, string_type, methods=["GET"]):
@@ -409,7 +435,7 @@ def single_query_result(depth, query_type, string_type, methods=["GET"]):
     
     user_id = request.cookies.get('user_id')
     q = cache.get(f"query_dict_{user_id}")
-    print(f"Query: {q}")
+
     depth=int(depth)
 
     query_nodes, query_edges = SingleQuery.query(
