@@ -1156,11 +1156,6 @@
                     cy.edges().difference(sel.edgesWith(neighbors)).addClass("semitransp"); 
                 }
                 console.log(sel.data("type"))
-                var outgoers = sel.successors()
-                for (var i = 0; i < outgoers.length; i++) {
-                    var outgoer = outgoers[i]
-                    console.log("successor id:"+outgoer.id())
-                }
             });
             
             cy.on('mouseover', 'edge', function (evt) {
@@ -3046,20 +3041,21 @@
             var cur_layer = document.getElementById("layer-button").value 
             var bg_thresh = document.getElementById("quantityBG").value
             var r_thresh = document.getElementById("quantityR").value
-            
+            console.log("threshold_r: "+r_thresh)
+            console.log("threshold_bg: "+bg_thresh)
             if (tc_scheme) {
                 var u_pass = cy.edges().filter(function(ele){
                     return(
-                        (ele.data("thickness_bg") >= bg_thresh) && 
-                        (ele.data("thickness_r") >= r_thresh)
-                    )
+                        ((ele.data("thickness_bg") >= bg_thresh) && 
+                        (ele.data("thickness_r") >= r_thresh)) |
+                        ((ele.data("thickness_bg") < bg_thresh) && (ele.data("thickness_bg") > 0) && 
+                        (ele.data("thickness_r") < r_thresh) && (ele.data("thickness_r") > 0)))
                 })
                 
                 var r_pass = cy.edges().filter(function(ele){
                     return(
                         (ele.data("thickness_bg") < bg_thresh) && 
-                        (ele.data("thickness_r") >= r_thresh)
-                    )
+                        (ele.data("thickness_r") >= r_thresh) )
                 })
                 
                 var bg_pass = cy.edges().filter(function(ele){
